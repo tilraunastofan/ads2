@@ -32,6 +32,23 @@ Already done (committed): `shadcn-templ init --preset nova --css assets/css/glob
 
 Verified in Chrome against `task dev`: search filters rows, row menu raises a toast, delete asks in an alert dialog and removes the row, the New application form shows 422 field errors, Rollout reaches 3/3 and stops polling, dark mode via `class="dark"` on `<html>` swaps the tokens. Note: a dark-mode browser extension (e.g. Dark Reader) darkens the page even without `.dark`; disable it when judging themes.
 
+## Notes for agents
+
+**Tooling**
+- `go tool templ generate && go mod tidy`, then `go build ./... && go vet ./...`, after any `.templ` edit or `shadcn-templ add`.
+- Don't edit `components/` or `assets/css/arion-theme.css`; change `tokens/tokens.json` and run `task theme`.
+- `task dev` needs :8090 and :7331 free. If it fails to bind, check `lsof -nP -iTCP:8090 -sTCP:LISTEN` before assuming a code problem, and don't kill processes you didn't start.
+- The showcase store is in memory; a restart brings deleted rows back.
+
+**Verifying UI**
+- Check toasts, dialogs and dark mode in Chrome; HTTP only covers server responses. Check `list_connected_browsers` if the extension reports not connected.
+- Dark Reader (if installed) darkens pages even without `.dark`. Judge themes by reading CSS variables, not screenshot colours.
+- The theme follows `.dark` or `[data-theme="dark"]`, not `prefers-color-scheme`.
+
+**Open items**
+- Deleting the last matching row leaves a bare table header; add an `empty` state.
+- Rollout 2/3 → 3/3 progression not yet observed in a browser (restart the server to see it).
+
 ## Rules for UI work in this repo
 
 - Use shadcn-templ components first; customise via `Class` and `Attributes` (htmx attributes go in `Attributes`). Don't fork components.
