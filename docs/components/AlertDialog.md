@@ -13,7 +13,7 @@ A confirmation that must be answered: `alertdialog.AlertDialog`, `alertdialog.Tr
         @alertdialog.Footer() {
             @alertdialog.Cancel() { Cancel }
             @alertdialog.Action(alertdialog.ActionProps{Variant: button.VariantDestructive,
-                Attributes: templ.Attributes{"hx-delete": "/namespaces/" + ns, "hx-target": "closest tr", "hx-swap": "delete"}}) { Delete namespace }
+                Attributes: templ.Attributes{"hx-delete": "/namespaces/" + ns, "hx-target": "#ns-rows", "hx-swap": "outerHTML", "hx-include": "#ns-search"}}) { Delete namespace }
         }
     }
 }
@@ -21,3 +21,4 @@ A confirmation that must be answered: `alertdialog.AlertDialog`, `alertdialog.Tr
 
 - Use instead of htmx `hx-confirm` for anything irreversible: it is styled, accessible, and names the object.
 - The action button repeats the verb and object ("Delete namespace"), never "OK".
+- The delete handler returns the refreshed rows (empty state included) plus a toast partial; see **htmx patterns**.

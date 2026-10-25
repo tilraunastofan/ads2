@@ -19,9 +19,14 @@ How to start a Go project on this system. The reference starter lives in the `ad
 go install github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ@latest
 shadcn-templ init my-app -t templ --preset nova
 cd my-app
-shadcn-templ add button card badge table field input inputgroup textarea label checkbox radiogroup switch nativeselect select slider toggle togglegroup tabs breadcrumb pagination accordion sidebar avatar item kbd separator alert toast progress spinner skeleton empty dialog alertdialog dropdownmenu tooltip icon
-go mod tidy
+shadcn-templ add button card badge table field input input-group textarea label checkbox radio-group switch native-select select slider toggle toggle-group tabs breadcrumb pagination accordion sidebar avatar item kbd separator alert toast progress spinner skeleton empty dialog alert-dialog dropdown-menu tooltip icon
+go mod tidy && go tool templ generate && go build ./... && go vet ./...
 ```
+
+- Registry names are **kebab-case** (`alert-dialog`, `dropdown-menu`, `input-group`, `native-select`); the Go package names drop the hyphen (`alertdialog`, `dropdownmenu`…). The no-hyphen names return 404.
+- `input-group` needs `textarea` installed too.
+- In a fresh scaffold run `go mod tidy` first: `go tool templ` is declared in `go.mod` but only resolves after tidy. After that, run `go tool templ generate && go mod tidy` after every `.templ` edit or `shadcn-templ add`.
+- Never edit the vendored `components/` or the generated `arion-theme.css`: change `tokens.json` and regenerate (`task theme`).
 
 Then apply the Arion theme:
 
@@ -62,6 +67,13 @@ templ App(title string) {
     </html>
 }
 ```
+
+## Verifying UI
+
+- Dark mode is opt-in by class: `class="dark"` on `<html>` swaps the token variables. The theme ignores `prefers-color-scheme`; add your own toggle that sets the class. (`data-theme="dark"` only enables Tailwind's `dark:` variant; it does not change the tokens.)
+- Check toasts, dialogs, menus and themes in a real browser; HTTP checks only cover the server side.
+- Browser extensions such as Dark Reader repaint pages. Judge the theme by its variables (`getComputedStyle(document.documentElement).getPropertyValue('--background')`), not by screenshot colour.
+- `task dev` needs ports 8090 and 7331 free (`lsof -nP -iTCP:8090 -sTCP:LISTEN`).
 
 ## On-prem checklist
 

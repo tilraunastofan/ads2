@@ -48,11 +48,11 @@ shadcn-templ's scripts re-initialise components inside swapped content, so dialo
 
 **Live search (inputgroup + table):** `hx-trigger="input changed delay:300ms, search"`, `hx-target="#rows"`, `hx-push-url="true"`. The handler renders only `table.Body` when `HX-Request` is set.
 
-**Row action with confirmation (dropdownmenu → alertdialog):** the `alertdialog.Action` carries `hx-delete` and `hx-target="closest tr" hx-swap="delete"`. The response is an `<hx-partial id="toasts">` holding a `toast.Toast`.
+**Row action with confirmation (dropdownmenu → alertdialog):** the `alertdialog.Action` carries `hx-delete`, `hx-target="#rows"`, `hx-swap="outerHTML"` and `hx-include="#search"`. The handler returns the re-rendered `table.Body` for the current query (so the last deletion shows the `empty` state) plus an `<hx-partial hx-target="#toasts">` holding a `toast.Toast`. Don't swap just the row (`hx-swap="delete"`): when the last matching row goes it leaves a bare table header instead of the `empty` state.
 
 **Toggle a setting (switch):** `hx-post` + `hx-trigger="change"` + `hx-swap="none"`. The response is only a `toast.Toast` partial. On error (5xx) re-render the switch in its old state.
 
-**Polling status (card, progress, badge):** give the fragment an `ID`, `hx-get` itself with `hx-trigger="every 15s"` and `hx-swap="outerHTML"`. Stop polling by returning markup without the trigger.
+**Polling status (card, progress, badge):** give the fragment an `ID`, `hx-get` itself with `hx-trigger="every 15s"` and `hx-swap="outerHTML"`. Stop polling by returning markup without the trigger. `every` fires while the element is hidden (an inactive tab, a collapsed accordion), and a trigger list like `intersect once, every 2s` doesn't help: each entry is its own trigger, so `every` still starts at page load. For hidden panels, render the first fragment with `hx-trigger="intersect once"`, let the server's responses carry `hx-trigger="every 2s"` while the job runs, and drop the trigger when it's done. Make the trigger a parameter of the fragment component (the showcase's `RolloutCard` does this).
 
 **Server-opened dialog:** a button `hx-get="/apps/42/scale"` targets an empty `<div id="modal">`. The response is `dialog.Dialog(dialog.Props{DefaultOpen: true})`. On success, the form's response closes it by swapping the `#modal` contents to empty.
 

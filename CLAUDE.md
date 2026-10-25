@@ -44,7 +44,7 @@ Verified in Chrome against `task dev`: search filters rows, row menu raises a to
 **Verifying UI**
 - Check toasts, dialogs and dark mode in Chrome; HTTP only covers server responses. Check `list_connected_browsers` if the extension reports not connected.
 - Dark Reader (if installed) darkens pages even without `.dark`. Judge themes by reading CSS variables, not screenshot colours.
-- The theme follows `.dark` or `[data-theme="dark"]`, not `prefers-color-scheme`.
+- Dark tokens apply only under `.dark` (not `prefers-color-scheme`); `[data-theme="dark"]` only enables the `dark:` variant and does not change the tokens.
 
 ## Rules for UI work in this repo
 
