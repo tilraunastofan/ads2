@@ -75,4 +75,4 @@ Other shadcn-templ components (Calendar, DatePicker, Combobox, Command, Popover,
 
 ## Dark mode
 
-Put `class="dark"` on `<html>` (shadcn-templ's convention). The `[data-theme="dark"]` attribute is supported too. Every token has a dark value. In dark mode, blue fills take dark text (`primary-foreground` is `#0c171b`), so always use the `*-foreground` token on a fill, never literal white.
+Put `class="dark"` on `<html>` (shadcn-templ's convention); that is what swaps the token variables. `data-theme="dark"` only enables Tailwind's `dark:` variant and does not change the tokens. Every token has a dark value. In dark mode, blue fills take dark text (`primary-foreground` is `#0c171b`), so always use the `*-foreground` token on a fill, never literal white.
