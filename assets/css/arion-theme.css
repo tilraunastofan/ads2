@@ -124,9 +124,9 @@
 }
 
 :root {
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Hanken Grotesk", "Hanken Grotesk Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Source Serif 4", "Source Serif 4 Fallback", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius: 0.5rem;
   --radius-sm: 4px;
   --radius-md: 6px;

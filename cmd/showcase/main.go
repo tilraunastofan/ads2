@@ -6,14 +6,20 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/a-h/templ"
 
@@ -87,24 +93,46 @@ func toastPartial(title, desc string, t toast.Type) templ.Component {
 }
 
 // assetHandler serves the embedded assets, or ./assets when SHADCN_TEMPL_DEV=true
-// so the watchers' output shows up without a rebuild. The hashed component
-// bundle is immutable; everything else revalidates.
+// so the watchers' output shows up without a rebuild.
+//
+// Fonts and the hashed component bundle never change under their name, so they are
+// cached for a year, in dev too (re-downloading fonts on every refresh makes text
+// flash from the fallback font). Everything else revalidates; embedded files carry
+// no modification time, so they get a content-hash ETag and a refresh costs a 304.
 func assetHandler() http.Handler {
 	dev := os.Getenv("SHADCN_TEMPL_DEV") == "true"
-	files := http.FileServer(http.FS(assets.Assets))
+	var disk http.Handler
 	if dev {
-		files = http.FileServer(http.Dir("assets"))
+		disk = http.FileServer(http.Dir("assets"))
 	}
+	var etags sync.Map // asset name -> ETag
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		name := strings.TrimPrefix(r.URL.Path, "/")
+		immutable := strings.HasPrefix(name, "fonts/") || strings.HasPrefix(name, "js/shadcn-templ-")
 		switch {
+		case immutable:
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		case dev:
 			w.Header().Set("Cache-Control", "no-store")
-		case strings.HasPrefix(r.URL.Path, "/js/shadcn-templ-"):
-			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		default:
 			w.Header().Set("Cache-Control", "no-cache")
 		}
-		files.ServeHTTP(w, r)
+		if dev {
+			disk.ServeHTTP(w, r)
+			return
+		}
+		body, err := fs.ReadFile(assets.Assets, name)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		tag, ok := etags.Load(name)
+		if !ok {
+			sum := sha256.Sum256(body)
+			tag, _ = etags.LoadOrStore(name, `"`+hex.EncodeToString(sum[:8])+`"`)
+		}
+		w.Header().Set("ETag", tag.(string))
+		http.ServeContent(w, r, path.Base(name), time.Time{}, bytes.NewReader(body))
 	})
 }
 

@@ -22,8 +22,10 @@ type ShellProps struct {
 	Lang        string // defaults to "en"
 }
 
-// Base is the HTML document: fonts, theme CSS, theme.js (before paint, so no
-// flash), vendored htmx 4, the component bundle and the toast mount.
+// Base is the HTML document: the two fonts every page shows, preloaded so they
+// download alongside the CSS instead of after it; the font and theme CSS; theme.js
+// (before paint, so no flash); vendored htmx 4; the component bundle; and the
+// toast mount.
 templ Base(title, lang string) {
 	<!DOCTYPE html>
 	<html lang={ langOr(lang) }>
@@ -32,6 +34,8 @@ templ Base(title, lang string) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ title }</title>
 			<link rel="icon" type="image/svg+xml" href="/assets/img/arion-mark.svg"/>
+			<link rel="preload" href="/assets/fonts/hanken-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin/>
+			<link rel="preload" href="/assets/fonts/source-serif-4-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin/>
 			<link rel="stylesheet" href="/assets/css/fonts.css"/>
 			<link rel="stylesheet" href="/assets/css/output.css"/>
 			<script src="/assets/js/theme.js"></script>

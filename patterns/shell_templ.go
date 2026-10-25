@@ -30,8 +30,10 @@ type ShellProps struct {
 	Lang        string // defaults to "en"
 }
 
-// Base is the HTML document: fonts, theme CSS, theme.js (before paint, so no
-// flash), vendored htmx 4, the component bundle and the toast mount.
+// Base is the HTML document: the two fonts every page shows, preloaded so they
+// download alongside the CSS instead of after it; the font and theme CSS; theme.js
+// (before paint, so no flash); vendored htmx 4; the component bundle; and the
+// toast mount.
 func Base(title, lang string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -60,7 +62,7 @@ func Base(title, lang string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(langOr(lang))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 29, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 31, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
@@ -73,13 +75,13 @@ func Base(title, lang string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 33, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 35, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/img/arion-mark.svg\"><link rel=\"stylesheet\" href=\"/assets/css/fonts.css\"><link rel=\"stylesheet\" href=\"/assets/css/output.css\"><script src=\"/assets/js/theme.js\"></script><script src=\"/assets/js/htmx.min.js\" defer></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/img/arion-mark.svg\"><link rel=\"preload\" href=\"/assets/fonts/hanken-grotesk-latin-wght-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin><link rel=\"preload\" href=\"/assets/fonts/source-serif-4-latin-wght-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin><link rel=\"stylesheet\" href=\"/assets/css/fonts.css\"><link rel=\"stylesheet\" href=\"/assets/css/output.css\"><script src=\"/assets/js/theme.js\"></script><script src=\"/assets/js/htmx.min.js\" defer></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -196,7 +198,7 @@ func Shell(p ShellProps) templ.Component {
 						var templ_7745c5c3_Var9 string
 						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Product)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 66, Col: 53}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 70, Col: 53}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 						if templ_7745c5c3_Err != nil {
@@ -209,7 +211,7 @@ func Shell(p ShellProps) templ.Component {
 						var templ_7745c5c3_Var10 string
 						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(p.Tagline)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 67, Col: 71}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 71, Col: 71}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 						if templ_7745c5c3_Err != nil {
@@ -264,7 +266,7 @@ func Shell(p ShellProps) templ.Component {
 								var templ_7745c5c3_Var14 string
 								templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(p.GroupLabel)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 74, Col: 21}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 78, Col: 21}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 								if templ_7745c5c3_Err != nil {
@@ -324,7 +326,7 @@ func Shell(p ShellProps) templ.Component {
 											var templ_7745c5c3_Var18 string
 											templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(it.Label)
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 81, Col: 26}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 85, Col: 26}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 											if templ_7745c5c3_Err != nil {
