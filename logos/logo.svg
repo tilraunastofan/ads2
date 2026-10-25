@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="116 116 368 368" role="img" aria-label="Arion">
+  <!-- The Arion logo, traced from arion_logo.png by hand (a centre diamond and
+       eight right triangles, all on a 45 degree grid), so it is exact at any
+       size. One colour, #005AB4, on a transparent background. -->
+  <g fill="#005AB4">
+    <path d="M300 210 390 300 300 390 210 300Z"/>
+    <path d="M206 121V207H292Z"/>
+    <path d="M394 121V207H308Z"/>
+    <path d="M122 206H207V291Z"/>
+    <path d="M478 206H393V291Z"/>
+    <path d="M122 393H207V308Z"/>
+    <path d="M478 393H393V308Z"/>
+    <path d="M206 394H292L206 479Z"/>
+    <path d="M394 394H308L394 479Z"/>
+  </g>
+</svg>

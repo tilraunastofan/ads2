@@ -1,0 +1,520 @@
+package pages
+
+import (
+	"github.com/tilraunastofan/ads2/components/alert"
+	"github.com/tilraunastofan/ads2/components/alertdialog"
+	"github.com/tilraunastofan/ads2/components/badge"
+	"github.com/tilraunastofan/ads2/components/breadcrumb"
+	"github.com/tilraunastofan/ads2/components/button"
+	"github.com/tilraunastofan/ads2/components/card"
+	"github.com/tilraunastofan/ads2/components/dialog"
+	"github.com/tilraunastofan/ads2/components/dropdownmenu"
+	"github.com/tilraunastofan/ads2/components/empty"
+	"github.com/tilraunastofan/ads2/components/field"
+	"github.com/tilraunastofan/ads2/components/icon"
+	"github.com/tilraunastofan/ads2/components/input"
+	"github.com/tilraunastofan/ads2/components/inputgroup"
+	"github.com/tilraunastofan/ads2/components/nativeselect"
+	"github.com/tilraunastofan/ads2/components/progress"
+	switchcomp "github.com/tilraunastofan/ads2/components/switch"
+	"github.com/tilraunastofan/ads2/components/table"
+	"github.com/tilraunastofan/ads2/components/tabs"
+	"github.com/tilraunastofan/ads2/components/toast"
+	"github.com/tilraunastofan/ads2/ui/layouts"
+)
+
+// ---- view models -------------------------------------------------------------
+
+type KPI struct {
+	Label string
+	Value string
+	Delta string
+	Good  bool // the change is in the good direction (drives colour)
+	Up    bool // the number went up (drives the arrow)
+}
+
+type App struct {
+	Name    string
+	Env     string
+	Version string
+	Health  string // Healthy, Progressing, Degraded
+}
+
+type ShowcaseVM struct {
+	KPIs  []KPI
+	Apps  []App
+	Query string
+}
+
+// ---- page --------------------------------------------------------------------
+
+templ Showcase(vm ShowcaseVM) {
+	@layouts.App("Releases", "/apps") {
+		@PageHeader()
+		<div class="grid gap-4 sm:grid-cols-3">
+			for _, k := range vm.KPIs {
+				@KPICard(k)
+			}
+		</div>
+		@tabs.Tabs(tabs.Props{DefaultValue: "apps"}) {
+			@tabs.List(tabs.ListProps{Variant: tabs.VariantLine}) {
+				@tabs.Trigger(tabs.TriggerProps{Value: "apps"}) {
+					Applications
+				}
+				@tabs.Trigger(tabs.TriggerProps{Value: "new"}) {
+					New application
+				}
+				@tabs.Trigger(tabs.TriggerProps{Value: "rollout"}) {
+					Rollout
+				}
+			}
+			@tabs.Content(tabs.ContentProps{Value: "apps"}) {
+				@AppsCard(vm)
+			}
+			@tabs.Content(tabs.ContentProps{Value: "new"}) {
+				@NewAppForm(NewAppErrors{})
+			}
+			@tabs.Content(tabs.ContentProps{Value: "rollout"}) {
+				@RolloutCard(2, 3)
+			}
+		}
+	}
+}
+
+templ PageHeader() {
+	<div class="flex flex-col gap-3">
+		@breadcrumb.Breadcrumb() {
+			@breadcrumb.List() {
+				@breadcrumb.Item() {
+					@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
+						Platform
+					}
+				}
+				@breadcrumb.Separator()
+				@breadcrumb.Item() {
+					@breadcrumb.Page() {
+						Releases
+					}
+				}
+			}
+		}
+		<div class="flex flex-wrap items-end justify-between gap-4">
+			<div>
+				<h1 class="font-display text-[40px] leading-[44px] font-semibold">Releases</h1>
+				<p class="mt-1 text-sm text-muted-foreground">ocp-prod-1 · 42 applications · synced 1 minute ago</p>
+			</div>
+			<div class="flex gap-2">
+				@button.Button(button.Props{Variant: button.VariantOutline, Href: "/apps.csv"}) {
+					@icon.Download()
+					Export
+				}
+				@ScaleDialog()
+			</div>
+		</div>
+	</div>
+}
+
+templ KPICard(k KPI) {
+	@card.Card(card.Props{Size: card.SizeSm}) {
+		@card.Header() {
+			@card.Description() {
+				{ k.Label }
+			}
+			@card.Title(card.TitleProps{Class: "text-xl font-semibold tabular-nums"}) {
+				{ k.Value }
+			}
+			@card.Action() {
+				@badge.Badge(badge.Props{Variant: badge.VariantOutline, Class: deltaClass(k.Good)}) {
+					if k.Up {
+						@icon.TrendingUp()
+					} else {
+						@icon.TrendingDown()
+					}
+					{ k.Delta }
+				}
+			}
+		}
+	}
+}
+
+func deltaClass(good bool) string {
+	if good {
+		return "text-positive"
+	}
+	return "text-destructive"
+}
+
+// ---- applications table (live search + row actions) ---------------------------
+
+templ AppsCard(vm ShowcaseVM) {
+	@card.Card(card.Props{Class: "gap-0 pb-0"}) {
+		@card.Header(card.HeaderProps{Class: "border-b"}) {
+			@card.Title() {
+				Applications
+			}
+			@card.Description() {
+				Argo CD sync and health
+			}
+			@card.Action() {
+				@inputgroup.InputGroup(inputgroup.Props{Class: "w-64"}) {
+					@inputgroup.Input(inputgroup.InputProps{
+						Type:        "search",
+						Name:        "q",
+						Value:       vm.Query,
+						Placeholder: "Search applications",
+						Attributes: templ.Attributes{
+							"hx-get":      "/apps/rows",
+							"hx-trigger":  "input changed delay:300ms, search",
+							"hx-target":   "#app-rows",
+							"hx-swap":     "outerHTML",
+							"aria-label":  "Search applications",
+						},
+					})
+					@inputgroup.Addon(inputgroup.AddonProps{Align: inputgroup.AlignInlineStart}) {
+						@icon.Search()
+					}
+				}
+			}
+		}
+		@table.Table() {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "pl-4"}) {
+						Application
+					}
+					@table.Head() {
+						Environment
+					}
+					@table.Head() {
+						Version
+					}
+					@table.Head() {
+						Health
+					}
+					@table.Head() {
+						<span class="sr-only">Actions</span>
+					}
+				}
+			}
+			@AppRows(vm.Apps)
+		}
+	}
+}
+
+// AppRows is the htmx swap target for search results.
+templ AppRows(apps []App) {
+	@table.Body(table.BodyProps{ID: "app-rows"}) {
+		if len(apps) == 0 {
+			@table.Row() {
+				@table.Cell(table.CellProps{Attributes: templ.Attributes{"colspan": "5"}}) {
+					@empty.Empty() {
+						@empty.Header() {
+							@empty.Media(empty.MediaProps{Variant: empty.MediaVariantIcon}) {
+								@icon.Inbox()
+							}
+							@empty.Title() {
+								No matching applications
+							}
+							@empty.Description() {
+								Try another name or clear the search.
+							}
+						}
+					}
+				}
+			}
+		}
+		for _, a := range apps {
+			@AppRow(a)
+		}
+	}
+}
+
+templ AppRow(a App) {
+	@table.Row(table.RowProps{ID: "app-" + a.Name}) {
+		@table.Cell(table.CellProps{Class: "pl-4 font-medium"}) {
+			{ a.Name }
+		}
+		@table.Cell() {
+			{ a.Env }
+		}
+		@table.Cell(table.CellProps{Class: "font-mono text-[13px]"}) {
+			{ a.Version }
+		}
+		@table.Cell() {
+			@HealthBadge(a.Health)
+		}
+		@table.Cell(table.CellProps{Class: "pr-2 text-right"}) {
+			@RowActions(a)
+		}
+	}
+}
+
+templ HealthBadge(h string) {
+	switch h {
+		case "Healthy":
+			@badge.Badge(badge.Props{Variant: badge.VariantSecondary}) {
+				Healthy
+			}
+		case "Degraded":
+			@badge.Badge(badge.Props{Variant: badge.VariantDestructive}) {
+				@icon.CircleAlert()
+				Degraded
+			}
+		default:
+			@badge.Badge(badge.Props{Variant: badge.VariantOutline}) {
+				{ h }
+			}
+	}
+}
+
+templ RowActions(a App) {
+	@dropdownmenu.DropdownMenu() {
+		@button.Button(button.Props{
+			Variant:    button.VariantGhost,
+			Size:       button.SizeIconSm,
+			Attributes: mergeAttrs(dropdownmenu.Trigger(ctx), templ.Attributes{"aria-label": "Actions for " + a.Name}),
+		}) {
+			@icon.Ellipsis()
+		}
+		@dropdownmenu.Content(dropdownmenu.ContentProps{Align: dropdownmenu.AlignEnd}) {
+			@dropdownmenu.Label() {
+				{ a.Name }
+			}
+			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: templ.Attributes{"hx-post": "/apps/" + a.Name + "/restart", "hx-swap": "none"}}) {
+				@icon.RotateCcw()
+				Restart pods
+			}
+			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: templ.Attributes{"hx-post": "/apps/" + a.Name + "/sync", "hx-swap": "none"}}) {
+				@icon.GitBranch()
+				Sync now
+			}
+		}
+	}
+	@DeleteApp(a)
+}
+
+templ DeleteApp(a App) {
+	@alertdialog.AlertDialog() {
+		@button.Button(button.Props{
+			Variant:    button.VariantGhost,
+			Size:       button.SizeIconSm,
+			Attributes: mergeAttrs(alertdialog.Trigger(ctx), templ.Attributes{"aria-label": "Delete " + a.Name}),
+		}) {
+			@icon.Trash2()
+		}
+		@alertdialog.Content() {
+			@alertdialog.Header() {
+				@alertdialog.Title() {
+					Delete application “{ a.Name }”?
+				}
+				@alertdialog.Description() {
+					Argo CD removes all its resources from { a.Env }. This cannot be undone.
+				}
+			}
+			@alertdialog.Footer() {
+				@alertdialog.Cancel() {
+					Cancel
+				}
+				@alertdialog.Action(alertdialog.ActionProps{
+					Variant: button.VariantDestructive,
+					Attributes: templ.Attributes{
+						"hx-delete": "/apps/" + a.Name,
+						"hx-target": "#app-" + a.Name,
+						"hx-swap":   "delete",
+					},
+				}) {
+					Delete application
+				}
+			}
+		}
+	}
+}
+
+func mergeAttrs(a, b templ.Attributes) templ.Attributes {
+	out := templ.Attributes{}
+	for k, v := range a {
+		out[k] = v
+	}
+	for k, v := range b {
+		out[k] = v
+	}
+	return out
+}
+
+// ---- form with server validation ----------------------------------------------
+
+type NewAppErrors struct {
+	Name     string
+	Replicas string
+	Values   map[string]string
+}
+
+func (e NewAppErrors) val(k string) string {
+	if e.Values == nil {
+		return ""
+	}
+	return e.Values[k]
+}
+
+func invalid(msg string) templ.Attributes {
+	if msg == "" {
+		return templ.Attributes{}
+	}
+	return templ.Attributes{"data-invalid": "true"}
+}
+
+templ NewAppForm(e NewAppErrors) {
+	<form id="new-app" hx-post="/apps" hx-target="this" hx-swap="outerHTML" hx-status:422="target:this" class="max-w-xl">
+		@card.Card() {
+			@card.Header() {
+				@card.Title() {
+					New application
+				}
+				@card.Description() {
+					Creates a Helm release and an Argo CD application.
+				}
+			}
+			@card.Content() {
+				@field.Group() {
+					@field.Field(field.Props{Attributes: invalid(e.Name)}) {
+						@field.Label(field.LabelProps{For: "name"}) {
+							Application name
+						}
+						@input.Input(input.Props{ID: "name", Name: "name", Value: e.val("name"), Placeholder: "payments-api", Attributes: templ.Attributes{"aria-invalid": e.Name != ""}})
+						if e.Name != "" {
+							@field.Error() {
+								{ e.Name }
+							}
+						} else {
+							@field.Description() {
+								Lowercase letters, digits and dashes.
+							}
+						}
+					}
+					@field.Field() {
+						@field.Label(field.LabelProps{For: "namespace"}) {
+							Namespace
+						}
+						@nativeselect.NativeSelect(nativeselect.Props{ID: "namespace", Name: "namespace"}) {
+							@nativeselect.Option(nativeselect.OptionProps{Value: "payments"}) {
+								payments
+							}
+							@nativeselect.Option(nativeselect.OptionProps{Value: "lending"}) {
+								lending
+							}
+							@nativeselect.Option(nativeselect.OptionProps{Value: "platform"}) {
+								platform
+							}
+						}
+					}
+					@field.Field(field.Props{Attributes: invalid(e.Replicas)}) {
+						@field.Label(field.LabelProps{For: "replicas"}) {
+							Replicas
+						}
+						@input.Input(input.Props{ID: "replicas", Name: "replicas", Type: "number", Value: e.val("replicas"), Attributes: templ.Attributes{"aria-invalid": e.Replicas != ""}})
+						if e.Replicas != "" {
+							@field.Error() {
+								{ e.Replicas }
+							}
+						}
+					}
+					@field.Field(field.Props{Orientation: field.OrientationHorizontal}) {
+						@switchcomp.Switch(switchcomp.Props{ID: "autosync", Name: "autosync", DefaultChecked: true})
+						@field.Label(field.LabelProps{For: "autosync"}) {
+							Auto-sync with Argo CD
+						}
+					}
+				}
+			}
+			@card.Footer(card.FooterProps{Class: "justify-end gap-2"}) {
+				@button.Button(button.Props{Variant: button.VariantOutline, Type: button.TypeReset}) {
+					Reset
+				}
+				@button.Button(button.Props{Type: button.TypeSubmit, Attributes: templ.Attributes{"hx-disable": "this"}}) {
+					Create application
+				}
+			}
+		}
+	</form>
+}
+
+// ---- polling progress -----------------------------------------------------------
+
+templ RolloutCard(ready, desired int) {
+	<div
+		id="rollout"
+		if ready < desired {
+			hx-get="/rollout"
+			hx-trigger="every 2s"
+			hx-swap="outerHTML"
+		}
+		class="max-w-xl"
+	>
+		@card.Card() {
+			@card.Header() {
+				@card.Title() {
+					payments-api 1.42.0
+				}
+				@card.Description() {
+					Rolling update in production
+				}
+			}
+			@card.Content() {
+				@progress.Progress(progress.Props{Value: ready, Max: desired})
+				if ready >= desired {
+					@alert.Alert(alert.Props{Class: "mt-4"}) {
+						@icon.CircleCheck()
+						@alert.Title() {
+							Rollout complete
+						}
+						@alert.Description() {
+							All pods are ready.
+						}
+					}
+				}
+			}
+		}
+	</div>
+}
+
+// ---- dialog -------------------------------------------------------------------
+
+templ ScaleDialog() {
+	@dialog.Dialog(dialog.Props{ID: "scale"}) {
+		@button.Button(button.Props{Attributes: dialog.Trigger(ctx)}) {
+			@icon.Plus()
+			Scale deployment
+		}
+		@dialog.Content() {
+			<form hx-post="/scale" hx-swap="none" class="grid gap-4">
+				@dialog.Header() {
+					@dialog.Title() {
+						Scale deployment
+					}
+					@dialog.Description() {
+						Changes apply through Git. Argo CD syncs within a minute.
+					}
+				}
+				@field.Field() {
+					@field.Label(field.LabelProps{For: "scale-replicas"}) {
+						Replicas
+					}
+					@input.Input(input.Props{ID: "scale-replicas", Name: "replicas", Type: "number", Value: "3"})
+				}
+				@dialog.Footer() {
+					@button.Button(button.Props{Variant: button.VariantOutline, Attributes: dialog.Close(ctx)}) {
+						Cancel
+					}
+					@button.Button(button.Props{Type: button.TypeSubmit}) {
+						Open pull request
+					}
+				}
+			</form>
+		}
+	}
+}
+
+// Toast is returned (out of band) by action handlers.
+templ Toast(title, description string, t toast.Type) {
+	@toast.Toast(toast.Props{Title: title, Description: description, Type: t})
+}

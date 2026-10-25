@@ -1,0 +1,46 @@
+version: "3"
+
+tasks:
+  theme:
+    desc: Regenerate assets/css/arion-theme.css from tokens/tokens.json
+    cmds:
+      - go run ./cmd/gentheme
+
+  templ:
+    desc: templ watcher with live-reload proxy on :7331
+    cmds:
+      - go tool templ generate --watch --proxy="http://localhost:8090" --cmd="go run ./cmd/showcase" --open-browser=false
+
+  tailwind:
+    desc: Tailwind v4 standalone CLI in watch mode
+    cmds:
+      - tailwindcss -i ./assets/css/globals.css -o ./assets/css/output.css --watch
+
+  scripts:
+    desc: Rebuild the shadcn-templ component JS bundle on change
+    cmds:
+      - go tool shadcn-templ bundle --watch
+
+  dev:
+    desc: Everything for local development (open http://localhost:7331)
+    env:
+      SHADCN_TEMPL_DEV: "true"
+    cmds:
+      - task --parallel tailwind scripts templ
+
+  build:
+    desc: Production build to bin/showcase
+    cmds:
+      - go run ./cmd/gentheme
+      - go tool templ generate
+      - go tool shadcn-templ bundle
+      - tailwindcss -i ./assets/css/globals.css -o ./assets/css/output.css --minify
+      - go build -o bin/showcase ./cmd/showcase
+
+  check:
+    desc: CI check — generated code is committed and everything builds
+    cmds:
+      - go tool templ generate
+      - git diff --exit-code -- '*_templ.go'
+      - go vet ./...
+      - go build ./...
