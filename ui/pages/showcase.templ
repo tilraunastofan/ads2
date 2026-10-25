@@ -158,6 +158,7 @@ templ AppsCard(vm ShowcaseVM) {
 			@card.Action() {
 				@inputgroup.InputGroup(inputgroup.Props{Class: "w-64"}) {
 					@inputgroup.Input(inputgroup.InputProps{
+						ID:          "app-search",
 						Type:        "search",
 						Name:        "q",
 						Value:       vm.Query,
@@ -318,9 +319,10 @@ templ DeleteApp(a App) {
 				@alertdialog.Action(alertdialog.ActionProps{
 					Variant: button.VariantDestructive,
 					Attributes: templ.Attributes{
-						"hx-delete": "/apps/" + a.Name,
-						"hx-target": "#app-" + a.Name,
-						"hx-swap":   "delete",
+						"hx-delete":  "/apps/" + a.Name,
+						"hx-include": "#app-search",
+						"hx-target":  "#app-rows",
+						"hx-swap":    "outerHTML",
 					},
 				}) {
 					Delete application

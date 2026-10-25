@@ -46,8 +46,7 @@ Verified in Chrome against `task dev`: search filters rows, row menu raises a to
 - The theme follows `.dark` or `[data-theme="dark"]`, not `prefers-color-scheme`.
 
 **Open items**
-- Deleting the last matching row leaves a bare table header; add an `empty` state.
-- Rollout 2/3 → 3/3 progression not yet observed in a browser (restart the server to see it).
+- The Rollout card polls (`every 2s`) as soon as the page loads, even while its tab is hidden, so by the time someone opens the tab it already reads 3/3. If the 2/3 → 3/3 progression should be visible, start polling on `intersect` instead.
 
 ## Rules for UI work in this repo
 

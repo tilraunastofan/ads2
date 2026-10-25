@@ -768,6 +768,7 @@ func AppsCard(vm ShowcaseVM) templ.Component {
 						}
 						ctx = templ.InitializeContext(ctx)
 						templ_7745c5c3_Err = inputgroup.Input(inputgroup.InputProps{
+							ID:          "app-search",
 							Type:        "search",
 							Name:        "q",
 							Value:       vm.Query,
@@ -1239,7 +1240,7 @@ func AppRow(a App) templ.Component {
 				var templ_7745c5c3_Var57 string
 				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(a.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 235, Col: 11}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 236, Col: 11}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 				if templ_7745c5c3_Err != nil {
@@ -1266,7 +1267,7 @@ func AppRow(a App) templ.Component {
 				var templ_7745c5c3_Var59 string
 				templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(a.Env)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 238, Col: 10}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 239, Col: 10}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 				if templ_7745c5c3_Err != nil {
@@ -1293,7 +1294,7 @@ func AppRow(a App) templ.Component {
 				var templ_7745c5c3_Var61 string
 				templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(a.Version)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 241, Col: 14}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 242, Col: 14}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 				if templ_7745c5c3_Err != nil {
@@ -1447,7 +1448,7 @@ func HealthBadge(h string) templ.Component {
 				var templ_7745c5c3_Var68 string
 				templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(h)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 265, Col: 7}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 266, Col: 7}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 				if templ_7745c5c3_Err != nil {
@@ -1550,7 +1551,7 @@ func RowActions(a App) templ.Component {
 					var templ_7745c5c3_Var74 string
 					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(a.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 281, Col: 12}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 282, Col: 12}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 					if templ_7745c5c3_Err != nil {
@@ -1736,7 +1737,7 @@ func DeleteApp(a App) templ.Component {
 						var templ_7745c5c3_Var83 string
 						templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(a.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 308, Col: 35}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 309, Col: 35}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 						if templ_7745c5c3_Err != nil {
@@ -1771,7 +1772,7 @@ func DeleteApp(a App) templ.Component {
 						var templ_7745c5c3_Var85 string
 						templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(a.Env)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 311, Col: 51}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 312, Col: 51}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
 						if templ_7745c5c3_Err != nil {
@@ -1848,9 +1849,10 @@ func DeleteApp(a App) templ.Component {
 					templ_7745c5c3_Err = alertdialog.Action(alertdialog.ActionProps{
 						Variant: button.VariantDestructive,
 						Attributes: templ.Attributes{
-							"hx-delete": "/apps/" + a.Name,
-							"hx-target": "#app-" + a.Name,
-							"hx-swap":   "delete",
+							"hx-delete":  "/apps/" + a.Name,
+							"hx-include": "#app-search",
+							"hx-target":  "#app-rows",
+							"hx-swap":    "outerHTML",
 						},
 					}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var88), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
@@ -2088,7 +2090,7 @@ func NewAppForm(e NewAppErrors) templ.Component {
 								var templ_7745c5c3_Var99 string
 								templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.JoinStringErrs(e.Name)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 386, Col: 16}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 388, Col: 16}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var99))
 								if templ_7745c5c3_Err != nil {
@@ -2308,7 +2310,7 @@ func NewAppForm(e NewAppErrors) templ.Component {
 								var templ_7745c5c3_Var110 string
 								templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(e.Replicas)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 417, Col: 20}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/showcase.templ`, Line: 419, Col: 20}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
 								if templ_7745c5c3_Err != nil {

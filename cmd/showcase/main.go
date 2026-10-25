@@ -142,7 +142,10 @@ func main() {
 
 	mux.HandleFunc("DELETE /apps/{name}", func(w http.ResponseWriter, r *http.Request) {
 		s.remove(r.PathValue("name"))
-		render(w, r, http.StatusOK, toastPartial("Application deleted", r.PathValue("name"), toast.TypeSuccess))
+		render(w, r, http.StatusOK, templ.Join(
+			pages.AppRows(s.search(r.FormValue("q"))),
+			toastPartial("Application deleted", r.PathValue("name"), toast.TypeSuccess),
+		))
 	})
 
 	mux.HandleFunc("POST /scale", func(w http.ResponseWriter, r *http.Request) {
