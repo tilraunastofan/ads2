@@ -2,7 +2,7 @@ version: "3"
 
 tasks:
   theme:
-    desc: Regenerate assets/css/arion-theme.css from tokens/tokens.json
+    desc: Regenerate assets/css/arion-theme.css from tokens/tokens.json (fails if a contrast requirement is missed)
     cmds:
       - go run ./cmd/gentheme
 
@@ -38,9 +38,11 @@ tasks:
       - go build -o bin/showcase ./cmd/showcase
 
   check:
-    desc: CI check — generated code is committed and everything builds
+    desc: CI check — tokens meet contrast, generated code is committed, everything builds and passes
     cmds:
+      - go run ./cmd/gentheme -check
       - go tool templ generate
-      - git diff --exit-code -- '*_templ.go'
+      - git diff --exit-code -- '*_templ.go' components/scripts_bundle.go
       - go vet ./...
       - go build ./...
+      - go test ./...
