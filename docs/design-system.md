@@ -13,8 +13,8 @@ Arion Design System 2 dresses **shadcn-templ v2** (nova style) in Arion banki's 
 - **Voice:** plain, factual, calm. State what happened and what to do next: "Sync failed. Helm render failed for payments-api: values.yaml line 42." No exclamation marks, no emoji, no jokes in errors.
 - **Person:** address the user as "you" only when needed. Buttons are imperative verbs ("Promote to prod", "Open pull request"). Never "Click here" or "OK".
 - **Casing:** sentence case everywhere: titles, buttons, menu items, table headers. Product and system names keep their own casing (OpenShift, Argo CD, Kargo).
-- **Language:** English for internal platform tools. Customer-facing and finance views follow Arion and use Icelandic ("Fjárhagsupplýsingar", "Hagnaður 3F 2026"). Never mix the two inside one sentence.
-- **Numbers:** Icelandic format: `.` groups thousands and `,` is the decimal mark (`1.284.500 kr.`, `+9,5%`). Use `m.kr.` for millions and put units in the table caption or column header, not in every cell. Losses use a real minus sign `−`. Dates read `23. október 2026` in Icelandic UI and `23 Oct 2026` in English UI. Times use 24 hours.
+- **Language:** English for internal platform tools. Customer-facing and finance views follow Arion and use Icelandic ("Fjárhagsupplýsingar", "Hagnaður 3F 2026"). Never mix the two inside one sentence, which includes units: "41 min" on an English page, "41 mín." on an Icelandic one.
+- **Numbers:** one format in every language, Arion's: `.` groups thousands and `,` is the decimal mark (`1.284.500`, `2,3%`, `+9,5%`), also on English pages. Only the words and units around the number follow the page language (`1.284.500 kr.` / `128,4 m.kr.`). Put units in the table caption or column header, not in every cell. Losses use a real minus sign `−`. Dates read `23. október 2026` in Icelandic UI and `23 Oct 2026` in English UI. Times use 24 hours. Format with `patterns.Int`, `Dec`, `Signed` and `Pct` rather than by hand.
 - **Identifiers:** image tags, SHAs, namespaces and commands are set in `code` (JetBrains Mono).
 
 ## Color
@@ -25,16 +25,17 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 - **Text.** Use `foreground` (Arion navy `#23313d`) for all body text. `muted-foreground` is for descriptions, helper text and captions only. Strong secondary labels use `slate`.
 - **Action.** `primary` (Arion blue `#005ab4`) is reserved for the one primary button per view, links, checked controls, the active tab underline and progress. Do not use it for decoration or headings.
 - **Hover and selection.** `accent` (pale Arion blue) with `accent-foreground` covers ghost and menu hover, the active sidebar item and highlighted rows. Text selection uses `selection` (`#acd5ff`, Arion's focus fill).
-- **Status.** Errors use `destructive` (Arion red `#d70000`). Gains and healthy states use `positive` (teal, an addition to the Arion palette). Teal stays off the red–green axis so colour-blind readers can tell the two apart. Status is never shown by colour alone: always add a word, icon, sign or arrow.
+- **Status.** Errors use `destructive` (Arion red, darkened to `#cc0000`). Gains and healthy states use `positive` (teal, an addition to the Arion palette). In-progress, degraded and caution states use `warning` (amber-brown, also an addition). Teal and red stay apart for all common forms of colour blindness. Status is never shown by colour alone: always add a word, icon, sign or arrow. Use `patterns.StatusBadge` for state pills (Healthy / Progressing / Degraded) so every app maps states the same way; each token has a `*-foreground` for solid fills.
 - **Editorial accents.** `ink` is Arion's dark CTA (one per page at most, never beside a blue primary). `gold` and `plum` are for highlight figures and charts. `sand` is a warm band behind report covers.
-- **Charts.** Use `chart-1` to `chart-5` in order: blue, gold, plum, slate, light slate. Label series directly.
-- **Contrast.** Every text token clears 4.5:1 on the surfaces its usage note names, in both themes. Two source values sit just below their target and are kept exact: `input` at 2.9:1 on white, and `destructive` on its own 10% tint at 4.48:1. `muted-foreground` was darkened from Arion's `#5e7788` to `#536a7a` to pass.
+- **Charts.** Use `chart-1` to `chart-5` in order: blue, gold, plum, slate, light slate. Label series directly; the five are tuned to stay apart under red–green colour blindness.
+- **Contrast.** Every text token clears 4.5:1, and every control border, focus ring and chart mark clears 3:1, on the surfaces its usage note names, in both themes. `cmd/gentheme` checks this on every `task theme` and `task check`, so a token edit that breaks a claim fails the build. Four Arion source values were adjusted to pass: `muted-foreground` `#5e7788` → `#536a7a`, `destructive` `#d70000` → `#cc0000`, the `input` border (50% navy, 2.9:1) → solid `#7b8c98`, and light `chart-5` → `#8294a0`. Dark `destructive` is `#ff7a70` so nova's 20% tint badge stays legible.
 
 ## Typography
 
 - **Families.** The `sans` family (Hanken Grotesk) carries all UI and reading text. The `display` family (Source Serif 4) is for page titles and heroes only, mirroring Arion's serif headlines. The `mono` family (JetBrains Mono) is for figures in tables and for code.
-- **Licensing.** Arion's own faces are Suisse Intl and Suisse Works (Swiss Typefaces, licensed). Both are listed second in the stacks: if you hold a licence and self-host them, they take over automatically. Otherwise the open substitutes render.
+- **Licensing.** The system ships open fonts only, self-hosted from `assets/fonts/` (SIL OFL), so no CDN is needed. Arion's own faces, Suisse Intl and Suisse Works (Swiss Typefaces, licensed), are an optional opt-in for teams that receive the files from Arion's UI team: add their `@font-face` rules to `fonts.css` and, after the `arion-theme.css` import in `globals.css`, put them first in the stacks (`:root { --font-sans: "Suisse Intl", "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif; }`, and `--font-display: "Suisse Works", "Source Serif 4", ui-serif, Georgia, serif`). Nothing else changes.
 - **Display styles.** One `display-*` title per page, at weight 600: `display-sm` (40px) on app pages, `display-lg` or `display-xl` on landing and report covers.
+- **Utilities.** Every style in `tokens.json` is a Tailwind utility with its line height, weight and tracking: `text-display-sm`, `text-heading-1…4`, `text-body-lg`, `text-body`, `text-body-sm`, `text-label`, `text-caption`, `text-figure`, `text-code`. Use `font-display text-display-sm` for a page title and `font-mono text-code` for identifiers; never `text-[40px]`.
 - **Headings.** `heading-1` to `heading-4` (sans, 600) are for sections inside a page. shadcn titles (`CardTitle`, `DialogTitle`) stay sans: `font-heading` is mapped to `--font-sans`.
 - **Text.** Component text is shadcn's `text-sm` (`body-sm`, 14px). Docs and long descriptions use `body` (16px). `caption` (12px) is for timestamps and footnotes only.
 - **Numbers.** Amounts use `figure`: `font-mono tabular-nums`, right-aligned.
@@ -43,21 +44,21 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 
 - **Spacing.** Use Tailwind's 4px scale; the `space-*` tokens name the steps used. Inside a card, gaps are 16px (`--card-spacing`). Between cards and blocks, use `gap-6` (24px). Above a page title, 48px.
 - **Radii.** Follow Arion: 4px `radius-sm` for badges in tables, kbd and checkboxes; 8px `radius-lg` for buttons, inputs and alerts; 10px `radius-xl` for cards, dialogs and menus; `radius-full` for pills, avatars and switches. `--radius` is 0.5rem.
-- **Borders over shadows.** Cards use a ring, not a shadow. `elevation-2` is for floating menus and `elevation-3` for dialogs and toasts only. Hairlines (`border`) divide rows and sections but never form a control's only boundary.
+- **Borders over shadows.** Cards use a ring, not a shadow. The elevation tokens replace Tailwind's shadow scale, so the components pick them up without changes: `shadow-sm` is `elevation-1`, `shadow-md` (menus, selects) is `elevation-2`, `shadow-lg` (dialogs, toasts) is `elevation-3`. Overlay scrims stay shadcn's `bg-black/10`. Hairlines (`border`) divide rows and sections but never form a control's only boundary.
 - **Focus.** Keep shadcn's focus treatment: a solid `border-ring` (6.7:1 on white) plus a 3px `ring/50` halo. Never remove outlines.
 
 ## Layout and motion
 
-- **Internal tools.** Use the `sidebar` shell (`sidebar.Provider` → `Sidebar` + `Inset`). The inset holds a single column, max 1200px, padded 24px.
+- **Internal tools.** Use `patterns.Shell`, the `sidebar` shell (`sidebar.Provider` → `Sidebar` + `Inset`) with the theme toggle. The inset holds a single column, max 1200px, padded 24px.
 - **Public and report pages.** Use a top bar and a centered 880–1040px column.
-- **Page skeleton.** Breadcrumb, then the display title with a status line and up to two actions, then KPI cards, then the main table or content (see the **Dashboard** pattern).
-- **Motion.** Motion is shadcn's own: 100–200ms fades and zooms on overlays. Never animate data. Respect `prefers-reduced-motion`.
+- **Page skeleton.** Breadcrumb, then the display title with a status line and up to two actions, then KPI cards, then the main table or content (see **Patterns**: `PageHeader`, `Stat`, `DataCard`).
+- **Motion.** Motion is shadcn's own: 100–200ms fades and zooms on overlays. Never animate data. `prefers-reduced-motion: reduce` removes all of it (the theme sets this globally); only spinners keep turning.
 
 ## Iconography
 
 - **Icon set.** Use **Lucide**, through shadcn-templ's `components/icon` package (`@icon.Download()`, `@icon.CircleAlert()`). Stroke 2, size 16px inside components (they size `svg` themselves). Icons inherit `currentColor`.
 - **Pairing with labels.** Icons accompany labels; icon-only buttons need `aria-label` and a `tooltip`. No emoji, no filled or duotone sets, no custom drawings.
-- **Logos.** Use the uploaded files and never redraw them. `Arion SVG/logo.svg` is the star mark, single ink `#005ab4` (`primary`). It goes in the sidebar header and favicons, at 24–32px, on light surfaces or `card`. `Arion logos/arion-banki-logo-txt.webp` is the full lockup with a charcoal wordmark: use it on `background` or `card` in the light theme only, and in dark mode use the mark alone. `Arion logos/arion-logo.png` is a raster mark for places SVG can't go (email, PDF). Give every logo clear space of at least half its height, and never recolour, stretch or place it on `primary`.
+- **Logos.** `assets/img/arion-mark.svg` is the star mark, single ink `#005ab4` (`primary`). It goes in the sidebar header and favicons, at 24–32px, on light surfaces or `card`. It is a vector trace of Arion's logo and is the version this system uses; never redraw or recolour it. The full lockup (charcoal wordmark) is for `background` or `card` in the light theme only; in dark mode use the mark alone. Give every logo clear space of at least half its height, and never stretch it or place it on `primary`.
 
 ## Components
 
@@ -69,10 +70,10 @@ These are shadcn-templ components, themed. Each card shows the markup the compon
 - **Data display:** Card, Table, Badge, Avatar, Item, Kbd, Separator
 - **Feedback:** Alert, Toast, Progress, Spinner, Skeleton, Empty
 - **Overlays:** Dialog, AlertDialog, DropdownMenu, Tooltip
-- **Patterns:** Dashboard
+- **Patterns** (`github.com/tilraunastofan/ads2/patterns`, see `docs/patterns.md`): `Shell`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number formatting, and the Dashboard page composition
 
-Other shadcn-templ components (Calendar, DatePicker, Combobox, Command, Popover, HoverCard, Sheet, Drawer, ContextMenu, Menubar, NavigationMenu, Chart, Carousel, Resizable, ScrollArea, InputOTP, Collapsible, AspectRatio) inherit the same theme with no extra rules. Use them as shadcn documents them.
+Every component above is installed in this repo, as are Sheet and AspectRatio. Other shadcn-templ components (Calendar, DatePicker, Combobox, Command, Popover, HoverCard, Drawer, ContextMenu, Menubar, NavigationMenu, Chart, Carousel, Resizable, ScrollArea, InputOTP, Collapsible) inherit the same theme with no extra rules. Use them as shadcn documents them.
 
 ## Dark mode
 
-Put `class="dark"` on `<html>` (shadcn-templ's convention); that is what swaps the token variables. `data-theme="dark"` only enables Tailwind's `dark:` variant and does not change the tokens. Every token has a dark value. In dark mode, blue fills take dark text (`primary-foreground` is `#0c171b`), so always use the `*-foreground` token on a fill, never literal white.
+Put `class="dark"` on `<html>` (shadcn-templ's convention); that is what swaps the token variables and enables Tailwind's `dark:` variant (`data-theme` is not used). `assets/js/theme.js` and `patterns.ThemeToggle` start from the OS setting on first visit, then remember the user's choice. Every token has a dark value. In dark mode, blue fills take dark text (`primary-foreground` is `#0c171b`), so always use the `*-foreground` token on a fill, never literal white.

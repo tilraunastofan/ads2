@@ -3,8 +3,6 @@ package pages
 import (
 	"github.com/tilraunastofan/ads2/components/alert"
 	"github.com/tilraunastofan/ads2/components/alertdialog"
-	"github.com/tilraunastofan/ads2/components/badge"
-	"github.com/tilraunastofan/ads2/components/breadcrumb"
 	"github.com/tilraunastofan/ads2/components/button"
 	"github.com/tilraunastofan/ads2/components/card"
 	"github.com/tilraunastofan/ads2/components/dialog"
@@ -20,18 +18,11 @@ import (
 	"github.com/tilraunastofan/ads2/components/table"
 	"github.com/tilraunastofan/ads2/components/tabs"
 	"github.com/tilraunastofan/ads2/components/toast"
+	"github.com/tilraunastofan/ads2/patterns"
 	"github.com/tilraunastofan/ads2/ui/layouts"
 )
 
 // ---- view models -------------------------------------------------------------
-
-type KPI struct {
-	Label string
-	Value string
-	Delta string
-	Good  bool // the change is in the good direction (drives colour)
-	Up    bool // the number went up (drives the arrow)
-}
 
 type App struct {
 	Name    string
@@ -41,7 +32,7 @@ type App struct {
 }
 
 type ShowcaseVM struct {
-	KPIs  []KPI
+	KPIs  []patterns.StatProps
 	Apps  []App
 	Query string
 }
@@ -50,12 +41,22 @@ type ShowcaseVM struct {
 
 templ Showcase(vm ShowcaseVM) {
 	@layouts.App("Releases", "/apps") {
-		@PageHeader()
-		<div class="grid gap-4 sm:grid-cols-3">
-			for _, k := range vm.KPIs {
-				@KPICard(k)
+		@patterns.PageHeader(patterns.PageHeaderProps{
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Releases"}},
+			Title:  "Releases",
+			Status: "ocp-prod-1 · 42 applications · synced 1 minute ago",
+		}) {
+			@button.Button(button.Props{Variant: button.VariantOutline, Href: "/apps.csv"}) {
+				@icon.Download()
+				Export
 			}
-		</div>
+			@ScaleDialog()
+		}
+		@patterns.StatRow() {
+			for _, k := range vm.KPIs {
+				@patterns.Stat(k)
+			}
+		}
 		@tabs.Tabs(tabs.Props{DefaultValue: "apps"}) {
 			@tabs.List(tabs.ListProps{Variant: tabs.VariantLine}) {
 				@tabs.Trigger(tabs.TriggerProps{Value: "apps"}) {
@@ -81,106 +82,18 @@ templ Showcase(vm ShowcaseVM) {
 	}
 }
 
-templ PageHeader() {
-	<div class="flex flex-col gap-3">
-		@breadcrumb.Breadcrumb() {
-			@breadcrumb.List() {
-				@breadcrumb.Item() {
-					@breadcrumb.Link(breadcrumb.LinkProps{Href: "/"}) {
-						Platform
-					}
-				}
-				@breadcrumb.Separator()
-				@breadcrumb.Item() {
-					@breadcrumb.Page() {
-						Releases
-					}
-				}
-			}
-		}
-		<div class="flex flex-wrap items-end justify-between gap-4">
-			<div>
-				<h1 class="font-display text-[40px] leading-[44px] font-semibold">Releases</h1>
-				<p class="mt-1 text-sm text-muted-foreground">ocp-prod-1 · 42 applications · synced 1 minute ago</p>
-			</div>
-			<div class="flex gap-2">
-				@button.Button(button.Props{Variant: button.VariantOutline, Href: "/apps.csv"}) {
-					@icon.Download()
-					Export
-				}
-				@ScaleDialog()
-			</div>
-		</div>
-	</div>
-}
-
-templ KPICard(k KPI) {
-	@card.Card(card.Props{Size: card.SizeSm}) {
-		@card.Header() {
-			@card.Description() {
-				{ k.Label }
-			}
-			@card.Title(card.TitleProps{Class: "text-xl font-semibold tabular-nums"}) {
-				{ k.Value }
-			}
-			@card.Action() {
-				@badge.Badge(badge.Props{Variant: badge.VariantOutline, Class: deltaClass(k.Good)}) {
-					if k.Up {
-						@icon.TrendingUp()
-					} else {
-						@icon.TrendingDown()
-					}
-					{ k.Delta }
-				}
-			}
-		}
-	}
-}
-
-func deltaClass(good bool) string {
-	if good {
-		return "text-positive"
-	}
-	return "text-destructive"
-}
-
 // ---- applications table (live search + row actions) ---------------------------
 
 templ AppsCard(vm ShowcaseVM) {
-	@card.Card(card.Props{Class: "gap-0 pb-0"}) {
-		@card.Header(card.HeaderProps{Class: "border-b"}) {
-			@card.Title() {
-				Applications
-			}
-			@card.Description() {
-				Argo CD sync and health
-			}
-			@card.Action() {
-				@inputgroup.InputGroup(inputgroup.Props{Class: "w-64"}) {
-					@inputgroup.Input(inputgroup.InputProps{
-						ID:          "app-search",
-						Type:        "search",
-						Name:        "q",
-						Value:       vm.Query,
-						Placeholder: "Search applications",
-						Attributes: templ.Attributes{
-							"hx-get":      "/apps/rows",
-							"hx-trigger":  "input changed delay:300ms, search",
-							"hx-target":   "#app-rows",
-							"hx-swap":     "outerHTML",
-							"aria-label":  "Search applications",
-						},
-					})
-					@inputgroup.Addon(inputgroup.AddonProps{Align: inputgroup.AlignInlineStart}) {
-						@icon.Search()
-					}
-				}
-			}
-		}
+	@patterns.DataCard(patterns.DataCardProps{
+		Title:       "Applications",
+		Description: "Argo CD sync and health",
+		Action:      AppSearch(vm.Query),
+	}) {
 		@table.Table() {
 			@table.Header() {
 				@table.Row() {
-					@table.Head(table.HeadProps{Class: "pl-4"}) {
+					@table.Head() {
 						Application
 					}
 					@table.Head() {
@@ -198,6 +111,28 @@ templ AppsCard(vm ShowcaseVM) {
 				}
 			}
 			@AppRows(vm.Apps)
+		}
+	}
+}
+
+templ AppSearch(q string) {
+	@inputgroup.InputGroup(inputgroup.Props{Class: "w-64"}) {
+		@inputgroup.Input(inputgroup.InputProps{
+			ID:          "app-search",
+			Type:        "search",
+			Name:        "q",
+			Value:       q,
+			Placeholder: "Search applications",
+			Attributes: templ.Attributes{
+				"hx-get":     "/apps/rows",
+				"hx-trigger": "input changed delay:300ms, search",
+				"hx-target":  "#app-rows",
+				"hx-swap":    "outerHTML",
+				"aria-label": "Search applications",
+			},
+		})
+		@inputgroup.Addon(inputgroup.AddonProps{Align: inputgroup.AlignInlineStart}) {
+			@icon.Search()
 		}
 	}
 }
@@ -232,13 +167,13 @@ templ AppRows(apps []App) {
 
 templ AppRow(a App) {
 	@table.Row(table.RowProps{ID: "app-" + a.Name}) {
-		@table.Cell(table.CellProps{Class: "pl-4 font-medium"}) {
+		@table.Cell(table.CellProps{Class: "font-medium"}) {
 			{ a.Name }
 		}
 		@table.Cell() {
 			{ a.Env }
 		}
-		@table.Cell(table.CellProps{Class: "font-mono text-[13px]"}) {
+		@table.Cell(table.CellProps{Class: "font-mono text-code"}) {
 			{ a.Version }
 		}
 		@table.Cell() {
@@ -253,18 +188,13 @@ templ AppRow(a App) {
 templ HealthBadge(h string) {
 	switch h {
 		case "Healthy":
-			@badge.Badge(badge.Props{Variant: badge.VariantSecondary}) {
-				Healthy
-			}
+			@patterns.StatusBadge(patterns.StatusPositive, h)
+		case "Progressing":
+			@patterns.StatusBadge(patterns.StatusWarning, h)
 		case "Degraded":
-			@badge.Badge(badge.Props{Variant: badge.VariantDestructive}) {
-				@icon.CircleAlert()
-				Degraded
-			}
+			@patterns.StatusBadge(patterns.StatusDestructive, h)
 		default:
-			@badge.Badge(badge.Props{Variant: badge.VariantOutline}) {
-				{ h }
-			}
+			@patterns.StatusBadge(patterns.StatusNeutral, h)
 	}
 }
 

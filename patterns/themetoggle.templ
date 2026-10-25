@@ -1,0 +1,19 @@
+package patterns
+
+import (
+	"github.com/tilraunastofan/ads2/components/button"
+	"github.com/tilraunastofan/ads2/components/icon"
+)
+
+// ThemeToggle flips `class="dark"` on <html>. assets/js/theme.js (loaded by
+// Base) handles the click, remembers the choice and starts from the OS setting.
+templ ThemeToggle() {
+	@button.Button(button.Props{
+		Variant:    button.VariantGhost,
+		Size:       button.SizeIcon,
+		Attributes: templ.Attributes{"aria-label": "Toggle theme", "data-theme-toggle": "true", "hx-disable": "this"},
+	}) {
+		<span class="dark:hidden">@icon.Moon()</span>
+		<span class="hidden dark:inline">@icon.Sun()</span>
+	}
+}

@@ -8,6 +8,6 @@ Short status or metadata label: `badge.Badge` from `components/badge` (`<span>`,
 @badge.Badge(badge.Props{Variant: badge.VariantDestructive}) { @icon.CircleAlert() Degraded }
 ```
 
-- Map health to variants once, in a helper (`StatusBadge(h Health)`): Healthy → secondary, Progressing → outline, Degraded → destructive, Production env → default.
+- Badge has no success or warning variant. For state, use `patterns.StatusBadge` (positive, warning, destructive, neutral: icon, word and `positive` / `warning` tokens on a 10% tint) and map your states to it once. Use `VariantSecondary` for plain categories (type, team) and `VariantDefault` for emphasis like a Production env.
 - Status badges carry an icon or word, never colour alone.
 - Version tags and IDs: `VariantOutline` with `font-mono`.

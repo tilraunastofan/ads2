@@ -1,0 +1,57 @@
+package patterns
+
+import (
+	"github.com/tilraunastofan/ads2/components/badge"
+	"github.com/tilraunastofan/ads2/components/card"
+	"github.com/tilraunastofan/ads2/components/icon"
+)
+
+// StatProps describes one KPI. Good and Up are independent: a falling failure
+// rate is Up=false, Good=true.
+type StatProps struct {
+	Label string // metric name
+	Value string // already formatted, see Int, Dec and Pct
+	Delta string // change since the last period, formatted with Signed; empty hides the badge
+	Good  bool   // the change is in the good direction (drives colour)
+	Up    bool   // the number went up (drives the arrow)
+}
+
+func deltaClass(good bool) string {
+	if good {
+		return "text-positive"
+	}
+	return "text-destructive"
+}
+
+// Stat is a KPI card: metric name, value and a trend badge with sign, arrow and colour.
+templ Stat(p StatProps) {
+	@card.Card(card.Props{Size: card.SizeSm}) {
+		@card.Header() {
+			@card.Description() {
+				{ p.Label }
+			}
+			@card.Title(card.TitleProps{Class: "text-heading-3 tabular-nums"}) {
+				{ p.Value }
+			}
+			if p.Delta != "" {
+				@card.Action() {
+					@badge.Badge(badge.Props{Variant: badge.VariantOutline, Class: deltaClass(p.Good)}) {
+						if p.Up {
+							@icon.TrendingUp()
+						} else {
+							@icon.TrendingDown()
+						}
+						{ p.Delta }
+					}
+				}
+			}
+		}
+	}
+}
+
+// StatRow lays out three or four Stat cards.
+templ StatRow() {
+	<div class="grid gap-4 sm:grid-cols-3">
+		{ children... }
+	</div>
+}

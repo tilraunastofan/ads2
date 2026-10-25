@@ -1,0 +1,56 @@
+package patterns
+
+import (
+	"github.com/tilraunastofan/ads2/components/breadcrumb"
+)
+
+type Crumb struct {
+	Label string
+	Href  string // empty for the current page
+}
+
+type PageHeaderProps struct {
+	Crumbs []Crumb // optional; the last one is the current page
+	Title  string
+	Status string // one-line status sentence under the title
+}
+
+// PageHeader is the top of every page: optional breadcrumb, the one display
+// title, a status line and (as children) up to two actions.
+templ PageHeader(p PageHeaderProps) {
+	<div class="flex flex-col gap-3">
+		if len(p.Crumbs) > 0 {
+			@breadcrumb.Breadcrumb() {
+				@breadcrumb.List() {
+					for i, c := range p.Crumbs {
+						if i > 0 {
+							@breadcrumb.Separator()
+						}
+						@breadcrumb.Item() {
+							if c.Href != "" && i < len(p.Crumbs)-1 {
+								@breadcrumb.Link(breadcrumb.LinkProps{Href: c.Href}) {
+									{ c.Label }
+								}
+							} else {
+								@breadcrumb.Page() {
+									{ c.Label }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		<div class="flex flex-wrap items-end justify-between gap-4">
+			<div>
+				<h1 class="font-display text-display-sm">{ p.Title }</h1>
+				if p.Status != "" {
+					<p class="mt-1 text-sm text-muted-foreground">{ p.Status }</p>
+				}
+			</div>
+			<div class="flex gap-2">
+				{ children... }
+			</div>
+		</div>
+	</div>
+}

@@ -6,9 +6,9 @@ Tabular data: `table.Table`, `Header`, `Body`, `Footer`, `Row`, `Head`, `Cell`, 
 
 ```templ
 @table.Table() {
-    @table.Caption() { Lykiltölur, m.kr. }
+    @table.Caption() { Key figures, m.kr. }
     @table.Header() { @table.Row() {
-        @table.Head() { Liður }
+        @table.Head() { Item }
         @table.Head(table.HeadProps{Class: "text-right"}) { 3F 2026 }
     } }
     @table.Body(table.BodyProps{ID: "rows"}) {
@@ -22,8 +22,8 @@ Tabular data: `table.Table`, `Header`, `Body`, `Footer`, `Row`, `Head`, `Cell`, 
 }
 ```
 
-- Put tables in a `card` (or a bordered `table-container` on `card`) on the `background` canvas.
-- Numbers: right-aligned, `font-mono tabular-nums` (`figure` style), Icelandic format (`14.902`, `+9,5%`), units in the caption, not every cell.
-- Gains `text-positive` with `+`, losses `text-destructive` with a real minus `−`. Never colour alone.
+- Put tables in a `card` on the `background` canvas. `patterns.DataCard` does this and insets the first and last columns, so cells need no `pl-4` / `pr-4`.
+- Numbers: right-aligned, `font-mono tabular-nums` (`figure` style), Arion number format in every language (`14.902`, `+9,5%`; use `patterns.Int`, `Dec`, `Signed`), units in the caption, not every cell.
+- Gains `text-positive` with `+`, losses `text-destructive` with a real minus `−`. Never colour alone. Identifiers and versions: `font-mono text-code`.
 - Sorting, filtering and paging are server round trips: `hx-get` on headers/filters with `hx-target="#rows"`, `hx-push-url="true"`.
 - Selected rows: `data-state="selected"` on `table.Row`.

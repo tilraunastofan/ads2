@@ -12,5 +12,5 @@ An inline, persistent message about the page or a section: `alert.Alert{Variant}
 ```
 
 - Lead with an icon (`info`, `circle-alert`), a short title, one or two sentences.
-- `VariantDestructive` for failures that block the user; transient results go in a `toast`.
+- `VariantDestructive` for failures that block the user; transient results go in a `toast`. Success and warning notes use `VariantDefault` with a leading `icon.CircleCheck()` / `icon.TriangleAlert()`, tinted with `Class: "text-positive"` / `"text-warning"` on the icon only.
 - Return an alert from an htmx error response with `hx-status:5xx="target:#page-alerts"` (htmx 4 swaps 4xx/5xx by default).

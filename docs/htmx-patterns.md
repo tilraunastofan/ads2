@@ -12,26 +12,7 @@ How shadcn-templ components and htmx 4 fit together in this system. htmx attribu
 
 ## Layout
 
-Load htmx and the component scripts once in `<head>`, and mount the toaster once:
-
-```templ
-templ App(title string) {
-    <!DOCTYPE html>
-    <html lang="is">
-        <head>
-            <meta charset="utf-8"/>
-            <title>{ title }</title>
-            <link rel="stylesheet" href="/assets/css/output.css"/>
-            <script src="/assets/js/htmx.min.js"></script> // vendored htmx 4
-            @components.Scripts()
-        </head>
-        <body hx-boost:inherited="true">
-            { children... }
-            @toast.Toaster()
-        </body>
-    </html>
-}
-```
+Use `patterns.Shell` or `patterns.Base` (see **Setup**). Between them they load htmx and the component scripts once in `<head>`, boost the body, mount `<div id="toasts" hidden>` for toast partials, and mount the toaster. Don't hand-write the document: the pieces (order, `defer`, the `#toasts` target) are easy to get subtly wrong.
 
 shadcn-templ's scripts re-initialise components inside swapped content, so dialogs, menus and selects work in fragments (`parity/htmx` in the shadcn-templ repo tests exactly this).
 

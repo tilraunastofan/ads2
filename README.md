@@ -4,6 +4,7 @@ A design system for Go web projects built with **Go + templ + htmx 4 + [shadcn-t
 
 - **Brand book and rules:** [`docs/design-system.md`](docs/design-system.md)
 - **Wiring it into a project:** [`docs/setup.md`](docs/setup.md)
+- **Shared page patterns:** [`docs/patterns.md`](docs/patterns.md) (`patterns/` package)
 - **htmx 4 recipes:** [`docs/htmx-patterns.md`](docs/htmx-patterns.md)
 - **Per-component guidance (templ + htmx):** [`docs/components/`](docs/components)
 - **Tokens:** [`tokens/tokens.json`](tokens/tokens.json) → `go run ./cmd/gentheme` → [`assets/css/arion-theme.css`](assets/css/arion-theme.css)
@@ -12,7 +13,9 @@ A design system for Go web projects built with **Go + templ + htmx 4 + [shadcn-t
 
 ```sh
 shadcn-templ init --preset nova
-cp /path/to/ads2/assets/css/arion-theme.css assets/css/
+cp /path/to/ads2/assets/css/{arion-theme,fonts}.css assets/css/
+cp -r /path/to/ads2/assets/fonts assets/ && cp /path/to/ads2/assets/js/theme.js assets/js/
+cp -r /path/to/ads2/patterns . # then rewrite its import paths
 # in assets/css/globals.css: remove the :root / .dark / @theme inline blocks, then
 #   @import "./arion-theme.css";
 ```
@@ -26,11 +29,12 @@ cp /path/to/ads2/assets/css/arion-theme.css assets/css/
 | `background` | `#f7f9fa` | `#0c171b` | Canvas |
 | `card` / `popover` | `#ffffff` | `#17212a` | Surfaces |
 | `accent` | `#e0ebf6` | `#223c52` | Hover, active nav |
-| `destructive` | `#d70000` | `#ff6b61` | Errors, losses |
+| `destructive` | `#cc0000` | `#ff7a70` | Errors, losses |
 | `positive` | `#00718a` | `#4fc1d6` | Gains, healthy |
+| `warning` | `#8a5300` | `#f2b24d` | Progressing, degraded |
 | `ink` | `#17212a` | `#e6ecef` | Editorial dark CTA |
 
-Fonts: Hanken Grotesk (UI), Source Serif 4 (page titles), JetBrains Mono (figures, code). Open substitutes for Arion's licensed Suisse Intl / Suisse Works.
+Fonts: Hanken Grotesk (UI), Source Serif 4 (page titles), JetBrains Mono (figures, code). Self-hosted open fonts. Arion's licensed Suisse Intl / Suisse Works are optional and opt-in (see Typography in the brand book).
 
 ## Showcase
 

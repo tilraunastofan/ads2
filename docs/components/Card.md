@@ -16,6 +16,6 @@ A bounded group of related content: `card.Card`, `Header`, `Title`, `Description
 ```
 
 - `card` surface on the `background` canvas; separation comes from the 10% foreground ring, not shadows.
-- KPI cards: description = metric name, title = value (`tabular-nums`, Icelandic number format), action = trend badge with sign and arrow.
+- KPI cards: use `patterns.Stat` (description = metric name, title = value in `tabular-nums`, action = trend badge with sign and arrow). A card around a full-width table: `patterns.DataCard`.
 - Poll or SSE-refresh a single card by giving it an `ID` and swapping `outerHTML`.
 - Do not nest cards; use `separator` or `item` inside.

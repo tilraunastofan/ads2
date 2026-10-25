@@ -27,7 +27,7 @@ The app shell navigation: `sidebar.Provider`, `Sidebar`, `Header`, `Content`, `G
 }
 ```
 
-- Internal tools use the sidebar shell; public pages use a top bar.
+- Internal tools use the sidebar shell (`patterns.Shell` wires header, menu, inset and theme toggle); public pages use a top bar. Give `sidebar.Menu` `Class: "gap-1"` for breathing room between items (Shell does).
 - Active item = `sidebar-accent` fill with `sidebar-accent-foreground` (Arion's blue-on-pale-blue active nav).
-- The header shows the Arion star mark (`Arion SVG/logo.svg`, served from `/assets/img/arion-mark.svg` in the app) at 32px, never on a `sidebar-primary` tile.
+- The header shows the Arion star mark (`assets/img/arion-mark.svg`) at 32px, never on a `sidebar-primary` tile.
 - Boost menu links (`hx-boost="true"` on `sidebar.Inset` target) so only the inset swaps.

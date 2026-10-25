@@ -17,7 +17,9 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/tilraunastofan/ads2/assets"
 	"github.com/tilraunastofan/ads2/components/toast"
+	"github.com/tilraunastofan/ads2/patterns"
 	"github.com/tilraunastofan/ads2/ui/pages"
 )
 
@@ -84,11 +86,47 @@ func toastPartial(title, desc string, t toast.Type) templ.Component {
 	})
 }
 
+// assetHandler serves the embedded assets, or ./assets when SHADCN_TEMPL_DEV=true
+// so the watchers' output shows up without a rebuild. The hashed component
+// bundle is immutable; everything else revalidates.
+func assetHandler() http.Handler {
+	dev := os.Getenv("SHADCN_TEMPL_DEV") == "true"
+	files := http.FileServer(http.FS(assets.Assets))
+	if dev {
+		files = http.FileServer(http.Dir("assets"))
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case dev:
+			w.Header().Set("Cache-Control", "no-store")
+		case strings.HasPrefix(r.URL.Path, "/js/shadcn-templ-"):
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		default:
+			w.Header().Set("Cache-Control", "no-cache")
+		}
+		files.ServeHTTP(w, r)
+	})
+}
+
+// secure sets the security headers an on-prem deployment should send. Scripts and
+// stylesheets are same-origin files. Components write a few inline style="…"
+// attributes (progress width, aspect ratio, visually-hidden inputs), so
+// style-src-attr needs 'unsafe-inline'; style elements and scripts stay strict.
+func secure(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Referrer-Policy", "same-origin")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	s := newStore()
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	mux.Handle("GET /assets/", http.StripPrefix("/assets/", assetHandler()))
 
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/apps", http.StatusSeeOther)
@@ -96,10 +134,10 @@ func main() {
 
 	mux.HandleFunc("GET /apps", func(w http.ResponseWriter, r *http.Request) {
 		vm := pages.ShowcaseVM{
-			KPIs: []pages.KPI{
-				{Label: "Deploys this week", Value: "128", Delta: "+18%", Good: true, Up: true},
-				{Label: "Change failure rate", Value: "2,3%", Delta: "−0,8 pp", Good: true, Up: false},
-				{Label: "Mean time to restore", Value: "41 mín", Delta: "+6 mín", Good: false, Up: true},
+			KPIs: []patterns.StatProps{
+				{Label: "Deploys this week", Value: patterns.Int(128), Delta: patterns.SignedPct(18, 0), Good: true, Up: true},
+				{Label: "Change failure rate", Value: patterns.Pct(2.3, 1), Delta: patterns.Signed(-0.8, 1) + " pp", Good: true, Up: false},
+				{Label: "Mean time to restore", Value: patterns.Dec(41, 0) + " min", Delta: patterns.Signed(6, 0) + " min", Good: false, Up: true},
 			},
 			Apps:  s.search(r.URL.Query().Get("q")),
 			Query: r.URL.Query().Get("q"),
@@ -165,5 +203,5 @@ func main() {
 		port = "8090"
 	}
 	log.Printf("showcase on http://localhost:%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	log.Fatal(http.ListenAndServe(":"+port, secure(mux)))
 }
