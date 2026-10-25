@@ -30,7 +30,7 @@ Already done (committed): `shadcn-templ init --preset nova --css assets/css/glob
 - `task theme` — regenerate `assets/css/arion-theme.css` after changing `tokens/tokens.json`.
 - After adding components or editing `.templ`: `go tool templ generate && go mod tidy`.
 
-Verified over HTTP against `task dev`: search filters rows, row actions return toast partials for `#toasts`, delete removes the row, the New application form returns 422 with field errors, Rollout reaches 3/3, assets are served. **Not yet checked in a browser:** alert dialog opening, toast rendering, rollout polling stopping at 3/3, dark mode via `class="dark"` on `<html>`.
+Verified in Chrome against `task dev`: search filters rows, row menu raises a toast, delete asks in an alert dialog and removes the row, the New application form shows 422 field errors, Rollout reaches 3/3 and stops polling, dark mode via `class="dark"` on `<html>` swaps the tokens. Note: a dark-mode browser extension (e.g. Dark Reader) darkens the page even without `.dark`; disable it when judging themes.
 
 ## Rules for UI work in this repo
 
