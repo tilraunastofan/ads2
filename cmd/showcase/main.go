@@ -157,7 +157,7 @@ func main() {
 		s.tick++
 		ready := min(2+s.tick/3, 3)
 		s.mu.Unlock()
-		render(w, r, http.StatusOK, pages.RolloutCard(ready, 3))
+		render(w, r, http.StatusOK, pages.RolloutCard(ready, 3, "every 2s"))
 	})
 
 	port := os.Getenv("PORT")

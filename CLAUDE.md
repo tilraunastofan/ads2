@@ -38,15 +38,13 @@ Verified in Chrome against `task dev`: search filters rows, row menu raises a to
 - `go tool templ generate && go mod tidy`, then `go build ./... && go vet ./...`, after any `.templ` edit or `shadcn-templ add`.
 - Don't edit `components/` or `assets/css/arion-theme.css`; change `tokens/tokens.json` and run `task theme`.
 - `task dev` needs :8090 and :7331 free. If it fails to bind, check `lsof -nP -iTCP:8090 -sTCP:LISTEN` before assuming a code problem, and don't kill processes you didn't start.
+- htmx polling: `hx-trigger="every 2s"` starts at page load even inside a hidden tab, and `intersect once, every 2s` does too (`every` is its own trigger). To start polling when a tab opens, render `hx-trigger="intersect once"` first and have the response carry `every 2s` (see `RolloutCard`).
 - The showcase store is in memory; a restart brings deleted rows back.
 
 **Verifying UI**
 - Check toasts, dialogs and dark mode in Chrome; HTTP only covers server responses. Check `list_connected_browsers` if the extension reports not connected.
 - Dark Reader (if installed) darkens pages even without `.dark`. Judge themes by reading CSS variables, not screenshot colours.
 - The theme follows `.dark` or `[data-theme="dark"]`, not `prefers-color-scheme`.
-
-**Open items**
-- The Rollout card polls (`every 2s`) as soon as the page loads, even while its tab is hidden, so by the time someone opens the tab it already reads 3/3. If the 2/3 → 3/3 progression should be visible, start polling on `intersect` instead.
 
 ## Rules for UI work in this repo
 

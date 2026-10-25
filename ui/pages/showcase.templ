@@ -75,7 +75,7 @@ templ Showcase(vm ShowcaseVM) {
 				@NewAppForm(NewAppErrors{})
 			}
 			@tabs.Content(tabs.ContentProps{Value: "rollout"}) {
-				@RolloutCard(2, 3)
+				@RolloutCard(2, 3, "intersect once")
 			}
 		}
 	}
@@ -442,12 +442,15 @@ templ NewAppForm(e NewAppErrors) {
 
 // ---- polling progress -----------------------------------------------------------
 
-templ RolloutCard(ready, desired int) {
+// RolloutCard polls itself until ready == desired. The first render passes
+// "intersect once" so polling starts when its (initially hidden) tab opens;
+// "every 2s" alone would start at page load. Responses pass "every 2s".
+templ RolloutCard(ready, desired int, trigger string) {
 	<div
 		id="rollout"
 		if ready < desired {
 			hx-get="/rollout"
-			hx-trigger="every 2s"
+			hx-trigger={ trigger }
 			hx-swap="outerHTML"
 		}
 		class="max-w-xl"
