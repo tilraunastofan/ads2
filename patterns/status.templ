@@ -10,8 +10,8 @@ type Status string
 
 const (
 	StatusPositive    Status = "positive"    // healthy, succeeded, synced
-	StatusWarning     Status = "warning"     // progressing, degraded, needs attention
-	StatusDestructive Status = "destructive" // failed, down, out of sync
+	StatusWarning     Status = "warning"     // progressing, needs attention
+	StatusDestructive Status = "destructive" // failed, degraded, down, out of sync
 	StatusNeutral     Status = "neutral"     // unknown, pending, archived
 )
 

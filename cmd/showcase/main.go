@@ -92,6 +92,87 @@ func toastPartial(title, desc string, t toast.Type) templ.Component {
 	})
 }
 
+// partial wraps a component in an htmx 4 <hx-partial> for a second target.
+func partial(target, swap string, c templ.Component) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		if _, err := io.WriteString(w, `<hx-partial hx-target="`+target+`" hx-swap="`+swap+`">`); err != nil {
+			return err
+		}
+		if err := c.Render(ctx, w); err != nil {
+			return err
+		}
+		_, err := io.WriteString(w, `</hx-partial>`)
+		return err
+	})
+}
+
+// metrics builds the Metrics view model from the query (from, to, app). The data
+// is generated deterministically so the showcase needs no backend.
+func (s *store) metrics(r *http.Request) pages.MetricsVM {
+	q := r.URL.Query()
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+	to, err := patterns.ParseISODate(q.Get("to"), time.Local)
+	if err != nil {
+		to = today
+	}
+	from, err := patterns.ParseISODate(q.Get("from"), time.Local)
+	if err != nil || from.After(to) {
+		from = to.AddDate(0, 0, -41) // six weeks
+	}
+	app := q.Get("app")
+
+	s.mu.Lock()
+	apps := make([]string, 0, len(s.apps))
+	for _, a := range s.apps {
+		apps = append(apps, a.Name)
+	}
+	s.mu.Unlock()
+
+	var weeks []pages.WeekStat
+	deploys, rollbacks := 0, 0
+	for d := from; !d.After(to); d = d.AddDate(0, 0, 7) {
+		_, wk := d.ISOWeek()
+		dep := 18 + (wk*7)%17
+		rb := 1 + (wk*3)%5
+		if app != "" {
+			dep, rb = max(dep/5, 1), rb/3
+		}
+		weeks = append(weeks, pages.WeekStat{Week: "W" + strconv.Itoa(wk), Deploys: dep, Rollbacks: rb})
+		deploys += dep
+		rollbacks += rb
+	}
+
+	var releases []pages.Release
+	health := []string{"Healthy", "Healthy", "Progressing", "Healthy", "Degraded"}
+	for i, a := range apps {
+		if app != "" && a != app {
+			continue
+		}
+		releases = append(releases, pages.Release{
+			App:     a,
+			Version: "1." + strconv.Itoa(40+i) + ".0",
+			Env:     "Production",
+			At:      to.Add(time.Duration(9+i)*time.Hour).AddDate(0, 0, -i),
+			By:      "Kargo · stage prod",
+			Health:  health[i%len(health)],
+		})
+	}
+
+	cfr := 0.0
+	if deploys > 0 {
+		cfr = 100 * float64(rollbacks) / float64(deploys)
+	}
+	return pages.MetricsVM{
+		From: from, To: to, App: app, Apps: apps, Weeks: weeks, Releases: releases,
+		KPIs: []patterns.StatProps{
+			{Label: "Deployments", Value: patterns.Int(int64(deploys))},
+			{Label: "Rollbacks", Value: patterns.Int(int64(rollbacks))},
+			{Label: "Change failure rate", Value: patterns.Pct(cfr, 1)},
+		},
+	}
+}
+
 // assetHandler serves the embedded assets, or ./assets when SHADCN_TEMPL_DEV=true
 // so the watchers' output shows up without a rebuild.
 //
@@ -150,8 +231,8 @@ func secure(next http.Handler) http.Handler {
 	})
 }
 
-func main() {
-	s := newStore()
+// newMux registers the showcase's routes on top of the store.
+func newMux(s *store) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", assetHandler()))
@@ -226,10 +307,54 @@ func main() {
 		render(w, r, http.StatusOK, pages.RolloutCard(ready, 3, "every 2s"))
 	})
 
+	mux.HandleFunc("GET /metrics", func(w http.ResponseWriter, r *http.Request) {
+		render(w, r, http.StatusOK, pages.Metrics(s.metrics(r)))
+	})
+
+	// The filter form's target: the body, plus the trigger label out of band.
+	mux.HandleFunc("GET /metrics/body", func(w http.ResponseWriter, r *http.Request) {
+		vm := s.metrics(r)
+		render(w, r, http.StatusOK, templ.Join(
+			pages.MetricsBody(vm),
+			partial("#range-label", "outerHTML", pages.RangeLabel(vm.From, vm.To)),
+		))
+	})
+
+	mux.HandleFunc("GET /metrics/release", func(w http.ResponseWriter, r *http.Request) {
+		vm := s.metrics(r)
+		app, version := r.URL.Query().Get("app"), r.URL.Query().Get("version")
+		for _, rel := range vm.Releases {
+			if rel.App == app && rel.Version == version {
+				render(w, r, http.StatusOK, pages.ReleaseDetails(rel))
+				return
+			}
+		}
+		http.NotFound(w, r)
+	})
+
+	mux.HandleFunc("GET /settings", func(w http.ResponseWriter, r *http.Request) {
+		render(w, r, http.StatusOK, pages.Settings())
+	})
+
+	mux.HandleFunc("POST /settings/approve", func(w http.ResponseWriter, r *http.Request) {
+		if r.FormValue("code") != pages.ShowcaseApprovalCode {
+			render(w, r, http.StatusUnprocessableEntity, pages.ApprovalForm("That code is not valid. Enter the current code from your authenticator.", false))
+			return
+		}
+		render(w, r, http.StatusOK, templ.Join(
+			pages.ApprovalForm("", true),
+			toastPartial("Deployment freeze lifted", "Until 18:00 today", toast.TypeSuccess),
+		))
+	})
+
+	return mux
+}
+
+func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8090"
 	}
 	log.Printf("showcase on http://localhost:%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, secure(mux)))
+	log.Fatal(http.ListenAndServe(":"+port, secure(newMux(newStore()))))
 }

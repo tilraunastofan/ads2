@@ -1,0 +1,294 @@
+package pages
+
+import (
+	"time"
+
+	"github.com/tilraunastofan/ads2/components/button"
+	"github.com/tilraunastofan/ads2/components/calendar"
+	"github.com/tilraunastofan/ads2/components/card"
+	"github.com/tilraunastofan/ads2/components/chart"
+	"github.com/tilraunastofan/ads2/components/combobox"
+	"github.com/tilraunastofan/ads2/components/icon"
+	"github.com/tilraunastofan/ads2/components/popover"
+	"github.com/tilraunastofan/ads2/components/sheet"
+	"github.com/tilraunastofan/ads2/components/skeleton"
+	"github.com/tilraunastofan/ads2/components/table"
+	"github.com/tilraunastofan/ads2/patterns"
+	"github.com/tilraunastofan/ads2/ui/layouts"
+)
+
+// ---- view models -------------------------------------------------------------
+
+type WeekStat struct {
+	Week      string // "W43"
+	Deploys   int
+	Rollbacks int
+}
+
+type Release struct {
+	App     string
+	Version string
+	Env     string
+	At      time.Time
+	By      string
+	Health  string
+}
+
+type MetricsVM struct {
+	From, To time.Time
+	App      string // "" = all applications
+	Apps     []string
+	Weeks    []WeekStat
+	Releases []Release
+	KPIs     []patterns.StatProps
+}
+
+// The page language for dates and units. The showcase is an English internal tool.
+const lang = "en"
+
+// ---- page --------------------------------------------------------------------
+
+templ Metrics(vm MetricsVM) {
+	@layouts.App("Metrics", "/metrics") {
+		@patterns.PageHeader(patterns.PageHeaderProps{
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Metrics"}},
+			Title:  "Metrics",
+			Status: "Production deployments and rollbacks, from Argo CD history",
+		})
+		@MetricsFilter(vm)
+		@MetricsBody(vm)
+	}
+}
+
+// MetricsFilter is the date range and application filter. Any change submits the
+// form; the response replaces #metrics-body and, out of band, the range label.
+templ MetricsFilter(vm MetricsVM) {
+	<form
+		id="metrics-filter"
+		data-date-picker
+		hx-get="/metrics/body"
+		hx-trigger="change"
+		hx-target="#metrics-body"
+		hx-swap="outerHTML"
+		class="flex flex-wrap items-center gap-2"
+	>
+		<input type="hidden" name="from" value={ patterns.ISODate(vm.From) } data-date-from/>
+		<input type="hidden" name="to" value={ patterns.ISODate(vm.To) } data-date-to/>
+		@popover.Popover(popover.Props{ID: "metrics-range"}) {
+			@button.Button(button.Props{
+				Variant:    button.VariantOutline,
+				Class:      "w-[260px] justify-between font-normal",
+				Attributes: mergeAttrs(popover.Trigger(ctx), templ.Attributes{"aria-label": "Date range"}),
+			}) {
+				<span class="flex items-center gap-2">
+					@icon.Calendar()
+					@RangeLabel(vm.From, vm.To)
+				</span>
+				@icon.ChevronDown()
+			}
+			@popover.Content(popover.ContentProps{Class: "w-auto p-0", Align: popover.AlignStart}) {
+				@calendar.Calendar(calendar.Props{
+					Mode:           calendar.ModeRange,
+					Selected:       calendar.DateRange{From: vm.From, To: vm.To},
+					DefaultMonth:   vm.From,
+					NumberOfMonths: 2,
+					WeekStartsOn:   calendar.Monday,
+					Locale:         "en-GB",
+				})
+			}
+		}
+		<div class="w-64">
+			@combobox.Combobox(combobox.Props{Name: "app", DefaultValue: vm.App}) {
+				@combobox.Input(combobox.InputProps{Placeholder: "All applications", ShowClear: true})
+				@combobox.Content() {
+					@combobox.Empty() {
+						No matching application
+					}
+					@combobox.List() {
+						for _, a := range vm.Apps {
+							@combobox.Item(combobox.ItemProps{Value: a}) {
+								{ a }
+							}
+						}
+					}
+				}
+			}
+		</div>
+	</form>
+	<script src="/assets/js/datepicker.js" defer></script>
+}
+
+// RangeLabel is the trigger text; filter responses replace it via <hx-partial>.
+templ RangeLabel(from, to time.Time) {
+	<span id="range-label">{ patterns.DateRange(from, to, lang) }</span>
+}
+
+// MetricsBody is everything the filter changes: KPIs, chart and release list.
+templ MetricsBody(vm MetricsVM) {
+	<div id="metrics-body" class="flex flex-col gap-6">
+		@patterns.StatRow() {
+			for _, k := range vm.KPIs {
+				@patterns.Stat(k)
+			}
+		}
+		@DeployChart(vm.Weeks)
+		@patterns.DataCard(patterns.DataCardProps{Title: "Releases", Description: patterns.DateRange(vm.From, vm.To, lang)}) {
+			@table.Table() {
+				@table.Header() {
+					@table.Row() {
+						@table.Head() {
+							Application
+						}
+						@table.Head() {
+							Version
+						}
+						@table.Head() {
+							Released
+						}
+						@table.Head() {
+							Health
+						}
+						@table.Head() {
+							<span class="sr-only">Details</span>
+						}
+					}
+				}
+				@table.Body() {
+					for _, r := range vm.Releases {
+						@table.Row() {
+							@table.Cell(table.CellProps{Class: "font-medium"}) {
+								{ r.App }
+							}
+							@table.Cell(table.CellProps{Class: "font-mono text-code"}) {
+								{ r.Version }
+							}
+							@table.Cell() {
+								{ patterns.DateTime(r.At, lang) }
+							}
+							@table.Cell() {
+								@HealthBadge(r.Health)
+							}
+							@table.Cell(table.CellProps{Class: "text-right"}) {
+								@ReleaseSheet(r)
+							}
+						}
+					}
+				}
+			}
+		}
+	</div>
+}
+
+// ---- chart -------------------------------------------------------------------
+
+// Labels only: colours are set on the series. A Config Color makes the chart
+// container write an inline <style>, which the showcase's CSP blocks.
+var deployConfig = chart.Config{
+	{Key: "deploys", Label: "Deployments"},
+	{Key: "rollbacks", Label: "Rollbacks"},
+}
+
+func weekRows(ws []WeekStat) []chart.Datum {
+	out := make([]chart.Datum, 0, len(ws))
+	for _, w := range ws {
+		out = append(out, chart.Datum{"week": w.Week, "deploys": w.Deploys, "rollbacks": w.Rollbacks})
+	}
+	return out
+}
+
+func tickInt(v any) string {
+	switch n := v.(type) {
+	case int:
+		return patterns.Int(int64(n))
+	case float64:
+		return patterns.Dec(n, 0)
+	}
+	return ""
+}
+
+templ DeployChart(ws []WeekStat) {
+	@card.Card() {
+		@card.Header() {
+			@card.Title() {
+				Deployments per week
+			}
+			@card.Description() {
+				Production, count per ISO week
+			}
+		}
+		@card.Content() {
+			@chart.Container(chart.ContainerProps{ID: "deploys", Config: deployConfig, Class: "aspect-auto h-[240px] w-full"}) {
+				@chart.BarChart(chart.BarChartProps{Data: weekRows(ws), AccessibilityLayer: true}) {
+					@chart.CartesianGrid(chart.CartesianGridProps{Vertical: chart.Bool(false)})
+					@chart.XAxis(chart.XAxisProps{DataKey: "week", TickMargin: 8})
+					@chart.YAxis(chart.YAxisProps{Width: 32, TickFormatter: tickInt})
+					@chart.Tooltip()
+					@chart.Legend()
+					@chart.Bar(chart.BarProps{DataKey: "deploys", Fill: "var(--chart-1)", Radius: 4})
+					@chart.Bar(chart.BarProps{DataKey: "rollbacks", Fill: "var(--chart-2)", Radius: 4})
+				}
+			}
+		}
+	}
+}
+
+// ---- sheet -------------------------------------------------------------------
+
+templ ReleaseSheet(r Release) {
+	@sheet.Sheet(sheet.Props{ID: "release-" + r.App + "-" + r.Version}) {
+		@button.Button(button.Props{
+			Variant:    button.VariantGhost,
+			Size:       button.SizeSm,
+			Attributes: mergeAttrs(sheet.Trigger(ctx), templ.Attributes{"aria-label": "Details for " + r.App + " " + r.Version}),
+		}) {
+			Details
+		}
+		@sheet.Content() {
+			@sheet.Header() {
+				@sheet.Title() {
+					{ r.App }
+				}
+				@sheet.Description() {
+					Release { r.Version } · { r.Env }
+				}
+			}
+			<div
+				hx-get={ "/metrics/release?app=" + r.App + "&version=" + r.Version }
+				hx-trigger="intersect once"
+				hx-swap="outerHTML"
+				class="px-4"
+			>
+				@skeleton.Skeleton(skeleton.Props{Class: "h-32 w-full"})
+			</div>
+			@sheet.Footer() {
+				@button.Button(button.Props{Variant: button.VariantOutline, Attributes: sheet.Close(ctx)}) {
+					Close
+				}
+			}
+		}
+	}
+}
+
+// ReleaseDetails is the lazily loaded body of ReleaseSheet.
+templ ReleaseDetails(r Release) {
+	<dl class="grid gap-3 px-4 text-sm">
+		<div class="flex justify-between gap-4">
+			<dt class="text-muted-foreground">Image</dt>
+			<dd class="font-mono text-code">{ "registry.internal/arion/" + r.App + ":" + r.Version }</dd>
+		</div>
+		<div class="flex justify-between gap-4">
+			<dt class="text-muted-foreground">Released</dt>
+			<dd>{ patterns.DateTime(r.At, lang) }</dd>
+		</div>
+		<div class="flex justify-between gap-4">
+			<dt class="text-muted-foreground">Promoted by</dt>
+			<dd>{ r.By }</dd>
+		</div>
+		<div class="flex justify-between gap-4">
+			<dt class="text-muted-foreground">Health</dt>
+			<dd>
+				@HealthBadge(r.Health)
+			</dd>
+		</div>
+	</dl>
+}

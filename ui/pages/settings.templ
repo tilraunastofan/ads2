@@ -1,0 +1,105 @@
+package pages
+
+import (
+	"github.com/tilraunastofan/ads2/components/button"
+	"github.com/tilraunastofan/ads2/components/card"
+	"github.com/tilraunastofan/ads2/components/field"
+	"github.com/tilraunastofan/ads2/components/inputotp"
+	"github.com/tilraunastofan/ads2/patterns"
+	"github.com/tilraunastofan/ads2/ui/layouts"
+)
+
+// ShowcaseApprovalCode is the code the showcase accepts. A real app verifies a
+// TOTP from the approver's authenticator.
+const ShowcaseApprovalCode = "123456"
+
+templ Settings() {
+	@layouts.App("Settings", "/settings") {
+		@patterns.PageHeader(patterns.PageHeaderProps{
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Settings"}},
+			Title:  "Settings",
+			Status: "Production change controls",
+		})
+		@ApprovalForm("", false)
+	}
+}
+
+// ariaInvalid is "true" as a string: a bool renders a bare attribute, which ARIA
+// reads as false and Tailwind's aria-invalid: variant does not match.
+func ariaInvalid(msg string) templ.Attributes {
+	if msg == "" {
+		return nil
+	}
+	return templ.Attributes{"aria-invalid": "true"}
+}
+
+// ApprovalForm is a step-up approval with a one-time code. The server answers 422
+// with this form and an error; on success it returns the form in its done state.
+templ ApprovalForm(errMsg string, done bool) {
+	<form
+		id="approval"
+		hx-post="/settings/approve"
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-status:422="target:this"
+		class="max-w-xl"
+	>
+		@card.Card() {
+			@card.Header() {
+				@card.Title() {
+					Lift the deployment freeze
+				}
+				@card.Description() {
+					Lets Kargo promote to production during the freeze window until 18:00 today.
+				}
+			}
+			@card.Content() {
+				if done {
+					<p class="text-sm">
+						@patterns.StatusBadge(patterns.StatusPositive, "Freeze lifted")
+					</p>
+				} else {
+					@field.Field(field.Props{Attributes: invalid(errMsg)}) {
+						@field.Label(field.LabelProps{For: "otp"}) {
+							Approval code
+						}
+						@inputotp.InputOTP(inputotp.Props{
+							ID:        "otp",
+							MaxLength: 6,
+							Pattern:   "^[0-9]+$",
+							Attributes: mergeAttrs(templ.Attributes{"name": "code"}, ariaInvalid(errMsg)),
+						}) {
+							@inputotp.Group() {
+								@inputotp.Slot(inputotp.SlotProps{Index: 0, Attributes: ariaInvalid(errMsg)})
+								@inputotp.Slot(inputotp.SlotProps{Index: 1, Attributes: ariaInvalid(errMsg)})
+								@inputotp.Slot(inputotp.SlotProps{Index: 2, Attributes: ariaInvalid(errMsg)})
+							}
+							@inputotp.Separator()
+							@inputotp.Group() {
+								@inputotp.Slot(inputotp.SlotProps{Index: 3, Attributes: ariaInvalid(errMsg)})
+								@inputotp.Slot(inputotp.SlotProps{Index: 4, Attributes: ariaInvalid(errMsg)})
+								@inputotp.Slot(inputotp.SlotProps{Index: 5, Attributes: ariaInvalid(errMsg)})
+							}
+						}
+						if errMsg != "" {
+							@field.Error() {
+								{ errMsg }
+							}
+						} else {
+							@field.Description() {
+								Enter the 6-digit code from your authenticator. (Showcase code: { ShowcaseApprovalCode })
+							}
+						}
+					}
+				}
+			}
+			if !done {
+				@card.Footer(card.FooterProps{Class: "justify-end"}) {
+					@button.Button(button.Props{Type: button.TypeSubmit, Attributes: templ.Attributes{"hx-disable": "this"}}) {
+						Approve
+					}
+				}
+			}
+		}
+	</form>
+}

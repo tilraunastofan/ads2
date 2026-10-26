@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: task check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # Theme matches tokens.json and meets every contrast claim, templ output and
+      # the component script bundle are committed, vet, build and tests pass.
+      - run: task check
+
+  build:
+    name: task build
+    runs-on: ubuntu-latest
+    needs: check
+    env:
+      TAILWIND_VERSION: v4.1.13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Tailwind CSS standalone CLI
+        run: |
+          curl -fsSL -o /usr/local/bin/tailwindcss \
+            "https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-x64"
+          chmod +x /usr/local/bin/tailwindcss
+      - run: task build
+      - name: Smoke test
+        run: |
+          PORT=8099 ./bin/showcase &
+          for i in $(seq 1 20); do curl -fsS http://localhost:8099/apps >/dev/null && break; sleep 0.5; done
+          for p in /apps /metrics /settings /assets/css/output.css; do
+            curl -fsS -o /dev/null -w "%{http_code} $p\n" "http://localhost:8099$p"
+          done

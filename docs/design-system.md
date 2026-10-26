@@ -14,7 +14,7 @@ Arion Design System 2 dresses **shadcn-templ v2** (nova style) in Arion banki's 
 - **Person:** address the user as "you" only when needed. Buttons are imperative verbs ("Promote to prod", "Open pull request"). Never "Click here" or "OK".
 - **Casing:** sentence case everywhere: titles, buttons, menu items, table headers. Product and system names keep their own casing (OpenShift, Argo CD, Kargo).
 - **Language:** English for internal platform tools. Customer-facing and finance views follow Arion and use Icelandic ("Fjárhagsupplýsingar", "Hagnaður 3F 2026"). Never mix the two inside one sentence, which includes units: "41 min" on an English page, "41 mín." on an Icelandic one.
-- **Numbers:** one format in every language, Arion's: `.` groups thousands and `,` is the decimal mark (`1.284.500`, `2,3%`, `+9,5%`), also on English pages. Only the words and units around the number follow the page language (`1.284.500 kr.` / `128,4 m.kr.`). Put units in the table caption or column header, not in every cell. Losses use a real minus sign `−`. Dates read `23. október 2026` in Icelandic UI and `23 Oct 2026` in English UI. Times use 24 hours. Format with `patterns.Int`, `Dec`, `Signed` and `Pct` rather than by hand.
+- **Numbers:** one format in every language, Arion's: `.` groups thousands and `,` is the decimal mark (`1.284.500`, `2,3%`, `+9,5%`), also on English pages. Only the words and units around the number follow the page language (`1.284.500 kr.` / `128,4 m.kr.`). Put units in the table caption or column header, not in every cell. Losses use a real minus sign `−`. Dates read `23. október 2026` in Icelandic UI and `23 Oct 2026` in English UI. Times use 24 hours. Format with `patterns.Int`, `Dec`, `Signed`, `Pct`, `Date` and `DateRange` rather than by hand.
 - **Identifiers:** image tags, SHAs, namespaces and commands are set in `code` (JetBrains Mono).
 
 ## Color
@@ -25,7 +25,7 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 - **Text.** Use `foreground` (Arion navy `#23313d`) for all body text. `muted-foreground` is for descriptions, helper text and captions only. Strong secondary labels use `slate`.
 - **Action.** `primary` (Arion blue `#005ab4`) is reserved for the one primary button per view, links, checked controls, the active tab underline and progress. Do not use it for decoration or headings.
 - **Hover and selection.** `accent` (pale Arion blue) with `accent-foreground` covers ghost and menu hover, the active sidebar item and highlighted rows. Text selection uses `selection` (`#acd5ff`, Arion's focus fill).
-- **Status.** Errors use `destructive` (Arion red, darkened to `#cc0000`). Gains and healthy states use `positive` (teal, an addition to the Arion palette). In-progress, degraded and caution states use `warning` (amber-brown, also an addition). Teal and red stay apart for all common forms of colour blindness. Status is never shown by colour alone: always add a word, icon, sign or arrow. Use `patterns.StatusBadge` for state pills (Healthy / Progressing / Degraded) so every app maps states the same way; each token has a `*-foreground` for solid fills.
+- **Status.** Errors use `destructive` (Arion red, darkened to `#cc0000`). Gains and healthy states use `positive` (teal, an addition to the Arion palette). In-progress and caution states use `warning`; degraded, failed and down states use `destructive` (amber-brown, also an addition). Teal and red stay apart for all common forms of colour blindness. Status is never shown by colour alone: always add a word, icon, sign or arrow. Use `patterns.StatusBadge` for state pills (Healthy / Progressing / Degraded) so every app maps states the same way; each token has a `*-foreground` for solid fills.
 - **Editorial accents.** `ink` is Arion's dark CTA (one per page at most, never beside a blue primary). `gold` and `plum` are for highlight figures and charts. `sand` is a warm band behind report covers.
 - **Charts.** Use `chart-1` to `chart-5` in order: blue, gold, plum, slate, light slate. Label series directly; the five are tuned to stay apart under red–green colour blindness.
 - **Contrast.** Every text token clears 4.5:1, and every control border, focus ring and chart mark clears 3:1, on the surfaces its usage note names, in both themes. `cmd/gentheme` checks this on every `task theme` and `task check`, so a token edit that breaks a claim fails the build. Four Arion source values were adjusted to pass: `muted-foreground` `#5e7788` → `#536a7a`, `destructive` `#d70000` → `#cc0000`, the `input` border (50% navy, 2.9:1) → solid `#7b8c98`, and light `chart-5` → `#8294a0`. Dark `destructive` is `#ff7a70` so nova's 20% tint badge stays legible.
@@ -65,14 +65,14 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 These are shadcn-templ components, themed. Each card shows the markup the component renders, and each README gives the templ call and htmx usage.
 
 - **Actions:** Button, ButtonGroup, Toggle, ToggleGroup
-- **Forms:** Field, Label, Input, InputGroup, Textarea, Checkbox, RadioGroup, Switch, NativeSelect, Select, Slider
+- **Forms:** Field, Label, Input, InputGroup, Textarea, Checkbox, RadioGroup, Switch, NativeSelect, Select, Combobox, Slider, Calendar, DatePicker, InputOTP
 - **Navigation:** Sidebar, Breadcrumb, Tabs, Pagination, Accordion
-- **Data display:** Card, Table, Badge, Avatar, Item, Kbd, Separator
+- **Data display:** Card, Table, Chart, Badge, Avatar, Item, Kbd, Separator
 - **Feedback:** Alert, Toast, Progress, Spinner, Skeleton, Empty
-- **Overlays:** Dialog, AlertDialog, DropdownMenu, Tooltip
-- **Patterns** (`github.com/tilraunastofan/ads2/patterns`, see `docs/patterns.md`): `Shell`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number formatting, and the Dashboard page composition
+- **Overlays:** Dialog, AlertDialog, Sheet, DropdownMenu, Tooltip
+- **Patterns** (`github.com/tilraunastofan/ads2/patterns`, see `docs/patterns.md`): `Shell`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting, and the Dashboard page composition
 
-Every component above is installed in this repo, as are Sheet and AspectRatio. Other shadcn-templ components (Calendar, DatePicker, Combobox, Command, Popover, HoverCard, Drawer, ContextMenu, Menubar, NavigationMenu, Chart, Carousel, Resizable, ScrollArea, InputOTP, Collapsible) inherit the same theme with no extra rules. Use them as shadcn documents them.
+Every component above is installed in this repo (DatePicker is Popover + Calendar), as is AspectRatio. Other shadcn-templ components (Command, HoverCard, Drawer, ContextMenu, Menubar, NavigationMenu, Carousel, Resizable, ScrollArea, Collapsible) inherit the same theme with no extra rules. Use them as shadcn documents them.
 
 ## Dark mode
 

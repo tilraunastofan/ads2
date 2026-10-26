@@ -7,10 +7,11 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 | `Shell(ShellProps)` | The internal-tool document and layout: sidebar with navigation, theme toggle, one 1200px column. `Base(title, lang)` is the bare document. |
 | `PageHeader(PageHeaderProps)` | Breadcrumb, the one `font-display text-display-sm` title, a status line, and up to two actions as children. |
 | `Stat(StatProps)` / `StatRow()` | KPI card: metric name, value, trend badge with sign, arrow and colour. `Good` and `Up` are independent. |
-| `StatusBadge(Status, label)` | A state as a pill with icon and word. `StatusPositive` (healthy), `StatusWarning` (progressing, degraded), `StatusDestructive` (failed), `StatusNeutral`. |
+| `StatusBadge(Status, label)` | A state as a pill with icon and word. `StatusPositive` (healthy), `StatusWarning` (progressing), `StatusDestructive` (degraded, failed), `StatusNeutral`. |
 | `DataCard(DataCardProps)` | A card holding a full-width table, with optional description and header action (search, button). First and last columns get the card inset: no `pl-4` / `pr-4` on cells. |
 | `ThemeToggle()` | Ghost icon button wired to `assets/js/theme.js`. Already in `Shell`. |
 | `Int`, `Dec`, `Signed`, `Pct`, `SignedPct` | Arion number format: `1.284.500`, `2,3`, `+9,5`, `2,3%`, real minus `−`. |
+| `Date`, `DateTime`, `DateRange`, `ISODate`, `ParseISODate` | Dates in the page language: `23. október 2026` / `23 Oct 2026`, `… kl. 14:32` / `…, 14:32`, ranges `20.–24. október 2026` / `20–24 Oct 2026`; ISO `2026-10-23` on the wire. |
 
 ```templ
 @patterns.PageHeader(patterns.PageHeaderProps{
@@ -34,4 +35,4 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 
 - Map your own states onto `Status` in one helper (`Healthy` → positive, `Progressing` → warning, `Degraded` → destructive); don't pick badge variants per page.
 - A new app page starts from these and the **Dashboard** composition (`docs/components/Dashboard.md`). If two apps hand-roll the same block, it belongs here.
-- `reference`: `ui/pages/showcase.templ` uses all of them.
+- `reference`: `ui/pages/showcase.templ`, `metrics.templ` and `settings.templ` use all of them.
