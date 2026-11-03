@@ -7,6 +7,7 @@ Arion Design System 2 dresses **shadcn-templ v2** (nova style) in Arion banki's 
 - **shadcn first.** Reach for a shadcn-templ component before writing markup. Customise with `Class` (merged by `utils.CN`) and `Attributes`, never by forking the component. If a component is missing, compose existing ones and add a pattern card here.
 - **The server owns state.** Pages render complete HTML; htmx swaps fragments. Use a component's `Default*` props for initial state and re-render from the server instead of syncing client state.
 - **Quiet, precise, legible.** Arion blue is the only loud colour. Everything else is navy ink on a cool, pale canvas, with hairline rings instead of shadows. Numbers line up.
+- **This document decides.** Where generic design guidance or a design skill (unslop, frontend-design) disagrees with this system, this document and `tokens/tokens.json` win. Known differences that are deliberate: serif page titles at weight 600, 10px card radius, Lucide at stroke 2, navy dark surfaces, and full sentences with periods in Arion's voice. To change a rule, change it here first; a review may suggest it, but never applies it on its own.
 
 ## Content fundamentals
 

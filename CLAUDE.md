@@ -73,6 +73,8 @@ Verified in Chrome against `task dev`: search filters rows; the row menu's Resta
 
 ## Rules for UI work in this repo
 
+- **Design skills run in polish mode.** When a design skill (unslop, frontend-design) reviews or edits this repo, `docs/design-system.md` and `tokens/tokens.json` override the skill's tokens and checklist. Fix only real signs the skill finds; report anything that conflicts with an approved rule (serif titles at 600, 10px card radius, Lucide stroke 2, navy dark surfaces, sentences with periods) as a suggestion for the design-system owner instead of changing it. A rule changes in `docs/design-system.md` first, then in the code.
+
 - Use shadcn-templ components first; customise via `Class` and `Attributes` (htmx attributes go in `Attributes`). Don't fork components.
 - Colours only through tokens (`bg-primary`, `text-muted-foreground`, `text-positive`, `bg-ink`…). No hex values or Tailwind palette colours (`blue-600`) in templates.
 - One `primary` button per view. Destructive actions go through `alertdialog`, never `hx-confirm`.
