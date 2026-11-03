@@ -43,3 +43,14 @@ func TestFormat(t *testing.T) {
 		}
 	}
 }
+
+func TestChartNumber(t *testing.T) {
+	for _, c := range []struct {
+		v    any
+		want string
+	}{{1284, "1.284"}, {int64(-5), "−5"}, {1284.6, "1.285"}, {nil, ""}, {"x", NotAvailable}} {
+		if got := ChartNumber(c.v, 0); got != c.want {
+			t.Errorf("ChartNumber(%v) = %q, want %q", c.v, got, c.want)
+		}
+	}
+}

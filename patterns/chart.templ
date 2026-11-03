@@ -1,0 +1,41 @@
+package patterns
+
+// Chart helpers for components/chart. Out of the box the chart formats tooltip
+// values with toLocaleString("en-US") ("1,284"), so every chart in an Arion app
+// needs these to show Arion numbers ("1.284").
+
+// ChartNumber formats a chart value in Arion format. Values arrive as any: Go
+// ints from []chart.Datum built in Go, float64 from JSON-shaped data. It fits
+// XAxisProps/YAxisProps.TickFormatter and LabelListProps.Formatter as
+// func(v any) string { return patterns.ChartNumber(v, 0) }.
+func ChartNumber(v any, decimals int) string {
+	switch n := v.(type) {
+	case int:
+		return Int(int64(n))
+	case int64:
+		return Int(n)
+	case float64:
+		return Dec(n, decimals)
+	case nil:
+		return ""
+	}
+	return NotAvailable
+}
+
+// ChartTooltipRow is one tooltip row (swatch, series name, value) for
+// chart.TooltipContentProps.Formatter. It is the chart's own row markup, so the
+// tooltip looks the same, with the value already formatted:
+//
+//	Formatter: func(v any, key string, row chart.Datum, _ int) templ.Component {
+//		return patterns.ChartTooltipRow(config.Label(key), "var(--chart-1)", patterns.ChartNumber(v, 0))
+//	}
+//
+// color is a token reference such as "var(--chart-1)"; it sets the swatch through
+// CSS variables in a style attribute (allowed by style-src-attr, unlike <style>).
+templ ChartTooltipRow(name, color, value string) {
+	<div class="h-2.5 w-2.5 shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)" style={ "--color-bg:" + color + ";--color-border:" + color }></div>
+	<div class="flex flex-1 items-center justify-between leading-none">
+		<span class="text-muted-foreground">{ name }</span>
+		<span class="font-mono font-medium text-foreground tabular-nums">{ value }</span>
+	</div>
+}

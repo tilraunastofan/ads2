@@ -421,8 +421,10 @@ templ NewAppForm(e NewAppErrors) {
 					}
 				}
 				@field.Field(field.Props{Orientation: field.OrientationHorizontal}) {
-					@switchcomp.Switch(switchcomp.Props{ID: "autosync", Name: "autosync", DefaultChecked: true})
-					@field.Label(field.LabelProps{For: "autosync"}) {
+					// The label's for= reaches the switch's hidden checkbox, not the
+					// role="switch" element screen readers announce, so name that by id.
+					@switchcomp.Switch(switchcomp.Props{ID: "autosync", Name: "autosync", DefaultChecked: true, Attributes: templ.Attributes{"aria-labelledby": "autosync-label"}})
+					@field.Label(field.LabelProps{ID: "autosync-label", For: "autosync"}) {
 						Auto-sync with Argo CD
 					}
 				}

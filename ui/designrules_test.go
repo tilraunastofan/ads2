@@ -20,21 +20,38 @@ type rule struct {
 	allow func(line string) bool
 	// only applies the rule to files under this directory (slash-separated); empty means all.
 	only string
+	// skipAt skips one match, given the line and where the match starts (for a
+	// context the regexp can't express: RE2 has no lookbehind).
+	skipAt func(line string, start int) bool
 }
 
 const palette = `slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose`
-const colourUtils = `bg|text|border|ring|outline|fill|stroke|from|via|to|divide|decoration|shadow|caret|accent|placeholder`
+
+// Colour utilities, with the side and axis forms (border-t-, divide-y-, ring-offset-).
+const colourUtils = `bg|text|border(?:-[xytrblse])?|ring(?:-offset)?|outline|fill|stroke|from|via|to|divide(?:-[xy])?|decoration|shadow|caret|accent|placeholder`
+
+// fragmentRef is an attribute value that names an element, not a colour: href="#add",
+// hx-target="#bad", target:#fab. A hex-looking id there is not a hex colour.
+var fragmentRef = regexp.MustCompile(`(?:href|hx-[a-z:-]+|for|aria-[a-z]+|data-[a-z-]+)="$|target:$`)
 
 var rules = []rule{
 	{
 		name: "hex colour",
-		re:   regexp.MustCompile(`#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b`),
+		re:   regexp.MustCompile(`#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b`),
 		why:  "colours come from tokens (bg-primary, text-muted-foreground); change tokens/tokens.json instead",
+		skipAt: func(line string, start int) bool {
+			return fragmentRef.MatchString(line[:start])
+		},
 	},
 	{
 		name: "Tailwind palette colour",
 		re:   regexp.MustCompile(`\b(?:` + colourUtils + `)-(?:(?:` + palette + `)-\d{2,3}|white|black)\b`),
 		why:  "use a token utility (bg-primary, text-positive, bg-ink); on a fill use its *-foreground, never white",
+	},
+	{
+		name: "Tailwind text size",
+		re:   regexp.MustCompile(`(?:^|[\s"':])text-(?:xs|sm|base|lg|xl|[2-9]xl)\b`),
+		why:  "use the type scale (text-caption, text-body-sm, text-body, text-display-sm …); the sizes match, the tokens carry line height and weight",
 	},
 	{
 		name: "arbitrary font size",
@@ -90,8 +107,14 @@ func check(path, src string) []violation {
 			if r.only != "" && !strings.HasPrefix(path, r.only) {
 				continue
 			}
-			if r.re.MatchString(line) && (r.allow == nil || !r.allow(line)) {
-				out = append(out, violation{line: i + 1, rule: r, text: strings.TrimSpace(line)})
+			if r.allow != nil && r.allow(line) {
+				continue
+			}
+			for _, loc := range r.re.FindAllStringIndex(line, -1) {
+				if r.skipAt == nil || !r.skipAt(line, loc[0]) {
+					out = append(out, violation{line: i + 1, rule: r, text: strings.TrimSpace(line)})
+					break
+				}
 			}
 		}
 	}
@@ -142,6 +165,13 @@ func TestRulesCatchViolations(t *testing.T) {
 		`Status: "ocp-prod-1 · 42 applications"`:                     "middle-dot meta string",
 		`Attributes: templ.Attributes{"aria-invalid": e.Name != ""}`: "bool aria attribute",
 		`templ.Attributes{"aria-expanded": true}`:                    "bool aria attribute",
+		`<div class="border-t-red-500">`:                             "Tailwind palette colour",
+		`<div class="border-x-blue-600">`:                            "Tailwind palette colour",
+		`<div class="divide-y-slate-200">`:                           "Tailwind palette colour",
+		`<div class="ring-offset-white">`:                            "Tailwind palette colour",
+		`<p class="mt-1 text-sm text-muted-foreground">`:             "Tailwind text size",
+		`@card.Title(card.TitleProps{Class: "text-xs"})`:             "Tailwind text size",
+		`<a href="#add" class="fill-[#fab]">`:                        "hex colour",
 	}
 	for src, want := range bad {
 		vs := check("ui/pages/x.templ", src)
@@ -156,6 +186,9 @@ func TestRulesCatchViolations(t *testing.T) {
 		`<div class="w-[260px] h-[240px]">`,
 		`// never text-blue-600 or <button>`,
 		`templ.Attributes{"aria-invalid": "true", "aria-hidden": "true"}`,
+		`<a href="#add">`,
+		`<div hx-target="#bad" hx-status:5xx="target:#fab">`,
+		`<p class="text-body-sm text-caption text-muted-foreground">`,
 	}
 	for _, src := range good {
 		if vs := check("ui/pages/x.templ", src); len(vs) != 0 {

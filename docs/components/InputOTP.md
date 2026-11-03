@@ -22,7 +22,7 @@ One-time-code entry: `inputotp.InputOTP{MaxLength, Pattern}`, `Group`, `Slot{Ind
 
 - Six digits in two groups of three. Submit with the button or Enter in the field.
 - No auto-submit under the showcase CSP: `hx-trigger="input-otp-change[detail.value.length==6]"` is a trigger filter, htmx compiles it with `new Function`, and `script-src 'self'` blocks that. Without a filter the event also fires at 1–5 digits. If you need auto-submit, ship a small script that calls `form.requestSubmit()` when `e.detail.value.length` reaches `MaxLength`.
-- Wrong code: return 422 with the form re-rendered, the input cleared, and `field.Error`.
+- Wrong code: return 422 with the form re-rendered, the input cleared, and `field.Error`. Tie the hint to the input: `"aria-describedby": "otp-hint"` in the input's `Attributes` and `ID: "otp-hint"` on the `field.Description` or `field.Error` (whichever shows), plus `aria-invalid="true"` (a string) on the input and each slot.
 - Invalid state: set `aria-invalid` to the **string** `"true"`. A Go `true` renders a bare `aria-invalid`, which ARIA reads as false and Tailwind's `aria-invalid:` variant ignores. Set it on the input (`Attributes`) and on each `Slot` (`SlotProps.Attributes`): the input is a sibling of the groups, so the slots' red border does not follow it. The showcase's `ariaInvalid(msg)` helper returns both.
 - Under a strict CSP the component's runtime `<style>` (autofill and selection hiding, iOS and password-manager rules) is blocked and its rules are silently dropped. Typing, paste and the slots still work; copy the rules from `components/inputotp/inputotp.js` (`insertStyles`) into your app CSS if you need them.
 - Use for step-up approval (production promotion, payment release), never as the only login factor UI.

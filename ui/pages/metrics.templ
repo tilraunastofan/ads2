@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/tilraunastofan/ads2/components/accordion"
 	"github.com/tilraunastofan/ads2/components/button"
 	"github.com/tilraunastofan/ads2/components/calendar"
 	"github.com/tilraunastofan/ads2/components/card"
@@ -120,7 +121,6 @@ templ MetricsFilter(vm MetricsVM) {
 			}
 		</div>
 	</form>
-	<script src="/assets/js/datepicker.js" defer></script>
 }
 
 // RangeLabel is the trigger text; filter responses replace it via <hx-partial>.
@@ -193,10 +193,18 @@ var deployConfig = chart.Config{
 	{Key: "rollbacks", Label: "Rollbacks"},
 }
 
+// weekRows are the chart's data. deploysFill is each week's bar colour (the tooltip
+// swatch reads it too) and latest is the direct label: the latest week's count,
+// empty for the others.
 func weekRows(ws []WeekStat) []chart.Datum {
 	out := make([]chart.Datum, 0, len(ws))
-	for _, w := range ws {
-		out = append(out, chart.Datum{"week": w.Week, "deploys": w.Deploys, "rollbacks": w.Rollbacks})
+	for i, w := range ws {
+		latest := ""
+		if i == len(ws)-1 {
+			latest = patterns.Int(int64(w.Deploys))
+		}
+		out = append(out, chart.Datum{"week": w.Week, "deploys": w.Deploys, "rollbacks": w.Rollbacks,
+			"deploysFill": weekFill(i, len(ws)), "latest": latest})
 	}
 	return out
 }
@@ -210,15 +218,20 @@ func weekFill(i, n int) string {
 	return "var(--chart-1-quiet)"
 }
 
-func tickInt(v any) string {
-	switch n := v.(type) {
-	case int:
-		return patterns.Int(int64(n))
-	case float64:
-		return patterns.Dec(n, 0)
+func tickInt(v any) string { return patterns.ChartNumber(v, 0) }
+
+// deployTooltipRow formats the tooltip in Arion numbers (the chart's default is
+// en-US) with each row's own swatch: the week's blue for deployments.
+func deployTooltipRow(v any, key string, row chart.Datum, _ int) templ.Component {
+	color := "var(--chart-4)"
+	if key == "deploys" {
+		color, _ = row["deploysFill"].(string)
 	}
-	return ""
+	return patterns.ChartTooltipRow(deployConfig.Label(key), color, patterns.ChartNumber(v, 0))
 }
+
+// Bars are rounded at the data end only and square on the baseline.
+var barRadius = []float64{4, 4, 0, 0}
 
 templ DeployChart(ws []WeekStat) {
 	@card.Card() {
@@ -227,26 +240,77 @@ templ DeployChart(ws []WeekStat) {
 				Deployments per week
 			}
 			@card.Description() {
-				Production, count per ISO week, latest week highlighted
+				Production, count per ISO week, latest week highlighted and labelled
 			}
 		}
-		@card.Content() {
+		@card.Content(card.ContentProps{Class: "flex flex-col gap-4"}) {
 			// One series leads: deployments in Arion blue, the latest week in full
-			// chart-1 and earlier weeks in chart-1-quiet; rollbacks in neutral slate.
-			// Tick labels are mono, like every figure.
+			// chart-1 with its count on the bar, earlier weeks in chart-1-quiet;
+			// rollbacks in neutral slate. The deployments series (legend swatch) is
+			// chart-1-quiet, the colour of most of its bars; the label marks the one
+			// in full blue. Tick labels are mono, like every figure.
 			@chart.Container(chart.ContainerProps{ID: "deploys", Config: deployConfig, Class: "aspect-auto h-[300px] w-full [&_.recharts-cartesian-axis-tick_text]:font-mono"}) {
 				@chart.BarChart(chart.BarChartProps{Data: weekRows(ws), AccessibilityLayer: true}) {
 					@chart.CartesianGrid(chart.CartesianGridProps{Vertical: chart.Bool(false)})
 					@chart.XAxis(chart.XAxisProps{DataKey: "week", TickMargin: 8})
 					@chart.YAxis(chart.YAxisProps{Width: 32, TickFormatter: tickInt})
-					@chart.Tooltip()
+					@chart.Tooltip(chart.TooltipProps{Content: chart.TooltipContentProps{Formatter: deployTooltipRow}})
 					@chart.Legend()
-					@chart.Bar(chart.BarProps{DataKey: "deploys", Fill: "var(--chart-1)", Radius: 4}) {
+					@chart.Bar(chart.BarProps{DataKey: "deploys", Fill: "var(--chart-1-quiet)", Radius: barRadius}) {
 						for i := range ws {
 							@chart.Cell(chart.CellProps{Fill: weekFill(i, len(ws))})
 						}
+						@chart.LabelList(chart.LabelListProps{DataKey: "latest", Position: "top", Class: "fill-foreground font-mono"})
 					}
-					@chart.Bar(chart.BarProps{DataKey: "rollbacks", Fill: "var(--chart-4)", Radius: 4})
+					@chart.Bar(chart.BarProps{DataKey: "rollbacks", Fill: "var(--chart-4)", Radius: barRadius})
+				}
+			}
+			@WeeklyTable(ws)
+		}
+	}
+}
+
+// WeeklyTable is the chart's data as a table, for anyone who can't read the bars
+// (screen readers, low vision) or wants the exact counts. Collapsed by default.
+templ WeeklyTable(ws []WeekStat) {
+	@accordion.Accordion() {
+		@accordion.Item(accordion.ItemProps{Value: "weekly-table"}) {
+			@accordion.Trigger() {
+				Weekly counts as a table
+			}
+			@accordion.Content() {
+				@table.Table() {
+					@table.Caption(table.CaptionProps{Class: "sr-only"}) {
+						Deployments and rollbacks per ISO week
+					}
+					@table.Header() {
+						@table.Row() {
+							@table.Head() {
+								Week
+							}
+							@table.Head(table.HeadProps{Class: "text-right"}) {
+								Deployments
+							}
+							@table.Head(table.HeadProps{Class: "text-right"}) {
+								Rollbacks
+							}
+						}
+					}
+					@table.Body() {
+						for _, w := range ws {
+							@table.Row() {
+								@table.Cell(table.CellProps{Class: "font-mono"}) {
+									{ w.Week }
+								}
+								@table.Cell(table.CellProps{Class: "text-right font-mono tabular-nums"}) {
+									{ patterns.Int(int64(w.Deploys)) }
+								}
+								@table.Cell(table.CellProps{Class: "text-right font-mono tabular-nums"}) {
+									{ patterns.Int(int64(w.Rollbacks)) }
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -307,7 +371,7 @@ func releaseURL(vm MetricsVM, r Release) string {
 
 // ReleaseDetails is the lazily loaded body of ReleaseSheet.
 templ ReleaseDetails(r Release) {
-	<dl class="grid gap-3 px-4 text-sm">
+	<dl class="grid gap-3 px-4 text-body-sm">
 		<div class="flex justify-between gap-4">
 			<dt class="text-muted-foreground">Image</dt>
 			<dd class="font-mono text-code">{ "registry.internal/arion/" + r.App + ":" + r.Version }</dd>

@@ -9,6 +9,11 @@
 // The server re-renders the trigger label (e.g. via <hx-partial>); this file never
 // formats dates.
 (() => {
+  // Base loads this once; an app that also adds it to a page must not end up with a
+  // second calendar-select listener (each would fire change again).
+  if (window.arionDatePicker) return;
+  window.arionDatePicker = true;
+
   const iso = (d) =>
     d instanceof Date
       ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`

@@ -22,4 +22,5 @@ if err != "" {
 - Every form is `field.Group` > `field.Field`s; group related fields in `field.Set` + `field.Legend`.
 - Validate on the server and re-render the whole `field.Field` with htmx (`hx-post` on the form, `hx-select` or `<hx-partial>` per field). Return 422 and use `hx-status:422` to keep the swap on the form.
 - `field.Description` uses `muted-foreground`; `field.Error` uses `destructive` and is announced (`role="alert"`).
+- On the input: `aria-invalid="true"` as a string while there is an error (a Go bool renders a bare attribute, which ARIA reads as false; the design-rules test rejects it), and `aria-describedby` pointing at one id that the description and the error share, so whichever shows is read with the field. `fieldInput` in `ui/pages/showcase.templ` does both.
 - Horizontal orientation for checkbox and switch rows.

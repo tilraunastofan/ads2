@@ -13,7 +13,9 @@ How shadcn-templ components and htmx 4 fit together in this system. htmx attribu
 
 ## Layout
 
-Use `patterns.Shell` or `patterns.Base` (see **Setup**). Between them they load htmx, the component scripts and two small helpers (`toast-guard.js`, `filter-form.js`) once in `<head>`, boost the body, mount `<div id="toasts" hidden>` for toast partials, and mount the toaster. Don't hand-write the document: the pieces (order, `defer`, the `#toasts` target) are easy to get subtly wrong.
+Use `patterns.Shell` or `patterns.Base` (see **Setup**). Between them they load htmx, the component scripts and the small helpers (`toast-guard.js`, `filter-form.js`, `request-errors.js`, `dialog-form.js`, `datepicker.js`, `focus-after-swap.js`) once in `<head>`, boost the body, mount `<div id="toasts" hidden>` for toast partials, and mount the toaster. Don't hand-write the document: the pieces (order, `defer`, the `#toasts` target) are easy to get subtly wrong.
+
+**Focus after a swap.** When a swap removes the focused element, `focus-after-swap.js` puts focus back: on the new page's `<h1>` after a boosted navigation (`PageHeader` renders it with `tabindex="-1"`), and on the first `aria-invalid="true"` field of a form re-rendered with errors. It leaves focus alone when something else placed it, such as a closing dialog. Give re-rendered forms an `id` and their invalid inputs `aria-invalid="true"` (a string).
 
 shadcn-templ's scripts re-initialise components inside swapped content, so dialogs, menus and selects work in fragments (`parity/htmx` in the shadcn-templ repo tests exactly this).
 

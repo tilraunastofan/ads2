@@ -16,7 +16,7 @@ templ ReportShell(p ReportShellProps) {
 		@SkipLink(p.Lang)
 		<header class="border-b bg-card">
 			<div class="mx-auto flex h-14 w-full max-w-[1040px] items-center justify-between gap-4 px-4 sm:px-6">
-				<a href={ templ.SafeURL(homeOr(p.Home)) } class="flex items-center gap-2 rounded-lg text-sm font-medium">
+				<a href={ templ.SafeURL(homeOr(p.Home)) } class="flex items-center gap-2 rounded-lg text-body-sm font-medium">
 					@ArionMark("size-6 shrink-0")
 					<span>{ p.Product }</span>
 				</a>

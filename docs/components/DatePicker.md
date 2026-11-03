@@ -18,7 +18,6 @@ A button that opens a calendar in a popover. Not a separate component: compose `
         }
     }
 </form>
-<script src="/assets/js/datepicker.js" defer></script>
 ```
 
 `assets/js/datepicker.js` copies `calendar-select` into the hidden `from` / `to` inputs (ISO `YYYY-MM-DD`) and dispatches `change` on the form once a range is complete; `filter-form.js` (loaded by `patterns.Base`) turns that into `filter-change` when the values differ, so htmx re-renders the page region. Use `filter-change`, not `change`, as soon as the form holds anything else, such as a combobox (see **Filter form** in `htmx-patterns.md`). The server owns the label: it re-renders the trigger with the formatted range.

@@ -141,7 +141,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Lift the freeze")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Lift freeze")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -192,7 +192,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				if done {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-body-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -321,7 +321,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 							ID:         "otp",
 							MaxLength:  6,
 							Pattern:    "^[0-9]+$",
-							Attributes: mergeAttrs(templ.Attributes{"name": "code"}, ariaInvalid(errMsg)),
+							Attributes: mergeAttrs(templ.Attributes{"name": "code", "aria-describedby": "otp-hint"}, ariaInvalid(errMsg)),
 						}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -350,7 +350,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = field.Error().Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = field.Error(field.ErrorProps{ID: "otp-hint"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -386,7 +386,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 								}
 								return nil
 							})
-							templ_7745c5c3_Err = field.Description().Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = field.Description(field.DescriptionProps{ID: "otp-hint"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

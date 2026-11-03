@@ -55,7 +55,8 @@ func TestPageHeader(t *testing.T) {
 	if n := strings.Count(html, "<h1"); n != 1 {
 		t.Errorf("%d <h1>, want exactly one", n)
 	}
-	if !strings.Contains(html, `<h1 class="font-display text-display-sm">Releases</h1>`) {
+	// tabindex="-1": focus-after-swap.js focuses it after a boosted navigation.
+	if !strings.Contains(html, `<h1 tabindex="-1" class="font-display text-display-sm outline-none">Releases</h1>`) {
 		t.Error("title is not the display style")
 	}
 	if !strings.Contains(html, `href="/"`) || !strings.Contains(html, `href="/apps"`) {

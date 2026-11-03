@@ -13,6 +13,7 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 | `SidebarState(http.Handler)` | Middleware: reads `sidebar.js`'s `sidebar_state` cookie so `Shell` renders the sidebar collapsed or expanded as the user left it. Wrap your mux in it, or the sidebar re-expands on every navigation. |
 | `ThemeToggle(lang...)` | Ghost icon button wired to `assets/js/theme.js`, named "Dark theme" / "Dökkt þema" with `aria-pressed`. Already in `Shell`. |
 | `SkipLink(lang)` | "Skip to content" link, visible on focus, to `#main` (`tabindex="-1"`). Already in `Shell`, where `#main` is a `<div>` inside the sidebar inset, the page's one `<main>`; on `Base` pages give your own `<main>` that id. |
+| `ChartNumber(v, decimals)`, `ChartTooltipRow(name, color, value)` | Arion numbers in `components/chart`, whose tooltip defaults to en-US: `ChartNumber` for ticks and labels (takes the chart's `any`), `ChartTooltipRow` for the tooltip `Formatter`. See `docs/components/Chart.md`. |
 | `Int`, `Dec`, `Signed`, `Pct`, `SignedPct` | Arion number format: `1.284.500`, `2,3`, `+9,5`, `2,3%`, real minus `−`. Any finite value formats exactly, however large; NaN and ±Inf (such as a change from zero) give `patterns.NotAvailable` (`–`), never `0`. |
 | `Date`, `DateTime`, `DateRange`, `ISODate`, `ParseISODate` | Dates in the page language: `23. október 2026` / `23 Oct 2026`, `… kl. 14:32` / `…, 14:32`, ranges `20.–24. október 2026` / `20–24 Oct 2026`; ISO `2026-10-23` on the wire. |
 

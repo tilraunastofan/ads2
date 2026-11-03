@@ -30,7 +30,7 @@ go mod tidy && go tool templ generate && go build ./... && go vet ./...
 
 Then apply the Arion theme:
 
-1. Copy `arion-theme.css`, `fonts.css`, the `assets/fonts/` folder, `assets/js/theme.js`, `assets/img/arion-mark.svg`, `assets/img/arion-mark-favicon.svg` and the `patterns/` package from `ads2` into the project (rewrite the `patterns` import paths to your module).
+1. Copy `arion-theme.css`, `fonts.css`, the `assets/fonts/` folder, every helper script in `assets/js/` except the vendored htmx (`theme.js`, `toast-guard.js`, `filter-form.js`, `request-errors.js`, `dialog-form.js`, `datepicker.js`, `focus-after-swap.js`: `patterns.Base` loads them all), `assets/img/arion-mark.svg`, `assets/img/arion-mark-favicon.svg` and the `patterns/` package from `ads2` into the project (rewrite the `patterns` import paths to your module).
 2. In `globals.css` delete the `:root { … }`, `.dark { … }`, `@theme inline { … }` and `@custom-variant dark` blocks that `init` wrote, and add `@import "./arion-theme.css";` after the other `@import` lines.
 3. Keep `body` class `style-nova` (the init scaffold sets it). Keep menus solid: do not enable the translucent menu colour.
 4. Link `fonts.css` before `output.css` (`patterns.Base` does this).
@@ -41,7 +41,7 @@ Then apply the Arion theme:
 
 ## Layout skeleton
 
-Use `patterns.Shell` (sidebar, theme toggle, 1200px column) or `patterns.Base` (bare document) instead of writing the document by hand. With `Shell`, wrap the server's handler in `patterns.SidebarState(mux)` so a collapsed sidebar stays collapsed across pages. They load, in this order: `fonts.css`, `output.css`, `theme.js` (blocking, so dark mode has no flash), vendored htmx 4 (`defer`), `components.Scripts()`; and they mount `<div id="toasts" hidden>` (the target of `<hx-partial hx-target="#toasts">` responses) plus `toast.Toaster()`. The body is boosted with `hx-boost:inherited="true"`; `lang` defaults to `en` (`ShellProps.Lang` for Icelandic pages).
+Use `patterns.Shell` (sidebar, theme toggle, 1200px column) or `patterns.Base` (bare document) instead of writing the document by hand. With `Shell`, wrap the server's handler in `patterns.SidebarState(mux)` so a collapsed sidebar stays collapsed across pages. They load, in this order: `fonts.css`, `output.css`, `theme.js` (blocking, so dark mode has no flash), vendored htmx 4 (`defer`), the helpers `toast-guard.js`, `filter-form.js`, `request-errors.js`, `dialog-form.js`, `datepicker.js` and `focus-after-swap.js` (`defer`, each once: a `<script>` inside a page runs again on every boosted visit), `components.Scripts()`; and they mount `<div id="toasts" hidden>` (the target of `<hx-partial hx-target="#toasts">` responses) plus `toast.Toaster()`. The body is boosted with `hx-boost:inherited="true"`; `lang` defaults to `en` (`ShellProps.Lang` for Icelandic pages).
 
 ```templ
 templ App(title, currentPath string) {

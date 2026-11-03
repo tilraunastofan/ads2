@@ -86,8 +86,13 @@ func TestMetricsFilter(t *testing.T) {
 	if !strings.Contains(all, "1 Sep") || !strings.Contains(all, "12 Oct") {
 		t.Error("range label does not reflect from and to")
 	}
-	if rows := strings.Count(one, "<tr"); rows != 2 || strings.Count(all, "<tr") <= rows {
-		t.Errorf("app filter: %d rows filtered (want header + 1), %d unfiltered", rows, strings.Count(all, "<tr"))
+	// Rows of the releases table, which follows the chart's weekly table.
+	releases := func(body string) int {
+		_, after, _ := strings.Cut(body, ">Releases<")
+		return strings.Count(after, "<tr")
+	}
+	if rows := releases(one); rows != 2 || releases(all) <= rows {
+		t.Errorf("app filter: %d rows filtered (want header + 1), %d unfiltered", rows, releases(all))
 	}
 	if !strings.Contains(one, "payments-api") {
 		t.Error("filtered response lacks the app")
@@ -293,9 +298,19 @@ func TestRecovererAnswersAPanic(t *testing.T) {
 func TestShellHasPageAlertsAndHelpers(t *testing.T) {
 	body := get(newMux(newStore()), "/apps").Body.String()
 	for _, want := range []string{`<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>`,
-		`src="/assets/js/request-errors.js"`, `src="/assets/js/toast-guard.js"`, `src="/assets/js/filter-form.js"`} {
+		`src="/assets/js/request-errors.js"`, `src="/assets/js/toast-guard.js"`, `src="/assets/js/filter-form.js"`,
+		`src="/assets/js/dialog-form.js"`, `src="/assets/js/datepicker.js"`, `src="/assets/js/focus-after-swap.js"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("page lacks %s", want)
+		}
+	}
+	// Each helper once, in <head>: a script inside the body runs again on every
+	// boosted visit and stacks its listeners.
+	metrics := get(newMux(newStore()), "/metrics").Body.String()
+	head, _, _ := strings.Cut(metrics, "</head>")
+	for _, js := range []string{"datepicker.js", "focus-after-swap.js", "filter-form.js"} {
+		if strings.Count(metrics, js) != 1 || !strings.Contains(head, js) {
+			t.Errorf("/metrics: %s should load once, in <head>", js)
 		}
 	}
 	if strings.Contains(body, "Target for errors") {
@@ -434,7 +449,7 @@ func TestNavLabelsMatchPageTitles(t *testing.T) {
 			t.Errorf("sidebar says %q for %s, page is %q", it.Label, it.Href, want)
 		}
 		body := get(h, it.Href).Body.String()
-		if !strings.Contains(body, `<h1 class="font-display text-display-sm">`+want+`</h1>`) {
+		if !strings.Contains(body, `<h1 tabindex="-1" class="font-display text-display-sm outline-none">`+want+`</h1>`) {
 			t.Errorf("%s: title is not %q", it.Href, want)
 		}
 	}
@@ -582,5 +597,40 @@ func TestMetricsRangeIsBounded(t *testing.T) {
 	from, to := boundRange(time.Date(2026, 10, 12, 0, 0, 0, 0, time.UTC), time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC))
 	if !from.Before(to) || from.Month() != 9 || to.Month() != 10 {
 		t.Errorf("reversed range: got %s to %s, want it put the right way round", from, to)
+	}
+}
+
+// The chart is drawn in the browser from the JSON model, so these read the model.
+func TestDeployChartDetails(t *testing.T) {
+	// Weeks 37 to 40; the counts are under 1.000, so the Arion format shows in the
+	// tooltip only as the absence of the chart's default markup.
+	body := get(newMux(newStore()), "/metrics/body?from=2026-09-07&to=2026-10-04").Body.String()
+	d40, _ := week(40)
+	for _, want := range []string{
+		// Square on the baseline, rounded at the data end.
+		`"radius":[4,4,0,0]`,
+		// The latest bar carries its count; the others carry nothing.
+		`"labels":["","","","` + strconv.Itoa(d40) + `"]`,
+		// Tooltip rows come from patterns.ChartTooltipRow, with each week's swatch.
+		`--color-bg:var(--chart-1-quiet)`, `--color-bg:var(--chart-4)`,
+		// The same numbers as a table.
+		"Weekly counts as a table", "<caption", ">W40<",
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("chart lacks %s", want)
+		}
+	}
+}
+
+func TestControlsHaveNamesAndHints(t *testing.T) {
+	h := newMux(newStore())
+	apps := get(h, "/apps").Body.String()
+	if !strings.Contains(apps, `aria-labelledby="autosync-label"`) || !strings.Contains(apps, `id="autosync-label"`) {
+		t.Error("the Auto-sync switch has no accessible name")
+	}
+	for _, b := range []string{get(h, "/settings").Body.String(), post(h, "/settings/approve", "code=111111").Body.String()} {
+		if !strings.Contains(b, `aria-describedby="otp-hint"`) || !strings.Contains(b, `id="otp-hint"`) {
+			t.Error("the approval code's hint or error is not tied to its input")
+		}
 	}
 }

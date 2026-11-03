@@ -47,7 +47,7 @@ templ ApprovalForm(errMsg string, done bool) {
 		@card.Card() {
 			@card.Header() {
 				@card.Title() {
-					Lift the freeze
+					Lift freeze
 				}
 				@card.Description() {
 					Lets Kargo promote to production until 18:00 today.
@@ -55,7 +55,7 @@ templ ApprovalForm(errMsg string, done bool) {
 			}
 			@card.Content() {
 				if done {
-					<p class="text-sm">
+					<p class="text-body-sm">
 						@patterns.StatusBadge(patterns.StatusPositive, "Freeze lifted")
 					</p>
 				} else {
@@ -67,7 +67,7 @@ templ ApprovalForm(errMsg string, done bool) {
 							ID:        "otp",
 							MaxLength: 6,
 							Pattern:   "^[0-9]+$",
-							Attributes: mergeAttrs(templ.Attributes{"name": "code"}, ariaInvalid(errMsg)),
+							Attributes: mergeAttrs(templ.Attributes{"name": "code", "aria-describedby": "otp-hint"}, ariaInvalid(errMsg)),
 						}) {
 							@inputotp.Group() {
 								@inputotp.Slot(inputotp.SlotProps{Index: 0, Attributes: ariaInvalid(errMsg)})
@@ -82,11 +82,11 @@ templ ApprovalForm(errMsg string, done bool) {
 							}
 						}
 						if errMsg != "" {
-							@field.Error() {
+							@field.Error(field.ErrorProps{ID: "otp-hint"}) {
 								{ errMsg }
 							}
 						} else {
-							@field.Description() {
+							@field.Description(field.DescriptionProps{ID: "otp-hint"}) {
 								Enter the 6-digit code from your authenticator. (Showcase code: { ShowcaseApprovalCode })
 							}
 						}

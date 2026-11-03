@@ -15,6 +15,6 @@ The top of every page: optional breadcrumb, the one serif display title, a statu
 }
 ```
 
-- Exactly one per page, first in `main`. The title is `font-display text-display-sm` (Source Serif 4, 40px): the only serif on an app page.
+- Exactly one per page, first in `main`. The title is `font-display text-display-sm` (Source Serif 4, 40px): the only serif on an app page. The `<h1>` has `tabindex="-1"` so `focus-after-swap.js` can focus it after a boosted navigation, which makes a screen reader announce the new page.
 - At most two actions: the primary last. More actions go in a `dropdownmenu`.
 - The status line states freshness or scope in plain words; it is not a subtitle slogan.
