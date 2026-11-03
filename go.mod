@@ -16,7 +16,7 @@ require (
 require (
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/andybalholm/brotli v1.2.7 // indirect
-	github.com/axadrn/shadcn-templ/v2 v2.0.0-beta.15 // indirect
+	github.com/axadrn/shadcn-templ/v2 v2.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cli/browser v1.3.0 // indirect
 	github.com/evanw/esbuild v0.28.2 // indirect

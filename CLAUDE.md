@@ -1,6 +1,6 @@
 # ads2 — Arion Design System 2
 
-Arion banki's palette on **shadcn-templ v2** (nova style) for Go + templ + htmx 4 + Tailwind v4.
+Arion banki's palette on **shadcn-templ v2.0.0** (nova style; the CLI is pinned as a Go tool in `go.mod`) for Go + templ + htmx 4 + Tailwind v4.
 Module: `github.com/tilraunastofan/ads2`.
 
 ## Layout

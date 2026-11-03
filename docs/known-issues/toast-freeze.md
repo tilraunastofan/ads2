@@ -1,7 +1,7 @@
 # Toast freezes the tab on page change
 
 **Status:** worked around in this repo (`assets/js/toast-guard.js`, commit `f7e017e`). Not fixed upstream. Reported 3 Nov 2026 as [axadrn/shadcn-templ#656](https://github.com/axadrn/shadcn-templ/issues/656), with the [standalone reproduction](https://github.com/jakobjs/shadcn-templ-toast-freeze-repro) and the fix under **Fixing it upstream**.
-**Affects:** shadcn-templ's toast (`components/toast/toast.js`) in every v2 release: reproduced on `v2.0.0-beta.15` (ours); the file is byte-identical in `beta.16`, `v2.0.0` and `main` as of 3 Nov 2026, so upgrading does not fix it. Independent of the htmx version (4.0.0 and 4.0.1 both freeze). shadcn's own React toast is not affected (see **Upstream analysis**).
+**Affects:** shadcn-templ's toast (`components/toast/toast.js`) in every v2 release: reproduced on `v2.0.0-beta.15`; the file is byte-identical in `beta.16`, `v2.0.0` and `main` as of 3 Nov 2026, so upgrading does not fix it. ads2 runs `v2.0.0` (since 3 Nov 2026); after that upgrade the three checks under **After every shadcn-templ update** passed in Chrome and the guard check printed `true`. Independent of the htmx version (4.0.0 and 4.0.1 both freeze). shadcn's own React toast is not affected (see **Upstream analysis**).
 **Severity:** high. The tab hangs until it is closed, and it takes only an ordinary click.
 
 ## What users see
