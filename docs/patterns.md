@@ -21,7 +21,7 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 @patterns.PageHeader(patterns.PageHeaderProps{
     Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Releases"}},
     Title:  "Releases",
-    Status: "ocp-prod-1 · 42 applications · synced 1 minute ago",
+    Status: "42 applications on ocp-prod-1, synced 1 minute ago.",
 }) {
     @button.Button(button.Props{Variant: button.VariantOutline}) { @icon.Download() Export }
     @button.Button() { @icon.Plus() New application }

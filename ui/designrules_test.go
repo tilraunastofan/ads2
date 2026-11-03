@@ -199,3 +199,34 @@ func TestRulesCatchViolations(t *testing.T) {
 		t.Errorf("PageHeader may render the h1: %v", vs)
 	}
 }
+
+// TestDocExamplesFollowDesignRules runs the same rules over the ```templ examples
+// in docs/: teams copy those, so a middot or a raw <button> there spreads as
+// surely as one in a template.
+func TestDocExamplesFollowDesignRules(t *testing.T) {
+	block := regexp.MustCompile("(?s)```templ\n(.*?)```")
+	n := 0
+	err := filepath.WalkDir(filepath.Join("..", "docs"), func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".md") {
+			return err
+		}
+		src, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel("..", p)
+		for _, m := range block.FindAllStringSubmatch(string(src), -1) {
+			n++
+			for _, v := range check("docs/", m[1]) {
+				t.Errorf("%s: example breaks %s: %s\n\t%s", filepath.ToSlash(rel), v.rule.name, v.rule.why, v.text)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n == 0 {
+		t.Fatal("no ```templ examples found in docs/")
+	}
+}

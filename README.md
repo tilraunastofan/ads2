@@ -42,4 +42,4 @@ Fonts: Hanken Grotesk (UI), Source Serif 4 (page titles), JetBrains Mono (figure
 task dev   # http://localhost:7331/apps
 ```
 
-See `CLAUDE.md` for first-time bootstrap steps.
+Starting a new project on this system: `docs/setup.md`. Working in this repo: `CLAUDE.md`.

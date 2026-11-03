@@ -16,13 +16,14 @@ How to start a Go project on this system. The reference starter lives in the `ad
 ## New project
 
 ```sh
-go install github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ@latest
+go install github.com/axadrn/shadcn-templ/v2/cmd/shadcn-templ@v2.0.0   # the version ads2 is built and checked on
 shadcn-templ init my-app -t templ --preset nova
 cd my-app
-shadcn-templ add button card badge table field input input-group textarea label checkbox radio-group switch native-select select slider toggle toggle-group tabs breadcrumb pagination accordion sidebar avatar item kbd separator alert toast progress spinner skeleton empty dialog alert-dialog dropdown-menu tooltip icon
+shadcn-templ add accordion alert alert-dialog aspect-ratio avatar badge breadcrumb button button-group calendar card chart checkbox combobox dialog dropdown-menu empty field icon input input-group input-otp item kbd label native-select pagination popover progress radio-group select separator sheet sidebar skeleton slider spinner switch table tabs textarea toast toggle toggle-group tooltip
 go mod tidy && go tool templ generate && go build ./... && go vet ./...
 ```
 
+- That is every component `ads2` has, so the `patterns/` package and the docs in `docs/components/` work unchanged. Add more the same way; remove one only if no pattern you copied uses it.
 - Registry names are **kebab-case** (`alert-dialog`, `dropdown-menu`, `input-group`, `native-select`); the Go package names drop the hyphen (`alertdialog`, `dropdownmenu`…). The no-hyphen names return 404.
 - `input-group` needs `textarea` installed too.
 - In a fresh scaffold run `go mod tidy` first: `go tool templ` is declared in `go.mod` but only resolves after tidy. After that, run `go tool templ generate && go mod tidy` after every `.templ` edit or `shadcn-templ add`.
@@ -46,7 +47,7 @@ Use `patterns.Shell` (sidebar, theme toggle, 1200px column) or `patterns.Base` (
 ```templ
 templ App(title, currentPath string) {
     @patterns.Shell(patterns.ShellProps{
-        Title: title + " · Platform", Product: "Platform", Tagline: "on-prem · OpenShift",
+        Title: title + " – Platform", Product: "Platform", Tagline: "On-prem OpenShift",
         GroupLabel: "Workloads", Nav: nav(), CurrentPath: currentPath,
     }) {
         { children... }

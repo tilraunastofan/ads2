@@ -8,7 +8,7 @@ The top of every page: optional breadcrumb, the one serif display title, a statu
 @patterns.PageHeader(patterns.PageHeaderProps{
     Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Releases"}},
     Title:  "Releases",
-    Status: "ocp-prod-1 · 42 applications · synced 1 minute ago",
+    Status: "42 applications on ocp-prod-1, synced 1 minute ago.",
 }) {
     @button.Button(button.Props{Variant: button.VariantOutline, Href: "/apps.csv"}) { @icon.Download() Export }
     @button.Button() { @icon.Plus() New application }

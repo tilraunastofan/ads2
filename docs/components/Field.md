@@ -5,16 +5,17 @@ Layout and semantics for one form control with label, description and error: `fi
 **Consumer provides:** the control (input, select, checkbox…), its label text, optional description, error text when invalid, `Orientation` (`vertical`, `horizontal`, `responsive`).
 
 ```templ
-{{ attrs := templ.Attributes{} }}
-if err != "" {
-    {{ attrs["data-invalid"] = "true" }}
-}
-@field.Field(field.Props{Attributes: attrs}) {
+// invalid(err) is data-invalid="true" and fieldInput(id, err, extra) is
+// aria-invalid="true" plus aria-describedby="<id>-hint", both only while err != ""
+// (ui/pages/showcase.templ). The description and the error share the hint id.
+@field.Field(field.Props{Attributes: invalid(err)}) {
     @field.Label(field.LabelProps{For: "replicas"}) { Replicas }
     @input.Input(input.Props{ID: "replicas", Name: "replicas", Type: "number", Value: v,
-        Attributes: templ.Attributes{"aria-invalid": err != ""}})
+        Attributes: fieldInput("replicas", err, nil)})
     if err != "" {
-        @field.Error() { { err } }
+        @field.Error(field.ErrorProps{ID: "replicas-hint"}) { { err } }
+    } else {
+        @field.Description(field.DescriptionProps{ID: "replicas-hint"}) { At least 2 in production. }
     }
 }
 ```

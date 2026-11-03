@@ -10,9 +10,9 @@ A side panel over the page for detail and secondary tasks: `sheet.Sheet`, `sheet
     @sheet.Content() {
         @sheet.Header() {
             @sheet.Title() { { a.Name } }
-            @sheet.Description() { Release { a.Version } · { a.Env } }
+            @sheet.Description() { Release { a.Version } in { a.Env } }
         }
-        <div hx-get={ "/apps/" + a.Name + "/details" } hx-trigger="intersect once" hx-swap="outerHTML" class="px-4">
+        <div hx-get={ "/apps/" + url.PathEscape(a.Name) + "/details" } hx-trigger="intersect once" hx-swap="outerHTML" class="px-4">
             @skeleton.Skeleton(skeleton.Props{Class: "h-32"})
         </div>
         @sheet.Footer() {
