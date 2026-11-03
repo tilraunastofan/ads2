@@ -34,8 +34,8 @@ type ShellProps struct {
 // download alongside the CSS instead of after it; the font and theme CSS; theme.js
 // (before paint, so no flash); vendored htmx 4; toast-guard.js (works around a
 // toast freeze on boosted navigation); filter-form.js (form[data-filter-form]
-// fires filter-change when its values change); the component bundle; and the
-// toast mount.
+// fires filter-change when its values change); request-errors.js (a toast for
+// network failures and unhandled 5xx); the component bundle; and the toast mount.
 func Base(title, lang string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -83,7 +83,7 @@ func Base(title, lang string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/img/arion-mark.svg\"><link rel=\"preload\" href=\"/assets/fonts/hanken-grotesk-latin-wght-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin><link rel=\"preload\" href=\"/assets/fonts/source-serif-4-latin-wght-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin><link rel=\"stylesheet\" href=\"/assets/css/fonts.css\"><link rel=\"stylesheet\" href=\"/assets/css/output.css\"><script src=\"/assets/js/theme.js\"></script><script src=\"/assets/js/htmx.min.js\" defer></script><script src=\"/assets/js/toast-guard.js\" defer></script><script src=\"/assets/js/filter-form.js\" defer></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/img/arion-mark.svg\"><link rel=\"preload\" href=\"/assets/fonts/hanken-grotesk-latin-wght-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin><link rel=\"preload\" href=\"/assets/fonts/source-serif-4-latin-wght-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin><link rel=\"stylesheet\" href=\"/assets/css/fonts.css\"><link rel=\"stylesheet\" href=\"/assets/css/output.css\"><script src=\"/assets/js/theme.js\"></script><script src=\"/assets/js/htmx.min.js\" defer></script><script src=\"/assets/js/toast-guard.js\" defer></script><script src=\"/assets/js/filter-form.js\" defer></script><script src=\"/assets/js/request-errors.js\" defer></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -212,7 +212,7 @@ func Shell(p ShellProps) templ.Component {
 						var templ_7745c5c3_Var9 string
 						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Product)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 83, Col: 53}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 84, Col: 53}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 						if templ_7745c5c3_Err != nil {
@@ -225,7 +225,7 @@ func Shell(p ShellProps) templ.Component {
 						var templ_7745c5c3_Var10 string
 						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(p.Tagline)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 84, Col: 71}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 85, Col: 71}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 						if templ_7745c5c3_Err != nil {
@@ -280,7 +280,7 @@ func Shell(p ShellProps) templ.Component {
 								var templ_7745c5c3_Var14 string
 								templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(p.GroupLabel)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 91, Col: 21}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 92, Col: 21}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 								if templ_7745c5c3_Err != nil {
@@ -340,7 +340,7 @@ func Shell(p ShellProps) templ.Component {
 											var templ_7745c5c3_Var18 string
 											templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(it.Label)
 											if templ_7745c5c3_Err != nil {
-												return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 98, Col: 26}
+												return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 99, Col: 26}
 											}
 											_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 											if templ_7745c5c3_Err != nil {
@@ -411,7 +411,7 @@ func Shell(p ShellProps) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</header><main id=\"main\" tabindex=\"-1\" class=\"mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</header><main id=\"main\" tabindex=\"-1\" class=\"mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none\"><div id=\"page-alerts\" role=\"status\" aria-live=\"polite\" class=\"empty:hidden\"></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -475,7 +475,7 @@ func SkipLink(lang string) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(labelsFor(lang).SkipToContent)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 126, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 130, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {

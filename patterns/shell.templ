@@ -26,8 +26,8 @@ type ShellProps struct {
 // download alongside the CSS instead of after it; the font and theme CSS; theme.js
 // (before paint, so no flash); vendored htmx 4; toast-guard.js (works around a
 // toast freeze on boosted navigation); filter-form.js (form[data-filter-form]
-// fires filter-change when its values change); the component bundle; and the
-// toast mount.
+// fires filter-change when its values change); request-errors.js (a toast for
+// network failures and unhandled 5xx); the component bundle; and the toast mount.
 templ Base(title, lang string) {
 	<!DOCTYPE html>
 	<html lang={ langOr(lang) }>
@@ -44,6 +44,7 @@ templ Base(title, lang string) {
 			<script src="/assets/js/htmx.min.js" defer></script>
 			<script src="/assets/js/toast-guard.js" defer></script>
 			<script src="/assets/js/filter-form.js" defer></script>
+			<script src="/assets/js/request-errors.js" defer></script>
 			@components.Scripts()
 		</head>
 		<body class="style-nova min-h-svh" hx-boost:inherited="true">
@@ -109,6 +110,9 @@ templ Shell(p ShellProps) {
 					@ThemeToggle(p.Lang)
 				</header>
 				<main id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none">
+					// Target for errors that belong on the page rather than in a toast:
+					// hx-status:5xx="target:#page-alerts" with an alert.Alert response.
+					<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>
 					{ children... }
 				</main>
 			}

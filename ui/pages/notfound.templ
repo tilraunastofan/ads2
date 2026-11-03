@@ -41,3 +41,22 @@ templ NotFound(path string) {
 		</div>
 	}
 }
+
+// ServerError is the page for a request that failed on the server: same layout as
+// NotFound, one way back. htmx requests get a toast instead (cmd/showcase recover).
+templ ServerError() {
+	@layouts.App("Something went wrong", "") {
+		@patterns.PageHeader(patterns.PageHeaderProps{
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Something went wrong"}},
+			Title:  "Something went wrong",
+		})
+		<div class="flex max-w-prose flex-col items-start gap-4">
+			<p class="text-body text-muted-foreground">
+				The server could not show this page. Try again in a moment; if it keeps failing, report it with the time.
+			</p>
+			@button.Button(button.Props{Href: "/apps"}) {
+				Go to Applications
+			}
+		</div>
+	}
+}

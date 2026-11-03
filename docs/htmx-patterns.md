@@ -5,7 +5,8 @@ How shadcn-templ components and htmx 4 fit together in this system. htmx attribu
 ## htmx 4 defaults to remember
 
 - **Inheritance is explicit.** Write `hx-target:inherited="#main"` on a parent to share attributes; plain attributes no longer cascade.
-- **4xx/5xx responses swap.** Return 422 with the re-rendered form for validation errors. Use `hx-status:422="target:#form"` or `hx-status:5xx="target:#page-alerts"` to route errors.
+- **4xx/5xx responses swap.** Return 422 with the re-rendered form for validation errors. Use `hx-status:422="target:#form"` or `hx-status:5xx="target:#page-alerts"` (an empty `aria-live` region at the top of `Shell`'s `<main>`) to route errors.
+- **Unhandled failures become toasts.** `request-errors.js` (loaded by `Base`) raises an error toast when the server can't be reached, and when a 5xx arrives that the element doesn't route with `hx-status` and the server didn't wrap in `<hx-partial>`; it cancels that swap so raw error text never replaces content. 4xx is left alone. On the server, wrap the handler in a recovery middleware that answers htmx requests with a toast partial and page loads with an error page (the showcase's `recoverer`).
 - **One response, many targets.** Wrap extra fragments in `<hx-partial hx-target="#id">` (or `<hx-partial id="toasts">`): a row update plus a toast plus a counter, in one round trip.
 - **Back/forward re-requests the page.** Make every `hx-push-url` URL render a full page when requested without `HX-Request`.
 - Event names are phase-based (`htmx:before:request`, `htmx:after:swap`). Run `npx htmx.org@4.0.1 upgrade-check` on old code.

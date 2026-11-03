@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -326,6 +327,54 @@ func (g *gzipWriter) close() {
 // Unwrap lets http.ResponseController reach the underlying writer.
 func (g *gzipWriter) Unwrap() http.ResponseWriter { return g.ResponseWriter }
 
+// recoverer turns a panic in a handler into a 500 the UI can show: a toast partial
+// for htmx requests (request-errors.js leaves responses with <hx-partial> alone),
+// the Arion error page otherwise. The stack goes to the log, never to the client.
+func recoverer(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tw := &trackingWriter{ResponseWriter: w}
+		defer func() {
+			v := recover()
+			if v == nil {
+				return
+			}
+			if v == http.ErrAbortHandler {
+				panic(v)
+			}
+			log.Printf("panic: %s %s: %v\n%s", r.Method, r.URL.Path, v, debug.Stack())
+			if tw.wroteHeader {
+				return // too late for another status; the client sees a cut-off response
+			}
+			if r.Header.Get("HX-Request") == "true" && r.Header.Get("HX-Request-Type") == "partial" {
+				render(tw, r, http.StatusInternalServerError, toastPartial("Something went wrong",
+					"The server could not complete the request. Try again; if it keeps failing, report it with the time.", toast.TypeError))
+				return
+			}
+			render(tw, r, http.StatusInternalServerError, pages.ServerError())
+		}()
+		next.ServeHTTP(tw, r)
+	})
+}
+
+// trackingWriter records whether a status was sent, so recoverer knows whether it
+// can still answer.
+type trackingWriter struct {
+	http.ResponseWriter
+	wroteHeader bool
+}
+
+func (t *trackingWriter) WriteHeader(code int) {
+	t.wroteHeader = true
+	t.ResponseWriter.WriteHeader(code)
+}
+
+func (t *trackingWriter) Write(b []byte) (int, error) {
+	t.wroteHeader = true
+	return t.ResponseWriter.Write(b)
+}
+
+func (t *trackingWriter) Unwrap() http.ResponseWriter { return t.ResponseWriter }
+
 // secure sets the security headers an on-prem deployment should send. Scripts and
 // stylesheets are same-origin files. Components write a few inline style="…"
 // attributes (progress width, aspect ratio, visually-hidden inputs), so
@@ -492,7 +541,7 @@ func main() {
 	}
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           secure(compress(newMux(newStore()))),
+		Handler:           secure(compress(recoverer(newMux(newStore())))),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

@@ -263,3 +263,31 @@ func TestReleaseDetailsFollowTheSelectedRange(t *testing.T) {
 		t.Errorf("details show another release time than the table")
 	}
 }
+
+func TestRecovererAnswersAPanic(t *testing.T) {
+	boom := recoverer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { panic("boom") }))
+	frag := get(boom, "/x", "HX-Request", "true", "HX-Request-Type", "partial")
+	if frag.Code != 500 || !strings.Contains(frag.Body.String(), `<hx-partial hx-target="#toasts"`) || !strings.Contains(frag.Body.String(), "Something went wrong") {
+		t.Errorf("htmx request: status %d, body %q", frag.Code, frag.Body.String())
+	}
+	page := get(boom, "/x")
+	if page.Code != 500 || !strings.Contains(page.Body.String(), "<h1") || strings.Contains(page.Body.String(), "boom") {
+		t.Errorf("page request: status %d; the panic value must not reach the client", page.Code)
+	}
+	if ok := get(recoverer(newMux(newStore())), "/apps"); ok.Code != 200 {
+		t.Errorf("recoverer broke a normal request: %d", ok.Code)
+	}
+}
+
+func TestShellHasPageAlertsAndHelpers(t *testing.T) {
+	body := get(newMux(newStore()), "/apps").Body.String()
+	for _, want := range []string{`<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>`,
+		`src="/assets/js/request-errors.js"`, `src="/assets/js/toast-guard.js"`, `src="/assets/js/filter-form.js"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("page lacks %s", want)
+		}
+	}
+	if strings.Contains(body, "Target for errors") {
+		t.Error("a templ comment leaked into the page")
+	}
+}
