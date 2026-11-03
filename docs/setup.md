@@ -30,7 +30,7 @@ go mod tidy && go tool templ generate && go build ./... && go vet ./...
 
 Then apply the Arion theme:
 
-1. Copy `arion-theme.css`, `fonts.css`, the `assets/fonts/` folder, `assets/js/theme.js`, `assets/img/arion-mark.svg` and the `patterns/` package from `ads2` into the project (rewrite the `patterns` import paths to your module).
+1. Copy `arion-theme.css`, `fonts.css`, the `assets/fonts/` folder, `assets/js/theme.js`, `assets/img/arion-mark.svg`, `assets/img/arion-mark-favicon.svg` and the `patterns/` package from `ads2` into the project (rewrite the `patterns` import paths to your module).
 2. In `globals.css` delete the `:root { … }`, `.dark { … }`, `@theme inline { … }` and `@custom-variant dark` blocks that `init` wrote, and add `@import "./arion-theme.css";` after the other `@import` lines.
 3. Keep `body` class `style-nova` (the init scaffold sets it). Keep menus solid: do not enable the translucent menu colour.
 4. Link `fonts.css` before `output.css` (`patterns.Base` does this).

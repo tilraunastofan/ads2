@@ -17,7 +17,7 @@ templ ReportShell(p ReportShellProps) {
 		<header class="border-b bg-card">
 			<div class="mx-auto flex h-14 w-full max-w-[1040px] items-center justify-between gap-4 px-4 sm:px-6">
 				<a href={ templ.SafeURL(homeOr(p.Home)) } class="flex items-center gap-2 rounded-lg text-sm font-medium">
-					<img src="/assets/img/arion-mark.svg" alt="Arion" width="24" height="24" class="size-6"/>
+					@ArionMark("size-6 shrink-0")
 					<span>{ p.Product }</span>
 				</a>
 				@ThemeToggle(p.Lang)

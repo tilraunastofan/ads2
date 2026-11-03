@@ -24,6 +24,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand-mark: var(--brand-mark);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -141,6 +142,7 @@
   --popover-foreground: #23313d;
   --primary: #005ab4;
   --primary-foreground: #ffffff;
+  --brand-mark: #005ab4;
   --secondary: #e6ecef;
   --secondary-foreground: #17212a;
   --muted: #edf1f3;
@@ -192,6 +194,7 @@
   --popover-foreground: #e6ecef;
   --primary: #4da3ff;
   --primary-foreground: #0c171b;
+  --brand-mark: #ffffff;
   --secondary: #23313d;
   --secondary-foreground: #e6ecef;
   --muted: #1c2832;
@@ -226,7 +229,7 @@
   --slate: #bbc7cd;
   --gold: #c9a46a;
   --plum: #c39bc3;
-  --sand: #3a342c;
+  --sand: #22374a;
   --positive: #4fc1d6;
   --positive-foreground: #0c171b;
   --warning: #f2b24d;

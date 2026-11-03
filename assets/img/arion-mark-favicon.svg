@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="116 116 368 368">
+  <!-- Favicon: assets/img/arion-mark.svg, Arion blue on light browser chrome and pure
+       white on dark chrome (the tab bar follows the OS, not the page's .dark class). -->
+  <style>
+    g { fill: #005AB4; }
+    @media (prefers-color-scheme: dark) { g { fill: #FFFFFF; } }
+  </style>
+  <g>
+    <path d="M300 210 390 300 300 390 210 300Z"/>
+    <path d="M206 121V207H292Z"/>
+    <path d="M394 121V207H308Z"/>
+    <path d="M122 206H207V291Z"/>
+    <path d="M478 206H393V291Z"/>
+    <path d="M122 393H207V308Z"/>
+    <path d="M478 393H393V308Z"/>
+    <path d="M206 394H292L206 479Z"/>
+    <path d="M394 394H308L394 479Z"/>
+  </g>
+</svg>

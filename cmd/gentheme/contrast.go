@@ -35,6 +35,8 @@ var requirements = []pair{
 	{"surface-foreground", "surface", text, 0, ""},
 	// patterns.ReportCover: title and lede on the sand band (not muted-foreground: 4.3:1).
 	{"foreground", "sand", text, 0, ""}, {"slate", "sand", text, 0, ""},
+	// patterns.ArionMark: the star mark on every surface it sits on (a graphic: 3:1).
+	{"brand-mark", "sidebar", ui, 0, ""}, {"brand-mark", "card", ui, 0, ""}, {"brand-mark", "background", ui, 0, ""},
 
 	{"muted-foreground", "background", text, 0, ""}, {"muted-foreground", "card", text, 0, ""},
 	{"muted-foreground", "muted", text, 0, ""}, {"muted-foreground", "secondary", text, 0, ""},
