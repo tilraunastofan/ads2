@@ -115,8 +115,11 @@ func Metrics(vm MetricsVM) templ.Component {
 	})
 }
 
-// MetricsFilter is the date range and application filter. Any change submits the
-// form; the response replaces #metrics-body and, out of band, the range label.
+// MetricsFilter is the date range and application filter. A change to its values
+// submits the form (data-filter-form, see assets/js/filter-form.js); the response
+// replaces #metrics-body and, out of band, the range label. A plain
+// hx-trigger="change" also fired when the combobox's unnamed text input lost focus,
+// so a click on Details refetched the body and replaced the sheet as it opened.
 func MetricsFilter(vm MetricsVM) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -138,14 +141,14 @@ func MetricsFilter(vm MetricsVM) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form id=\"metrics-filter\" data-date-picker hx-get=\"/metrics/body\" hx-trigger=\"change\" hx-target=\"#metrics-body\" hx-swap=\"outerHTML\" class=\"flex flex-wrap items-center gap-2\"><input type=\"hidden\" name=\"from\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form id=\"metrics-filter\" data-date-picker data-filter-form hx-get=\"/metrics/body\" hx-trigger=\"filter-change\" hx-target=\"#metrics-body\" hx-swap=\"outerHTML\" class=\"flex flex-wrap items-center gap-2\"><input type=\"hidden\" name=\"from\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(patterns.ISODate(vm.From))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 76, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 80, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
@@ -158,7 +161,7 @@ func MetricsFilter(vm MetricsVM) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(patterns.ISODate(vm.To))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 77, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 81, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
@@ -339,7 +342,7 @@ func MetricsFilter(vm MetricsVM) templ.Component {
 							var templ_7745c5c3_Var14 string
 							templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(a)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 111, Col: 11}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 115, Col: 11}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 							if templ_7745c5c3_Err != nil {
@@ -407,7 +410,7 @@ func RangeLabel(from, to time.Time) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(patterns.DateRange(from, to, lang))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 124, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 128, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -685,7 +688,7 @@ func MetricsBody(vm MetricsVM) templ.Component {
 								var templ_7745c5c3_Var31 string
 								templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(r.App)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 161, Col: 15}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 165, Col: 15}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 								if templ_7745c5c3_Err != nil {
@@ -712,7 +715,7 @@ func MetricsBody(vm MetricsVM) templ.Component {
 								var templ_7745c5c3_Var33 string
 								templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(r.Version)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 164, Col: 19}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 168, Col: 19}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 								if templ_7745c5c3_Err != nil {
@@ -739,7 +742,7 @@ func MetricsBody(vm MetricsVM) templ.Component {
 								var templ_7745c5c3_Var35 string
 								templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(patterns.DateTime(r.At, lang))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 167, Col: 39}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 171, Col: 39}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 								if templ_7745c5c3_Err != nil {
@@ -785,7 +788,7 @@ func MetricsBody(vm MetricsVM) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								templ_7745c5c3_Err = ReleaseSheet(r).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = ReleaseSheet(vm, r).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -1043,7 +1046,10 @@ func DeployChart(ws []WeekStat) templ.Component {
 }
 
 // ---- sheet -------------------------------------------------------------------
-func ReleaseSheet(r Release) templ.Component {
+
+// ReleaseSheet takes the view model so its lazy body is built for the same range
+// as the table row it belongs to.
+func ReleaseSheet(vm MetricsVM, r Release) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1141,7 +1147,7 @@ func ReleaseSheet(r Release) templ.Component {
 						var templ_7745c5c3_Var52 string
 						templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(r.App)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 250, Col: 12}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 256, Col: 12}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 						if templ_7745c5c3_Err != nil {
@@ -1172,7 +1178,7 @@ func ReleaseSheet(r Release) templ.Component {
 						var templ_7745c5c3_Var54 string
 						templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(r.Version)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 253, Col: 24}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 259, Col: 24}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 						if templ_7745c5c3_Err != nil {
@@ -1185,7 +1191,7 @@ func ReleaseSheet(r Release) templ.Component {
 						var templ_7745c5c3_Var55 string
 						templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(r.Env)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 253, Col: 37}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 259, Col: 37}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 						if templ_7745c5c3_Err != nil {
@@ -1208,9 +1214,9 @@ func ReleaseSheet(r Release) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var56 string
-				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.ResolveAttributeValue(releaseURL(r))
+				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.ResolveAttributeValue(releaseURL(vm, r))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 257, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 263, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var56)
 				if templ_7745c5c3_Err != nil {
@@ -1284,10 +1290,17 @@ func ReleaseSheet(r Release) templ.Component {
 	})
 }
 
-// releaseURL is the lazy body's address. Query values go through url.Values, never
-// string concatenation, so a name with & or # can't change the request.
-func releaseURL(r Release) string {
-	return "/metrics/release?" + url.Values{"app": {r.App}, "version": {r.Version}}.Encode()
+// releaseURL is the lazy body's address. It carries the selected range, or the
+// details would be computed for the default range and show another release time.
+// Query values go through url.Values, never string concatenation, so a name with &
+// or # can't change the request.
+func releaseURL(vm MetricsVM, r Release) string {
+	return "/metrics/release?" + url.Values{
+		"app":     {r.App},
+		"version": {r.Version},
+		"from":    {patterns.ISODate(vm.From)},
+		"to":      {patterns.ISODate(vm.To)},
+	}.Encode()
 }
 
 // ReleaseDetails is the lazily loaded body of ReleaseSheet.
@@ -1319,7 +1332,7 @@ func ReleaseDetails(r Release) templ.Component {
 		var templ_7745c5c3_Var60 string
 		templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs("registry.internal/arion/" + r.App + ":" + r.Version)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 284, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 297, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 		if templ_7745c5c3_Err != nil {
@@ -1332,7 +1345,7 @@ func ReleaseDetails(r Release) templ.Component {
 		var templ_7745c5c3_Var61 string
 		templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(patterns.DateTime(r.At, lang))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 288, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 301, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 		if templ_7745c5c3_Err != nil {
@@ -1345,7 +1358,7 @@ func ReleaseDetails(r Release) templ.Component {
 		var templ_7745c5c3_Var62 string
 		templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(r.By)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 292, Col: 13}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/pages/metrics.templ`, Line: 305, Col: 13}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 		if templ_7745c5c3_Err != nil {

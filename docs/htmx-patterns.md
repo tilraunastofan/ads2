@@ -12,7 +12,7 @@ How shadcn-templ components and htmx 4 fit together in this system. htmx attribu
 
 ## Layout
 
-Use `patterns.Shell` or `patterns.Base` (see **Setup**). Between them they load htmx and the component scripts once in `<head>`, boost the body, mount `<div id="toasts" hidden>` for toast partials, and mount the toaster. Don't hand-write the document: the pieces (order, `defer`, the `#toasts` target) are easy to get subtly wrong.
+Use `patterns.Shell` or `patterns.Base` (see **Setup**). Between them they load htmx, the component scripts and two small helpers (`toast-guard.js`, `filter-form.js`) once in `<head>`, boost the body, mount `<div id="toasts" hidden>` for toast partials, and mount the toaster. Don't hand-write the document: the pieces (order, `defer`, the `#toasts` target) are easy to get subtly wrong.
 
 shadcn-templ's scripts re-initialise components inside swapped content, so dialogs, menus and selects work in fragments (`parity/htmx` in the shadcn-templ repo tests exactly this).
 
@@ -26,6 +26,8 @@ shadcn-templ's scripts re-initialise components inside swapped content, so dialo
     @button.Button(button.Props{Type: button.TypeSubmit}) { Create application }
 </form>
 ```
+
+**Filter form (date range, combobox, selects → results):** `<form data-filter-form hx-get="/report/body" hx-trigger="filter-change" hx-target="#report-body" hx-swap="outerHTML">`. `filter-form.js` fires `filter-change` only when the form's named values change. Don't use `hx-trigger="change"` here: a combobox's visible text input has no name but still fires `change` when it loses focus, so the click that opens a sheet or menu in the results refetches them and the swap replaces what was just opened. `hx-trigger="change changed"` doesn't fix it either, because `changed` compares the triggering element's own value and the date picker fires `change` on the form. Lazy fragments inside the results (a sheet's body) must carry the same filter values in their URL, or they are built for the default range (the showcase's `releaseURL`).
 
 **Live search (inputgroup + table):** `hx-trigger="input changed delay:300ms, search"`, `hx-target="#rows"`, `hx-push-url="true"`. The handler renders only `table.Body` when `HX-Request` is set.
 

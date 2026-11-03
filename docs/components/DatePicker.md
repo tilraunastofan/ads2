@@ -5,7 +5,7 @@ A button that opens a calendar in a popover. Not a separate component: compose `
 **Consumer provides:** the trigger label (the formatted date or range, or a placeholder), `Mode`, hidden inputs that carry the value to the server, and the small script that fills them.
 
 ```templ
-<form id="range" hx-get="/metrics" hx-target="#metrics" hx-select="#metrics" hx-trigger="change" hx-push-url="true">
+<form id="range" data-date-picker data-filter-form hx-get="/metrics" hx-target="#metrics" hx-select="#metrics" hx-trigger="filter-change" hx-push-url="true">
     <input type="hidden" name="from" value={ r.From.Format(time.DateOnly) }/>
     <input type="hidden" name="to" value={ r.To.Format(time.DateOnly) }/>
     @popover.Popover(popover.Props{ID: "range-picker"}) {
@@ -21,7 +21,7 @@ A button that opens a calendar in a popover. Not a separate component: compose `
 <script src="/assets/js/datepicker.js" defer></script>
 ```
 
-`assets/js/datepicker.js` copies `calendar-select` into the hidden `from` / `to` inputs (ISO `YYYY-MM-DD`) and dispatches `change` on the form once a range is complete, so htmx re-renders the page region. The server owns the label: it re-renders the trigger with the formatted range.
+`assets/js/datepicker.js` copies `calendar-select` into the hidden `from` / `to` inputs (ISO `YYYY-MM-DD`) and dispatches `change` on the form once a range is complete; `filter-form.js` (loaded by `patterns.Base`) turns that into `filter-change` when the values differ, so htmx re-renders the page region. Use `filter-change`, not `change`, as soon as the form holds anything else, such as a combobox (see **Filter form** in `htmx-patterns.md`). The server owns the label: it re-renders the trigger with the formatted range.
 
 - The popover portals its content to `<body>` while open, so the calendar is **not** a DOM descendant of your form. `datepicker.js` therefore finds the form through the popover trigger (`aria-controls` points at the content id), which is inside the form. Keep the `popover.Trigger(ctx)` attributes on a button in the same `form[data-date-picker]`, and give the `Popover` an `ID`.
 - The popover stays open after a selection, so a range can be adjusted; the first click inside an existing range moves its nearest end. Escape or an outside click closes it.

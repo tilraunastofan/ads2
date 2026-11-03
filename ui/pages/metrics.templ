@@ -61,14 +61,18 @@ templ Metrics(vm MetricsVM) {
 	}
 }
 
-// MetricsFilter is the date range and application filter. Any change submits the
-// form; the response replaces #metrics-body and, out of band, the range label.
+// MetricsFilter is the date range and application filter. A change to its values
+// submits the form (data-filter-form, see assets/js/filter-form.js); the response
+// replaces #metrics-body and, out of band, the range label. A plain
+// hx-trigger="change" also fired when the combobox's unnamed text input lost focus,
+// so a click on Details refetched the body and replaced the sheet as it opened.
 templ MetricsFilter(vm MetricsVM) {
 	<form
 		id="metrics-filter"
 		data-date-picker
+		data-filter-form
 		hx-get="/metrics/body"
-		hx-trigger="change"
+		hx-trigger="filter-change"
 		hx-target="#metrics-body"
 		hx-swap="outerHTML"
 		class="flex flex-wrap items-center gap-2"
@@ -170,7 +174,7 @@ templ MetricsBody(vm MetricsVM) {
 								@HealthBadge(r.Health)
 							}
 							@table.Cell(table.CellProps{Class: "text-right"}) {
-								@ReleaseSheet(r)
+								@ReleaseSheet(vm, r)
 							}
 						}
 					}
@@ -235,7 +239,9 @@ templ DeployChart(ws []WeekStat) {
 
 // ---- sheet -------------------------------------------------------------------
 
-templ ReleaseSheet(r Release) {
+// ReleaseSheet takes the view model so its lazy body is built for the same range
+// as the table row it belongs to.
+templ ReleaseSheet(vm MetricsVM, r Release) {
 	@sheet.Sheet(sheet.Props{ID: "release-" + r.App + "-" + r.Version}) {
 		@button.Button(button.Props{
 			Variant:    button.VariantGhost,
@@ -254,7 +260,7 @@ templ ReleaseSheet(r Release) {
 				}
 			}
 			<div
-				hx-get={ releaseURL(r) }
+				hx-get={ releaseURL(vm, r) }
 				hx-trigger="intersect once"
 				hx-swap="outerHTML"
 				class="px-4"
@@ -270,10 +276,17 @@ templ ReleaseSheet(r Release) {
 	}
 }
 
-// releaseURL is the lazy body's address. Query values go through url.Values, never
-// string concatenation, so a name with & or # can't change the request.
-func releaseURL(r Release) string {
-	return "/metrics/release?" + url.Values{"app": {r.App}, "version": {r.Version}}.Encode()
+// releaseURL is the lazy body's address. It carries the selected range, or the
+// details would be computed for the default range and show another release time.
+// Query values go through url.Values, never string concatenation, so a name with &
+// or # can't change the request.
+func releaseURL(vm MetricsVM, r Release) string {
+	return "/metrics/release?" + url.Values{
+		"app":     {r.App},
+		"version": {r.Version},
+		"from":    {patterns.ISODate(vm.From)},
+		"to":      {patterns.ISODate(vm.To)},
+	}.Encode()
 }
 
 // ReleaseDetails is the lazily loaded body of ReleaseSheet.

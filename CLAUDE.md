@@ -13,6 +13,8 @@ Module: `github.com/tilraunastofan/ads2`.
 | `assets/css/fonts.css`, `assets/fonts/` | Self-hosted variable woff2 (OFL). Suisse is optional and opt-in (see Typography in `design-system.md`). |
 | `assets/img/arion-mark.svg` | Arion star mark (vector trace of the Arion logo; use as is). |
 | `assets/js/theme.js` | Dark-mode class on `<html>`: OS setting first, then the toggle's saved choice. |
+| `assets/js/toast-guard.js` | Workaround for a freeze in the vendored toast: disconnects each toast's observers before a boosted body swap. Remove once shadcn-templ's toast `destroy()` does it. |
+| `assets/js/filter-form.js` | `form[data-filter-form]` fires `filter-change` only when its named values change (see **Filter form** in `docs/htmx-patterns.md`). |
 | `assets/js/datepicker.js` | Copies a calendar selection into hidden inputs of a `form[data-date-picker]` and fires `change` (see `docs/components/DatePicker.md`). |
 | `assets/assets.go` | `go:embed` of `css`, `fonts`, `img`, `js` for the binary. |
 | `patterns/` | Reusable compositions: `Shell`, `Base`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting (`format.go`, `dates.go`). Copied into apps like `components/`. |
@@ -38,7 +40,7 @@ Already done (committed): `shadcn-templ init --preset nova --css assets/css/glob
 - `go test ./...` — token contrast, theme drift (`arion-theme.css` must match `tokens.json`), number formatting, and `ui/designrules_test.go`, which fails on any `.templ` in `ui/` or `patterns/` that breaks the UI rules below (hex or palette colours, `text-[…]`, `hx-confirm`, raw `<button>`/`<table>`/`<input>`, an `<h1>` outside `PageHeader`).
 - After adding components or editing `.templ`: `go tool templ generate && go mod tidy`.
 
-Verified in Chrome against `task dev`: search filters rows, row menu raises a toast, delete asks in an alert dialog and removes the row, the New application form shows 422 field errors, Rollout reaches 3/3 and stops polling, dark mode via `class="dark"` on `<html>` swaps the tokens. `/metrics`: the range picker updates the label, KPIs, chart and table, the app filter narrows them, Details opens a sheet whose body loads lazily. `/settings`: `111111` shows the 422 error, `123456` shows "Freeze lifted" and a toast. Note: a dark-mode browser extension (e.g. Dark Reader) darkens the page even without `.dark`; disable it when judging themes.
+Verified in Chrome against `task dev`: search filters rows, row menu raises a toast, delete asks in an alert dialog and removes the row, the New application form shows 422 field errors, Rollout reaches 3/3 and stops polling, dark mode via `class="dark"` on `<html>` swaps the tokens. `/metrics`: the range picker updates the label, KPIs, chart and table, the app filter narrows them, Details opens a sheet whose body loads lazily, also right after changing the range and typing in the app filter, and shows the release time of its row. A toast showing during a boosted navigation or browser Back no longer freezes the tab. `/settings`: `111111` shows the 422 error, `123456` shows "Freeze lifted" and a toast. Note: a dark-mode browser extension (e.g. Dark Reader) darkens the page even without `.dark`; disable it when judging themes.
 
 ## Notes for agents
 
@@ -55,6 +57,8 @@ Verified in Chrome against `task dev`: search filters rows, row menu raises a to
 - The showcase store is in memory; a restart brings deleted rows back.
 - Body is boosted: a link to a file download needs the `download` attribute (htmx then leaves it alone), or the file is swapped into the page.
 - Build query strings with `url.Values`, never `"?a=" + x`.
+- Filter forms trigger on `filter-change` (`data-filter-form`), never plain `change`: an unnamed combobox input fires `change` on blur, and the refetch replaced the Details sheet as it opened. Lazy fragments in filtered results carry the filter values in their URL.
+- A toast showing during a boosted navigation froze the tab (the toast's observers loop once its viewport is gone); `toast-guard.js` prevents it. If you ever see the tab hang right after a click on a link, check that it is loaded.
 
 **Verifying UI**
 - Check toasts, dialogs and dark mode in Chrome; HTTP only covers server responses. Check `list_connected_browsers` if the extension reports not connected.

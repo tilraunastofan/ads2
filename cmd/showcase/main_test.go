@@ -245,3 +245,21 @@ func TestNotFoundPage(t *testing.T) {
 		t.Error("boosted navigation should get the 404 page")
 	}
 }
+
+// The sheet's lazy body must describe the release in the row it opens from, for
+// the selected range, not for the default one.
+func TestReleaseDetailsFollowTheSelectedRange(t *testing.T) {
+	h := newMux(newStore())
+	body := get(h, "/metrics/body?from=2026-09-08&to=2026-09-20&app=fx-rates").Body.String()
+	if !strings.Contains(body, "18 Sep 2026, 11:00") {
+		t.Fatalf("table lacks the fx-rates release time for the range")
+	}
+	const want = `hx-get="/metrics/release?app=fx-rates&amp;from=2026-09-08&amp;to=2026-09-20&amp;version=1.42.0"`
+	if !strings.Contains(body, want) {
+		t.Fatalf("sheet URL lacks the range; want %s", want)
+	}
+	details := get(h, "/metrics/release?app=fx-rates&from=2026-09-08&to=2026-09-20&version=1.42.0").Body.String()
+	if !strings.Contains(details, "18 Sep 2026, 11:00") {
+		t.Errorf("details show another release time than the table")
+	}
+}
