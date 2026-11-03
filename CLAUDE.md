@@ -35,7 +35,7 @@ Already done (committed): `shadcn-templ init --preset nova --css assets/css/glob
 - `task build` — production build to `bin/showcase`.
 - `task check` — CI: theme current and contrast met, templ output and script bundle committed, `go vet`, `go build`, `go test`.
 - `task theme` — regenerate `assets/css/arion-theme.css` after changing `tokens/tokens.json`; it also checks every contrast claim and fails with the offending pair.
-- `go test ./...` — token contrast, theme drift (`arion-theme.css` must match `tokens.json`), number formatting.
+- `go test ./...` — token contrast, theme drift (`arion-theme.css` must match `tokens.json`), number formatting, and `ui/designrules_test.go`, which fails on any `.templ` in `ui/` or `patterns/` that breaks the UI rules below (hex or palette colours, `text-[…]`, `hx-confirm`, raw `<button>`/`<table>`/`<input>`, an `<h1>` outside `PageHeader`).
 - After adding components or editing `.templ`: `go tool templ generate && go mod tidy`.
 
 Verified in Chrome against `task dev`: search filters rows, row menu raises a toast, delete asks in an alert dialog and removes the row, the New application form shows 422 field errors, Rollout reaches 3/3 and stops polling, dark mode via `class="dark"` on `<html>` swaps the tokens. `/metrics`: the range picker updates the label, KPIs, chart and table, the app filter narrows them, Details opens a sheet whose body loads lazily. `/settings`: `111111` shows the 422 error, `123456` shows "Freeze lifted" and a toast. Note: a dark-mode browser extension (e.g. Dark Reader) darkens the page even without `.dark`; disable it when judging themes.
@@ -53,6 +53,8 @@ Verified in Chrome against `task dev`: search filters rows, row menu raises a to
 - The Tailwind watcher only rebuilds on a change. After pulling or switching branches with new templates, run `tailwindcss -i ./assets/css/globals.css -o ./assets/css/output.css` once; otherwise new classes (`h-[240px]`) are missing and e.g. charts collapse to zero height.
 - CSP blocks `eval`: htmx trigger filters (`input-otp-change[detail.value.length==6]`) never fire and log nothing in the console. Use plain event triggers. Listen for `securitypolicyviolation` to see what is blocked.
 - The showcase store is in memory; a restart brings deleted rows back.
+- Body is boosted: a link to a file download needs the `download` attribute (htmx then leaves it alone), or the file is swapped into the page.
+- Build query strings with `url.Values`, never `"?a=" + x`.
 
 **Verifying UI**
 - Check toasts, dialogs and dark mode in Chrome; HTTP only covers server responses. Check `list_connected_browsers` if the extension reports not connected.
