@@ -9,7 +9,9 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 work=$(mktemp -d)
 port=${PORT:-8099}
-trap '{ kill "${pid:-}" && wait "${pid:-}"; } 2>/dev/null; rm -rf "$work"' EXIT
+# wait reports the killed server's status (143); under set -e that would become
+# the script's exit status, so the cleanup swallows it.
+trap '{ kill "${pid:-}" && wait "${pid:-}"; } 2>/dev/null || true; rm -rf "$work"' EXIT
 
 cp -R "$root/testdata/consumer/." "$work/"
 cd "$work"
