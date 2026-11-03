@@ -1,0 +1,64 @@
+package patterns
+
+type ReportShellProps struct {
+	Title   string          // page title for <title>
+	Product string          // top bar, next to the mark ("Fjárhagsupplýsingar")
+	Home    string          // where the mark links; defaults to "/"
+	Lang    string          // page language; Icelandic for finance and customer-facing views
+	Cover   templ.Component // optional ReportCover, full width under the top bar
+}
+
+// ReportShell is the layout for public and report pages: a top bar with the mark,
+// the product name and the theme toggle, an optional full-width cover, and one
+// centred column (max 1040px). The skip link and the toggle's name follow Lang.
+templ ReportShell(p ReportShellProps) {
+	@Base(p.Title, p.Lang) {
+		@SkipLink(p.Lang)
+		<header class="border-b bg-card">
+			<div class="mx-auto flex h-14 w-full max-w-[1040px] items-center justify-between gap-4 px-4 sm:px-6">
+				<a href={ templ.SafeURL(homeOr(p.Home)) } class="flex items-center gap-2 rounded-lg text-sm font-medium">
+					<img src="/assets/img/arion-mark.svg" alt="Arion" width="24" height="24" class="size-6"/>
+					<span>{ p.Product }</span>
+				</a>
+				@ThemeToggle(p.Lang)
+			</div>
+		</header>
+		if p.Cover != nil {
+			@p.Cover
+		}
+		<main id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1040px] flex-col gap-6 px-4 py-8 outline-none sm:px-6">
+			<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>
+			{ children... }
+		</main>
+	}
+}
+
+func homeOr(h string) string {
+	if h == "" {
+		return "/"
+	}
+	return h
+}
+
+type ReportCoverProps struct {
+	Title string // the one display title, e.g. "Uppgjör 3F 2026"
+	Lede  string // one or two sentences under it
+	Meta  string // a short line above the title: publication date, period
+}
+
+// ReportCover is the sand band at the top of a report: Meta, the display-lg title
+// and a lede. Text on sand is foreground and slate (muted-foreground is 4.3:1 on
+// sand, below the 4.5:1 text minimum; cmd/gentheme checks the pairs used here).
+templ ReportCover(p ReportCoverProps) {
+	<section class="border-b bg-sand">
+		<div class="mx-auto flex w-full max-w-[1040px] flex-col gap-3 px-4 py-12 sm:px-6 sm:py-16">
+			if p.Meta != "" {
+				<p class="text-body-sm text-slate">{ p.Meta }</p>
+			}
+			<h1 class="font-display text-display-md text-balance text-foreground sm:text-display-lg">{ p.Title }</h1>
+			if p.Lede != "" {
+				<p class="max-w-prose text-body-lg text-slate">{ p.Lede }</p>
+			}
+		</div>
+	</section>
+}

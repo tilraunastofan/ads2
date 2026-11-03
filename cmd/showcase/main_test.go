@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -378,5 +379,35 @@ func TestPrimaryCounterSeesViolations(t *testing.T) {
 	v := primaries(t, two)
 	if len(v["page"]) != 2 || len(v["tab:1"]) != 1 || len(v["overlay:2"]) != 1 {
 		t.Errorf("got %v", v)
+	}
+}
+
+func TestIcelandicReport(t *testing.T) {
+	w := get(newMux(newStore()), "/uppgjor")
+	body := w.Body.String()
+	if w.Code != 200 {
+		t.Fatalf("status %d", w.Code)
+	}
+	for _, want := range []string{
+		`<html lang="is">`, "Uppgjör 3F 2026", "Birt 23. október 2026", "Fara beint í efni", `aria-label="Dökkt þema"`,
+		"7.412 m.kr.", "+4,9%", "14,2%", "+0,9 pst.", "41,6%", "−0,9 pst.", // KPIs
+		"16.711", "15.947", "9.252", "−6.947", "−2,5%", // computed subtotals, a cost line
+		"Í milljónum króna (m.kr.)", "Tölurnar eru sýnigögn",
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("report lacks %q", want)
+		}
+	}
+	for _, en := range []string{"Skip to content", "Dark theme", "Toggle sidebar", "Applications", "Workloads"} {
+		if strings.Contains(body, en) {
+			t.Errorf("Icelandic page contains English %q", en)
+		}
+	}
+	// A cost that grew is a loss: minus and destructive; the falling cost ratio is good.
+	if !strings.Contains(body, `text-destructive">−2,5%`) {
+		t.Error("growing cost is not shown as a loss")
+	}
+	if !regexp.MustCompile(`(?s)text-positive"><svg[^>]*lucide-trending-down.*?−0,9 pst\.`).MatchString(body) {
+		t.Error("falling cost ratio should be good (positive) with a down arrow")
 	}
 }

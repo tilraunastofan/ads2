@@ -18,10 +18,11 @@ Module: `github.com/tilraunastofan/ads2`.
 | `assets/js/request-errors.js` | Error toast for unreachable server and unhandled 5xx (cancels swapping raw error text); en/is wording. |
 | `assets/js/datepicker.js` | Copies a calendar selection into hidden inputs of a `form[data-date-picker]` and fires `change` (see `docs/components/DatePicker.md`). |
 | `assets/assets.go` | `go:embed` of `css`, `fonts`, `img`, `js` for the binary. |
-| `patterns/` | Reusable compositions: `Shell`, `Base`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting (`format.go`, `dates.go`). Copied into apps like `components/`. |
+| `patterns/` | Reusable compositions: `Shell`, `Base`, `ReportShell`, `ReportCover`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting (`format.go`, `dates.go`). Copied into apps like `components/`. |
 | `ui/layouts/app.templ` | The showcase's navigation on top of `patterns.Shell`. |
 | `ui/pages/showcase.templ` | Reference page using the patterns and ~20 components with htmx patterns. |
 | `ui/pages/metrics.templ` | `/metrics`: DatePicker (popover + range calendar), Combobox filter, Chart, DataCard with a Sheet per release. |
+| `ui/pages/report.templ` | `/uppgjor`: Icelandic reference report on `patterns.ReportShell` + `ReportCover` (demo income statement, m.kr., Icelandic dates and chrome). |
 | `ui/pages/settings.templ` | `/settings`: step-up approval with InputOTP (showcase code `123456`). |
 | `.github/workflows/ci.yml` | `task check`, then `task build` with the Tailwind standalone CLI and a smoke test of `/apps`, `/metrics`, `/settings`. |
 | `cmd/showcase` | `net/http` server for the showcase: embedded assets (text types gzipped once at first request), cache headers, CSP, gzip for HTML/CSV, server timeouts, graceful shutdown on SIGTERM, panic recovery (toast for htmx requests, error page otherwise), Arion 404 page (`ui/pages/notfound.templ`; htmx fragment requests keep a plain 404). |

@@ -1,0 +1,122 @@
+package pages
+
+import (
+	"time"
+
+	"github.com/tilraunastofan/ads2/components/table"
+	"github.com/tilraunastofan/ads2/patterns"
+)
+
+// ---- view model --------------------------------------------------------------
+
+// ReportLine is one line of the income statement, in millions of krónur. Costs are
+// negative, so a change keeps its meaning: a cost that grows is a loss (−, red).
+type ReportLine struct {
+	Label     string
+	Now, Prev int64
+	Total     bool // a subtotal: Rekstrartekjur, Hagnaður …
+}
+
+type ReportVM struct {
+	Title      string // "Uppgjör 3F 2026"
+	Period     string // "3F 2026"
+	PrevPeriod string // "3F 2025"
+	Published  time.Time
+	KPIs       []patterns.StatProps
+	Lines      []ReportLine
+}
+
+// change is the relative change in percent, signed by direction on the number line.
+func change(l ReportLine) float64 {
+	if l.Prev == 0 {
+		return 0
+	}
+	p := float64(l.Prev)
+	if p < 0 {
+		p = -p
+	}
+	return 100 * float64(l.Now-l.Prev) / p
+}
+
+func changeClass(c float64) string {
+	switch {
+	case c > 0:
+		return "text-positive"
+	case c < 0:
+		return "text-destructive"
+	}
+	return "text-muted-foreground"
+}
+
+func lineClass(l ReportLine) string {
+	if l.Total {
+		return "font-semibold"
+	}
+	return ""
+}
+
+const reportLang = "is"
+
+// ---- page --------------------------------------------------------------------
+
+// Report is the Icelandic reference page: a finance report on ReportShell, with
+// numbers, dates and every word of chrome in Icelandic.
+templ Report(vm ReportVM) {
+	@patterns.ReportShell(patterns.ReportShellProps{
+		Title:   vm.Title + " · Arion Design System 2",
+		Product: "Fjárhagsupplýsingar",
+		Lang:    reportLang,
+		Cover: patterns.ReportCover(patterns.ReportCoverProps{
+			Meta:  "Birt " + patterns.Date(vm.Published, reportLang),
+			Title: vm.Title,
+			Lede:  "Rekstur ársfjórðungsins borinn saman við " + vm.PrevPeriod + ". Tölurnar eru sýnigögn fyrir hönnunarkerfið, ekki uppgjör bankans.",
+		}),
+	}) {
+		@patterns.StatRow() {
+			for _, k := range vm.KPIs {
+				@patterns.Stat(k)
+			}
+		}
+		@patterns.DataCard(patterns.DataCardProps{
+			Title:       "Rekstrarreikningur",
+			Description: "Í milljónum króna (m.kr.)",
+		}) {
+			@table.Table() {
+				@table.Header() {
+					@table.Row() {
+						@table.Head() {
+							Liður
+						}
+						@table.Head(table.HeadProps{Class: "text-right"}) {
+							{ vm.Period }
+						}
+						@table.Head(table.HeadProps{Class: "text-right"}) {
+							{ vm.PrevPeriod }
+						}
+						@table.Head(table.HeadProps{Class: "text-right"}) {
+							Breyting
+						}
+					}
+				}
+				@table.Body() {
+					for _, l := range vm.Lines {
+						@table.Row() {
+							@table.Cell(table.CellProps{Class: lineClass(l)}) {
+								{ l.Label }
+							}
+							@table.Cell(table.CellProps{Class: "text-right font-mono text-figure tabular-nums " + lineClass(l)}) {
+								{ patterns.Int(l.Now) }
+							}
+							@table.Cell(table.CellProps{Class: "text-right font-mono text-figure tabular-nums text-muted-foreground"}) {
+								{ patterns.Int(l.Prev) }
+							}
+							@table.Cell(table.CellProps{Class: "text-right font-mono text-figure tabular-nums " + changeClass(change(l))}) {
+								{ patterns.SignedPct(change(l), 1) }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

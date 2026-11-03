@@ -33,6 +33,8 @@ var requirements = []pair{
 	{"sidebar-primary-foreground", "sidebar-primary", text, 0, ""}, {"ink-foreground", "ink", text, 0, ""},
 	{"ink-foreground", "ink-hover", text, 0, ""}, {"selection-foreground", "selection", text, 0, ""},
 	{"surface-foreground", "surface", text, 0, ""},
+	// patterns.ReportCover: title and lede on the sand band (not muted-foreground: 4.3:1).
+	{"foreground", "sand", text, 0, ""}, {"slate", "sand", text, 0, ""},
 
 	{"muted-foreground", "background", text, 0, ""}, {"muted-foreground", "card", text, 0, ""},
 	{"muted-foreground", "muted", text, 0, ""}, {"muted-foreground", "secondary", text, 0, ""},

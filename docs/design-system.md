@@ -50,7 +50,7 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 ## Layout and motion
 
 - **Internal tools.** Use `patterns.Shell`, the `sidebar` shell (`sidebar.Provider` → `Sidebar` + `Inset`) with the theme toggle. The inset holds a single column, max 1200px, padded 24px.
-- **Public and report pages.** Use a top bar and a centered 880–1040px column.
+- **Public and report pages.** Use `patterns.ReportShell`: a top bar and a centered 1040px column, with an optional `ReportCover` (the `sand` band) for reports. `/uppgjor` in the showcase is the Icelandic reference.
 - **Page skeleton.** Breadcrumb, then the display title with a status line and up to two actions, then KPI cards, then the main table or content (see **Patterns**: `PageHeader`, `Stat`, `DataCard`).
 - **Motion.** Motion is shadcn's own: 100–200ms fades and zooms on overlays. Never animate data. `prefers-reduced-motion: reduce` removes all of it (the theme sets this globally); only spinners keep turning.
 

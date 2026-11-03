@@ -19,6 +19,7 @@ func Nav() []patterns.NavItem {
 		{Label: "Applications", Href: "/apps", Icon: icon.GitBranch()},
 		{Label: "Metrics", Href: "/metrics", Icon: icon.ChartColumn()},
 		{Label: "Settings", Href: "/settings", Icon: icon.Settings2()},
+		{Label: "Quarterly report", Href: "/uppgjor", Icon: icon.Landmark()},
 	}
 }
 

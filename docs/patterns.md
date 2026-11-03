@@ -5,6 +5,7 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 | Pattern | Use |
 | --- | --- |
 | `Shell(ShellProps)` | The internal-tool document and layout: sidebar with navigation, theme toggle, one 1200px column. `Base(title, lang)` is the bare document. |
+| `ReportShell(ReportShellProps)` / `ReportCover(ReportCoverProps)` | Public and report pages: top bar (mark, product name, theme toggle), optional full-width `sand` cover with the one `display-lg` title, and a centred 1040px column. Words follow `Lang`; Icelandic finance views set `Lang: "is"`. Text on the cover is `foreground` and `slate`, never `muted-foreground` (4.3:1 on sand). |
 | `PageHeader(PageHeaderProps)` | Breadcrumb, the one `font-display text-display-sm` title, a status line, and up to two actions as children. |
 | `Stat(StatProps)` / `StatRow()` | KPI card: metric name, value, trend badge with sign, arrow and colour. `Good` and `Up` are independent. |
 | `StatusBadge(Status, label)` | A state as a pill with icon and word. `StatusPositive` (healthy), `StatusWarning` (progressing), `StatusDestructive` (degraded, failed), `StatusNeutral`. |
@@ -37,4 +38,4 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 - `Shell` renders its own words (skip link, sidebar and theme toggle names) in `ShellProps.Lang`: set `Lang: "is"` on Icelandic pages.
 - Map your own states onto `Status` in one helper (`Healthy` → positive, `Progressing` → warning, `Degraded` → destructive); don't pick badge variants per page.
 - A new app page starts from these and the **Dashboard** composition (`docs/components/Dashboard.md`). If two apps hand-roll the same block, it belongs here.
-- `reference`: `ui/pages/showcase.templ`, `metrics.templ` and `settings.templ` use all of them.
+- `reference`: `ui/pages/showcase.templ`, `metrics.templ` and `settings.templ` use all of them; `ui/pages/report.templ` (`/uppgjor`) is the Icelandic report on `ReportShell`.

@@ -180,6 +180,42 @@ func (s *store) metrics(r *http.Request) pages.MetricsVM {
 	}
 }
 
+// report is the Icelandic reference page's demo income statement (m.kr.). Subtotals
+// and KPIs are computed from the lines, so the page stays internally consistent.
+func report() pages.ReportVM {
+	nii, fee, other := pages.ReportLine{Label: "Hreinar vaxtatekjur", Now: 11204, Prev: 10388},
+		pages.ReportLine{Label: "Hreinar þóknanatekjur", Now: 4381, Prev: 4102},
+		pages.ReportLine{Label: "Aðrar rekstrartekjur", Now: 1126, Prev: 1457}
+	income := pages.ReportLine{Label: "Rekstrartekjur", Now: nii.Now + fee.Now + other.Now, Prev: nii.Prev + fee.Prev + other.Prev, Total: true}
+	cost := pages.ReportLine{Label: "Rekstrarkostnaður", Now: -6947, Prev: -6778}
+	impair := pages.ReportLine{Label: "Virðisbreyting útlána", Now: -512, Prev: -388}
+	pretax := pages.ReportLine{Label: "Hagnaður fyrir skatta", Now: income.Now + cost.Now + impair.Now, Prev: income.Prev + cost.Prev + impair.Prev, Total: true}
+	tax := pages.ReportLine{Label: "Tekjuskattur", Now: -1840, Prev: -1712}
+	profit := pages.ReportLine{Label: "Hagnaður tímabilsins", Now: pretax.Now + tax.Now, Prev: pretax.Prev + tax.Prev, Total: true}
+
+	ratio := func(c, i int64) float64 { return 100 * float64(-c) / float64(i) }
+	costNow, costPrev := ratio(cost.Now, income.Now), ratio(cost.Prev, income.Prev)
+	profitChange := 100 * float64(profit.Now-profit.Prev) / float64(profit.Prev)
+	const roeNow, roePrev = 14.2, 13.3
+
+	return pages.ReportVM{
+		Title:      "Uppgjör 3F 2026",
+		Period:     "3F 2026",
+		PrevPeriod: "3F 2025",
+		Published:  time.Date(2026, time.October, 23, 0, 0, 0, 0, time.Local),
+		KPIs: []patterns.StatProps{
+			{Label: "Hagnaður", Value: patterns.Int(profit.Now) + " m.kr.", Delta: patterns.SignedPct(profitChange, 1),
+				Good: profitChange >= 0, Up: profitChange >= 0},
+			{Label: "Arðsemi eigin fjár", Value: patterns.Pct(roeNow, 1), Delta: patterns.Signed(roeNow-roePrev, 1) + " pst.",
+				Good: roeNow >= roePrev, Up: roeNow >= roePrev},
+			// A falling cost ratio is good: Up and Good are independent.
+			{Label: "Kostnaðarhlutfall", Value: patterns.Pct(costNow, 1), Delta: patterns.Signed(costNow-costPrev, 1) + " pst.",
+				Good: costNow <= costPrev, Up: costNow > costPrev},
+		},
+		Lines: []pages.ReportLine{nii, fee, other, income, cost, impair, pretax, tax, profit},
+	}
+}
+
 // assetHandler serves the embedded assets, or ./assets when SHADCN_TEMPL_DEV=true
 // so the watchers' output shows up without a rebuild.
 //
@@ -503,6 +539,11 @@ func newMux(s *store) http.Handler {
 			}
 		}
 		http.NotFound(w, r)
+	})
+
+	// The Icelandic reference page: ReportShell, ReportCover and Arion number format.
+	mux.HandleFunc("GET /uppgjor", func(w http.ResponseWriter, r *http.Request) {
+		render(w, r, http.StatusOK, pages.Report(report()))
 	})
 
 	mux.HandleFunc("GET /settings", func(w http.ResponseWriter, r *http.Request) {
