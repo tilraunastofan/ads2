@@ -50,6 +50,11 @@ jobs:
         run: |
           PORT=8099 ./bin/showcase &
           for i in $(seq 1 20); do curl -fsS http://localhost:8099/apps >/dev/null && break; sleep 0.5; done
-          for p in /apps /metrics /settings /assets/css/output.css; do
+          for p in /apps /metrics /settings /uppgjor /assets/css/output.css; do
             curl -fsS -o /dev/null -w "%{http_code} $p\n" "http://localhost:8099$p"
           done
+          # Unknown paths get the Arion 404 page with a 404 status.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8099/nope)" = 404
+          # Text assets and pages are gzipped for clients that accept it.
+          curl -fsS -H 'Accept-Encoding: gzip' -D - -o /dev/null http://localhost:8099/assets/css/output.css | grep -qi '^content-encoding: gzip'
+          curl -fsS -H 'Accept-Encoding: gzip' -D - -o /dev/null http://localhost:8099/apps | grep -qi '^content-encoding: gzip'

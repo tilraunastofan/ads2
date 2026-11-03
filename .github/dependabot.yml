@@ -1,0 +1,19 @@
+# Weekly update PRs for Go modules (templ, shadcn-templ, x/net) and the GitHub
+# Actions in ci.yml. htmx is vendored in assets/js/ and the Tailwind CLI is pinned in
+# ci.yml (TAILWIND_VERSION); bump those by hand.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      go:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

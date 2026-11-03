@@ -24,7 +24,8 @@ Module: `github.com/tilraunastofan/ads2`.
 | `ui/pages/metrics.templ` | `/metrics`: DatePicker (popover + range calendar), Combobox filter, Chart, DataCard with a Sheet per release. |
 | `ui/pages/report.templ` | `/uppgjor`: Icelandic reference report on `patterns.ReportShell` + `ReportCover` (demo income statement, m.kr., Icelandic dates and chrome). |
 | `ui/pages/settings.templ` | `/settings`: step-up approval with InputOTP (showcase code `123456`). |
-| `.github/workflows/ci.yml` | `task check`, then `task build` with the Tailwind standalone CLI and a smoke test of `/apps`, `/metrics`, `/settings`. |
+| `.github/workflows/ci.yml` | `task check`, then `task build` with the Tailwind standalone CLI and a smoke test of `/apps`, `/metrics`, `/settings`, `/uppgjor`, the 404 status and gzip. |
+| `.github/dependabot.yml` | Weekly grouped PRs for Go modules and GitHub Actions. Vendored htmx and the pinned Tailwind CLI are bumped by hand. |
 | `cmd/showcase` | `net/http` server for the showcase: embedded assets (text types gzipped once at first request), cache headers, CSP, gzip for HTML/CSV, server timeouts, graceful shutdown on SIGTERM, panic recovery (toast for htmx requests, error page otherwise), Arion 404 page (`ui/pages/notfound.templ`; htmx fragment requests keep a plain 404). |
 | `docs/` | Brand book (`design-system.md`), `setup.md`, `htmx-patterns.md`, `patterns.md`, one file per component. **Read these before writing UI.** |
 
@@ -37,7 +38,7 @@ Already done (committed): `shadcn-templ init --preset nova --css assets/css/glob
 - Add components with the registry's **kebab-case** names: `shadcn-templ add alert-dialog dropdown-menu input-group native-select …` (`alertdialog`, `dropdownmenu`, `inputgroup`, `nativeselect` 404). `input-group` needs `textarea` added explicitly.
 - `task dev` — tailwind + script bundler + templ watcher; open http://localhost:7331/apps (app itself listens on :8090, override with `PORT`, but the templ proxy in `Taskfile.yml` targets :8090).
 - `task build` — production build to `bin/showcase`.
-- `task check` — CI: theme current and contrast met, templ output and script bundle committed, `go vet`, `go build`, `go test`.
+- `task check` — CI: theme current and contrast met, templ output and script bundle committed, `go vet`, `go build`, `go test -race`.
 - `task theme` — regenerate `assets/css/arion-theme.css` after changing `tokens/tokens.json`; it also checks every contrast claim and fails with the offending pair.
 - `go test ./...` — token contrast, theme drift (`arion-theme.css` must match `tokens.json`), number formatting, and `ui/designrules_test.go`, which fails on any `.templ` in `ui/` or `patterns/` that breaks the UI rules below (hex or palette colours, `text-[…]`, `hx-confirm`, raw `<button>`/`<table>`/`<input>`, an `<h1>` outside `PageHeader`), and `TestOnePrimaryButtonPerView` (`cmd/showcase`), which renders each page and allows one primary button in the page plus any one tab panel, and one per dialog, sheet or menu.
 - After adding components or editing `.templ`: `go tool templ generate && go mod tidy`.
