@@ -91,7 +91,10 @@ func langOr(l string) string {
 templ Shell(p ShellProps) {
 	@Base(p.Title, p.Lang) {
 		@SkipLink(p.Lang)
-		@sidebar.Provider() {
+		// The collapsed rail is 4rem, not shadcn's 3rem: the 32px mark plus the header's
+		// and the link's 8px padding on each side need 64px. The menu icons are centred
+		// in it (group-data-[collapsible=icon]:items-center) so they line up under the mark.
+		@sidebar.Provider(sidebar.ProviderProps{Attributes: templ.Attributes{"style": "--sidebar-width: 16rem; --sidebar-width-icon: 4rem;"}}) {
 			@sidebar.Sidebar(sidebar.Props{Collapsible: sidebar.CollapsibleIcon}) {
 				@sidebar.Header() {
 					<a href="/" class="flex items-center gap-2 p-2">
@@ -110,7 +113,7 @@ templ Shell(p ShellProps) {
 									{ g.Label }
 								}
 							}
-							@sidebar.Menu(sidebar.MenuProps{Class: "gap-1"}) {
+							@sidebar.Menu(sidebar.MenuProps{Class: "gap-1 group-data-[collapsible=icon]:items-center"}) {
 								for _, it := range g.Items {
 									@sidebar.MenuItem() {
 										@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: it.Href == p.CurrentPath, Tooltip: it.Label}) {
