@@ -1,0 +1,43 @@
+package pages
+
+import (
+	"strings"
+
+	"github.com/tilraunastofan/ads2/components/button"
+	"github.com/tilraunastofan/ads2/patterns"
+	"github.com/tilraunastofan/ads2/ui/layouts"
+)
+
+// nearest is the navigation item the missing path most likely belongs to: the
+// one whose path is a segment prefix of it (/metrics/foo → Metrics), else
+// Applications, the showcase's home.
+func nearest(path string) patterns.NavItem {
+	best := patterns.NavItem{Label: "Applications", Href: "/apps"}
+	for _, it := range layouts.Nav() {
+		if it.Href != "/" && (path == it.Href || strings.HasPrefix(path, it.Href+"/")) {
+			return it
+		}
+	}
+	return best
+}
+
+// NotFound is the 404 page: an ordinary page of the tool (sidebar stays, so every
+// destination is one click away) that echoes the requested path and offers one
+// way back, to the section the path points into.
+templ NotFound(path string) {
+	{{ back := nearest(path) }}
+	@layouts.App("Page not found", "") {
+		@patterns.PageHeader(patterns.PageHeaderProps{
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Page not found"}},
+			Title:  "Page not found",
+		})
+		<div class="flex max-w-prose flex-col items-start gap-4">
+			<p class="text-body text-muted-foreground">
+				There is no page at <code class="font-mono text-code break-all text-foreground">{ path }</code>. Check the address for a typo.
+			</p>
+			@button.Button(button.Props{Href: back.Href}) {
+				Go to { back.Label }
+			}
+		</div>
+	}
+}
