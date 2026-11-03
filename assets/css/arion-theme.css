@@ -65,6 +65,8 @@
   --color-positive-foreground: var(--positive-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-orange: var(--orange);
+  --color-orange-foreground: var(--orange-foreground);
 }
 
 @theme {
@@ -184,6 +186,8 @@
   --positive-foreground: #ffffff;
   --warning: #8a5300;
   --warning-foreground: #ffffff;
+  --orange: #b34700;
+  --orange-foreground: #ffffff;
 }
 
 .dark {
@@ -237,6 +241,8 @@
   --positive-foreground: #0c171b;
   --warning: #f2b24d;
   --warning-foreground: #0c171b;
+  --orange: #ff9a4d;
+  --orange-foreground: #0c171b;
 }
 
 @layer base {

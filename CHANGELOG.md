@@ -6,7 +6,15 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
-## Unreleased
+## v0.1.2 (3 Nov 2026)
+
+**Added**
+
+- `assets/js/copy.js`, loaded by `patterns.Base`: a button with `data-copy-target="<id>"` copies that element's text and shows "Copied" / "Afritað" in its `[data-label]` (see **Copy button** in `docs/htmx-patterns.md`).
+- `assets/js/submit-once.js`, loaded by `patterns.Base`: `form[data-disable-on-submit]` disables its submit buttons while it submits, with `data-busy-label` in the button's `[data-label]` (see **Submit once**). An app that had its own `copy.js` or `submit-once.js` deletes it and stops loading it, or it runs twice.
+- Token `orange` (`#b34700` / `#ff9a4d`) and `orange-foreground`: the step between `destructive` and `warning` in a graded scale (Urgent / Critical / Serious), never a status of its own. Contrast-checked like `warning`. Replace `orange-500`/`orange-600` palette classes with `text-orange` / `bg-orange/10`.
+
+## v0.1.1 (3 Nov 2026)
 
 **Added**
 

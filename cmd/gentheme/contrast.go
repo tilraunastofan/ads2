@@ -49,6 +49,9 @@ var requirements = []pair{
 	{"positive", "background", text, 0.1, ""}, {"positive", "card", text, 0.1, ""},
 	{"warning", "background", text, 0, ""}, {"warning", "card", text, 0, ""}, {"warning", "muted", text, 0, ""},
 	{"warning", "background", text, 0.1, ""}, {"warning", "card", text, 0.1, ""},
+	{"orange-foreground", "orange", text, 0, ""}, {"orange", "card", text, 0.2, "dark"},
+	{"orange", "background", text, 0, ""}, {"orange", "card", text, 0, ""}, {"orange", "muted", text, 0, ""},
+	{"orange", "background", text, 0.1, ""}, {"orange", "card", text, 0.1, ""},
 	{"gold", "background", text, 0, ""}, {"gold", "card", text, 0, ""},
 	{"plum", "card", text, 0, ""}, {"slate", "card", text, 0, ""},
 
