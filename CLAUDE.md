@@ -42,7 +42,7 @@ Module: `github.com/tilraunastofan/ads2`.
 
 Prerequisites: Go ≥ 1.26 (verified on 1.27), [Task](https://taskfile.dev), Tailwind CSS v4.1+ standalone CLI (`brew install tailwindcss`).
 
-Already done (committed): `shadcn-templ init --preset nova --css assets/css/globals.css`, `globals.css` imports `ads2.css` (which imports `arion-theme.css`) instead of defining its own theme blocks, htmx 4.0.1 vendored at `assets/js/htmx.min.js`, all components named in `docs/components/` installed, generated `*_templ.go` and `components/scripts_bundle.go`.
+Already done (committed): `shadcn-templ init --preset nova --css assets/css/globals.css`, `globals.css` imports `ads2.css` (which imports `arion-theme.css`) instead of defining its own theme blocks, htmx 4.0.1 vendored at `assets/js/htmx.min.js`, all components named in `docs/components/` installed, generated `*_templ.go`, `components/scripts_bundle.go` and the bundle it names, `assets/js/shadcn-templ-<hash>.js` (committed: the module ships only tracked files).
 
 - Add components with the registry's **kebab-case** names: `shadcn-templ add alert-dialog dropdown-menu input-group native-select …` (`alertdialog`, `dropdownmenu`, `inputgroup`, `nativeselect` 404). `input-group` needs `textarea` added explicitly.
 - `task dev` — tailwind + script bundler + templ watcher; open http://localhost:7331/apps (app itself listens on :8090, override with `PORT`, but the templ proxy in `Taskfile.yml` targets :8090).

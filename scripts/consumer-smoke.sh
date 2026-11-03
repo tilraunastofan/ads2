@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds testdata/consumer, the smallest app on the ads2 module, against this
-# checkout and checks that it serves its page and every asset the page links to.
+# checkout (its tracked and new files, as the published module has them) and checks that it serves its page and every asset the page links to.
 # This is what an app does (docs/setup.md, "New project"), so a change that breaks
 # apps importing ads2 fails here. Needs go, tailwindcss and curl; uses the network
 # the first time for the app's dependencies.
@@ -13,8 +13,18 @@ port=${PORT:-8099}
 # the script's exit status, so the cleanup swallows it.
 trap '{ kill "${pid:-}" && wait "${pid:-}"; } 2>/dev/null || true; rm -rf "$work"' EXIT
 
-cp -R "$root/testdata/consumer/." "$work/"
-cd "$work"
+# The module as an app downloads it: tracked and new files, never ignored ones. A
+# file the repo ignores (a generated bundle, say) is missing from the published
+# module, so it must be missing here too.
+mod="$work/ads2"
+mkdir "$mod"
+git -C "$root" ls-files -z --cached --others --exclude-standard |
+  while IFS= read -r -d '' f; do [ -e "$root/$f" ] && printf '%s\0' "$f"; done |
+  tar -C "$root" --null -T - -cf - | tar -C "$mod" -xf -
+
+mkdir "$work/app"
+cp -R "$root/testdata/consumer/." "$work/app/"
+cd "$work/app"
 templ_version=$(cd "$root" && go list -m -f '{{.Version}}' github.com/a-h/templ)
 cat > go.mod <<GOMOD
 module example.com/consumer
@@ -23,7 +33,7 @@ go 1.26
 
 require github.com/tilraunastofan/ads2 v0.0.0
 
-replace github.com/tilraunastofan/ads2 => $root
+replace github.com/tilraunastofan/ads2 => $mod
 GOMOD
 go get -tool "github.com/a-h/templ/cmd/templ@$templ_version"
 go get -tool github.com/tilraunastofan/ads2/cmd/ads2css
