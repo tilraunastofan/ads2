@@ -51,7 +51,9 @@ func (p ShellProps) groups() []NavGroup {
 // network failures and unhandled 5xx); dialog-form.js (form[data-close-on-success]
 // closes its dialog after a 2xx); datepicker.js (form[data-date-picker] glue);
 // focus-after-swap.js (puts focus back where the user can carry on when a swap
-// removes it); the component bundle; and the toast mount. Each helper does nothing
+// removes it); copy.js ([data-copy-target] copy buttons); submit-once.js
+// (form[data-disable-on-submit] disables its submit button while the request runs);
+// the component bundle; and the toast mount. Each helper does nothing
 // on a page without its markup, so Base loads them all once instead of per page:
 // a page's own <script> runs again on every boosted visit.
 templ Base(title, lang string) {
@@ -74,6 +76,8 @@ templ Base(title, lang string) {
 			<script src="/assets/js/dialog-form.js" defer></script>
 			<script src="/assets/js/datepicker.js" defer></script>
 			<script src="/assets/js/focus-after-swap.js" defer></script>
+			<script src="/assets/js/copy.js" defer></script>
+			<script src="/assets/js/submit-once.js" defer></script>
 			@components.Scripts()
 		</head>
 		<body class="style-nova min-h-svh" hx-boost:inherited="true">

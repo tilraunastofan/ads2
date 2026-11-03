@@ -47,7 +47,7 @@ func TestEmbeddedAssetsAreComplete(t *testing.T) {
 	for _, p := range []string{
 		"/css/fonts.css", "/css/ads2.css", "/js/theme.js", "/js/htmx.min.js", "/js/toast-guard.js",
 		"/js/filter-form.js", "/js/request-errors.js", "/js/dialog-form.js", "/js/datepicker.js",
-		"/js/focus-after-swap.js", "/img/arion-mark-favicon.svg",
+		"/js/focus-after-swap.js", "/js/copy.js", "/js/submit-once.js", "/img/arion-mark-favicon.svg",
 		"/fonts/hanken-grotesk-latin-wght-normal.woff2", "/fonts/source-serif-4-latin-wght-normal.woff2",
 	} {
 		if w := serve(h, p); w.Code != 200 {

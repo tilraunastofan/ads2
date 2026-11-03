@@ -299,7 +299,8 @@ func TestShellHasPageAlertsAndHelpers(t *testing.T) {
 	body := get(newMux(newStore()), "/apps").Body.String()
 	for _, want := range []string{`<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>`,
 		`src="/assets/js/request-errors.js"`, `src="/assets/js/toast-guard.js"`, `src="/assets/js/filter-form.js"`,
-		`src="/assets/js/dialog-form.js"`, `src="/assets/js/datepicker.js"`, `src="/assets/js/focus-after-swap.js"`} {
+		`src="/assets/js/dialog-form.js"`, `src="/assets/js/datepicker.js"`, `src="/assets/js/focus-after-swap.js"`,
+		`src="/assets/js/copy.js"`, `src="/assets/js/submit-once.js"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("page lacks %s", want)
 		}
@@ -308,7 +309,7 @@ func TestShellHasPageAlertsAndHelpers(t *testing.T) {
 	// boosted visit and stacks its listeners.
 	metrics := get(newMux(newStore()), "/metrics").Body.String()
 	head, _, _ := strings.Cut(metrics, "</head>")
-	for _, js := range []string{"datepicker.js", "focus-after-swap.js", "filter-form.js"} {
+	for _, js := range []string{"datepicker.js", "focus-after-swap.js", "filter-form.js", "copy.js", "submit-once.js"} {
 		if strings.Count(metrics, js) != 1 || !strings.Contains(head, js) {
 			t.Errorf("/metrics: %s should load once, in <head>", js)
 		}
