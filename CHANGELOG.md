@@ -6,6 +6,13 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
+## v0.1.3 (3 Nov 2026)
+
+**Fixed**
+
+- The component script bundle (`assets/js/shadcn-templ-<hash>.js`) is in the module. It was gitignored, so v0.1.0 to v0.1.2 shipped without it: `components.Scripts()` linked a file that `assets.Handler` answered with a 404, and no component script ran (sidebar toggle, dialogs, menus, toasts). Apps update with `go get -u`; nothing else changes.
+- `scripts/consumer-smoke.sh` builds the consumer against the repo's tracked and new files, as the published module has them, instead of the working tree, so an ignored file the module needs fails it. `task check` also fails on an uncommitted bundle.
+
 ## v0.1.2 (3 Nov 2026)
 
 **Added**

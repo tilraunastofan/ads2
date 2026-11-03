@@ -45,11 +45,11 @@ tasks:
       # git status, not git diff: a new .templ whose _templ.go was never committed
       # shows as untracked, which git diff ignores, and a fresh clone wouldn't build.
       - |
-        out=$(git status --porcelain -- '*_templ.go' components/scripts_bundle.go)
+        out=$(git status --porcelain -- '*_templ.go' components/scripts_bundle.go 'assets/js/shadcn-templ-*.js')
         if [ -n "$out" ]; then
           echo "Generated code is not committed (?? = new file, M = changed):"
           echo "$out"
-          git --no-pager diff -- '*_templ.go' components/scripts_bundle.go
+          git --no-pager diff -- '*_templ.go' components/scripts_bundle.go 'assets/js/shadcn-templ-*.js'
           exit 1
         fi
       - go vet ./...

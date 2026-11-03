@@ -635,3 +635,18 @@ func TestControlsHaveNamesAndHints(t *testing.T) {
 		}
 	}
 }
+
+// The component bundle a page links to is embedded, so it ships in the module.
+// It was gitignored up to v0.1.2: apps got a 404 for it and no component script
+// ran. In CI (a fresh clone, no bundle step before the tests) an ignored or
+// uncommitted bundle fails here.
+func TestComponentBundleIsServed(t *testing.T) {
+	body := get(newMux(newStore()), "/apps").Body.String()
+	m := regexp.MustCompile(`src="(/assets/js/shadcn-templ-[0-9a-f]+\.js)"`).FindStringSubmatch(body)
+	if m == nil {
+		t.Fatal("page links no component bundle")
+	}
+	if w := get(newMux(newStore()), m[1]); w.Code != http.StatusOK {
+		t.Errorf("GET %s = %d, want 200", m[1], w.Code)
+	}
+}
