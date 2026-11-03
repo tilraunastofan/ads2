@@ -12,14 +12,28 @@ type NavItem struct {
 	Icon  templ.Component
 }
 
+// NavGroup is one labelled group of sidebar items.
+type NavGroup struct {
+	Label string
+	Items []NavItem
+}
+
 type ShellProps struct {
-	Title       string // page title for <title>
-	Product     string // sidebar header, first line
-	Tagline     string // sidebar header, second line
-	GroupLabel  string // sidebar group heading
-	Nav         []NavItem
-	CurrentPath string // marks the active item
-	Lang        string // defaults to "en"
+	Title       string     // page title for <title>
+	Product     string     // sidebar header, first line
+	Tagline     string     // sidebar header, second line
+	Groups      []NavGroup // sidebar groups; when empty, GroupLabel and Nav form one group
+	GroupLabel  string     // single-group form: the group heading
+	Nav         []NavItem  // single-group form: its items
+	CurrentPath string     // marks the active item
+	Lang        string     // defaults to "en"
+}
+
+func (p ShellProps) groups() []NavGroup {
+	if len(p.Groups) > 0 {
+		return p.Groups
+	}
+	return []NavGroup{{Label: p.GroupLabel, Items: p.Nav}}
 }
 
 // Base is the HTML document: the two fonts every page shows, preloaded so they
@@ -27,7 +41,8 @@ type ShellProps struct {
 // (before paint, so no flash); vendored htmx 4; toast-guard.js (works around a
 // toast freeze on boosted navigation); filter-form.js (form[data-filter-form]
 // fires filter-change when its values change); request-errors.js (a toast for
-// network failures and unhandled 5xx); the component bundle; and the toast mount.
+// network failures and unhandled 5xx); dialog-form.js (form[data-close-on-success]
+// closes its dialog after a 2xx); the component bundle; and the toast mount.
 templ Base(title, lang string) {
 	<!DOCTYPE html>
 	<html lang={ langOr(lang) }>
@@ -45,6 +60,7 @@ templ Base(title, lang string) {
 			<script src="/assets/js/toast-guard.js" defer></script>
 			<script src="/assets/js/filter-form.js" defer></script>
 			<script src="/assets/js/request-errors.js" defer></script>
+			<script src="/assets/js/dialog-form.js" defer></script>
 			@components.Scripts()
 		</head>
 		<body class="style-nova min-h-svh" hx-boost:inherited="true">
@@ -87,16 +103,20 @@ templ Shell(p ShellProps) {
 					</a>
 				}
 				@sidebar.Content() {
-					@sidebar.Group() {
-						@sidebar.GroupLabel() {
-							{ p.GroupLabel }
-						}
-						@sidebar.Menu(sidebar.MenuProps{Class: "gap-1"}) {
-							for _, it := range p.Nav {
-								@sidebar.MenuItem() {
-									@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: it.Href == p.CurrentPath, Tooltip: it.Label}) {
-										@it.Icon
-										<span>{ it.Label }</span>
+					for _, g := range p.groups() {
+						@sidebar.Group() {
+							if g.Label != "" {
+								@sidebar.GroupLabel() {
+									{ g.Label }
+								}
+							}
+							@sidebar.Menu(sidebar.MenuProps{Class: "gap-1"}) {
+								for _, it := range g.Items {
+									@sidebar.MenuItem() {
+										@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: it.Href == p.CurrentPath, Tooltip: it.Label}) {
+											@it.Icon
+											<span>{ it.Label }</span>
+										}
 									}
 								}
 							}

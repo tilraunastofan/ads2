@@ -1,6 +1,6 @@
 # Stat
 
-A KPI card: metric name, value, and a trend badge with sign, arrow and colour. `patterns.Stat(StatProps)` and the grid `patterns.StatRow()` from `github.com/tilraunastofan/ads2/patterns` (copy the package into your app like `components/`).
+A KPI card: metric name, the value as the largest thing in the card, and under it the change with sign, arrow and colour, followed by `Since` ("vs last week", "miðað við 3F 2025"). `patterns.Stat(StatProps)` and the grid `patterns.StatRow()` from `github.com/tilraunastofan/ads2/patterns` (copy the package into your app like `components/`).
 
 **Consumer provides:** `Label`, `Value` (already formatted with `patterns.Int`, `Dec`, `Pct`), `Delta` (formatted with `Signed`, empty hides the badge), and two independent flags: `Up` (the number went up: drives the arrow) and `Good` (the change is good: drives the colour).
 

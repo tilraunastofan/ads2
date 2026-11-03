@@ -4,10 +4,10 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 
 | Pattern | Use |
 | --- | --- |
-| `Shell(ShellProps)` | The internal-tool document and layout: sidebar with navigation, theme toggle, one 1200px column. `Base(title, lang)` is the bare document. |
+| `Shell(ShellProps)` | The internal-tool document and layout: sidebar with navigation (`Groups []NavGroup`, or `GroupLabel` + `Nav` for one group), theme toggle, one 1200px column. `Base(title, lang)` is the bare document. |
 | `ReportShell(ReportShellProps)` / `ReportCover(ReportCoverProps)` | Public and report pages: top bar (mark, product name, theme toggle), optional full-width `sand` cover with the one `display-lg` title, and a centred 1040px column. Words follow `Lang`; Icelandic finance views set `Lang: "is"`. Text on the cover is `foreground` and `slate`, never `muted-foreground` (4.3:1 on sand). |
 | `PageHeader(PageHeaderProps)` | Breadcrumb, the one `font-display text-display-sm` title, a status line, and up to two actions as children. |
-| `Stat(StatProps)` / `StatRow()` | KPI card: metric name, value, trend badge with sign, arrow and colour. `Good` and `Up` are independent. |
+| `Stat(StatProps)` / `StatRow()` | KPI card: metric name, the value at `heading-1`, then the change with sign, arrow and colour and `Since` ("vs last week"). `Good` and `Up` are independent. |
 | `StatusBadge(Status, label)` | A state as a pill with icon and word. `StatusPositive` (healthy), `StatusWarning` (progressing), `StatusDestructive` (degraded, failed), `StatusNeutral`. |
 | `DataCard(DataCardProps)` | A card holding a full-width table, with optional description and header action (search, button). First and last columns get the card inset: no `pl-4` / `pr-4` on cells. |
 | `ThemeToggle(lang...)` | Ghost icon button wired to `assets/js/theme.js`, named "Dark theme" / "Dökkt þema" with `aria-pressed`. Already in `Shell`. |

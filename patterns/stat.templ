@@ -1,7 +1,6 @@
 package patterns
 
 import (
-	"github.com/tilraunastofan/ads2/components/badge"
 	"github.com/tilraunastofan/ads2/components/card"
 	"github.com/tilraunastofan/ads2/components/icon"
 )
@@ -11,7 +10,8 @@ import (
 type StatProps struct {
 	Label string // metric name
 	Value string // already formatted, see Int, Dec and Pct
-	Delta string // change since the last period, formatted with Signed; empty hides the badge
+	Delta string // change since the last period, formatted with Signed; empty hides the change line
+	Since string // what the change compares with, in the page language ("vs last week")
 	Good  bool   // the change is in the good direction (drives colour)
 	Up    bool   // the number went up (drives the arrow)
 }
@@ -23,27 +23,32 @@ func deltaClass(good bool) string {
 	return "text-destructive"
 }
 
-// Stat is a KPI card: metric name, value and a trend badge with sign, arrow and colour.
+// Stat is a KPI card: the metric name, the value as the largest thing in the card,
+// and under it the change with sign, arrow and colour, then what it compares with.
+// Values are sans with tabular figures (table figures are mono).
 templ Stat(p StatProps) {
 	@card.Card(card.Props{Size: card.SizeSm}) {
 		@card.Header() {
 			@card.Description() {
 				{ p.Label }
 			}
-			@card.Title(card.TitleProps{Class: "text-heading-3! leading-7! tabular-nums"}) {
+			@card.Title(card.TitleProps{Class: "text-heading-1! leading-10! tabular-nums"}) {
 				{ p.Value }
 			}
 			if p.Delta != "" {
-				@card.Action() {
-					@badge.Badge(badge.Props{Variant: badge.VariantOutline, Class: deltaClass(p.Good)}) {
+				<p class="flex flex-wrap items-center gap-x-1.5 text-body-sm">
+					<span class={ "inline-flex items-center gap-1 font-medium tabular-nums [&_svg]:size-4 " + deltaClass(p.Good) }>
 						if p.Up {
 							@icon.TrendingUp()
 						} else {
 							@icon.TrendingDown()
 						}
 						{ p.Delta }
+					</span>
+					if p.Since != "" {
+						<span class="text-muted-foreground">{ p.Since }</span>
 					}
-				}
+				</p>
 			}
 		}
 	}
