@@ -421,7 +421,9 @@ templ RolloutCard(ready, desired int, trigger string) {
 
 templ ScaleDialog() {
 	@dialog.Dialog(dialog.Props{ID: "scale"}) {
-		@button.Button(button.Props{Attributes: dialog.Trigger(ctx)}) {
+		// Outline: the header's actions show on every tab, and the New application tab
+		// has its own primary (Create application). One primary per view.
+		@button.Button(button.Props{Variant: button.VariantOutline, Attributes: dialog.Trigger(ctx)}) {
 			@icon.Plus()
 			Scale deployment
 		}

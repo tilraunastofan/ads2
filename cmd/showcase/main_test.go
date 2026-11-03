@@ -7,10 +7,12 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/a-h/templ"
+	"golang.org/x/net/html"
 )
 
 func get(h http.Handler, path string, hdr ...string) *httptest.ResponseRecorder {
@@ -289,5 +291,92 @@ func TestShellHasPageAlertsAndHelpers(t *testing.T) {
 	}
 	if strings.Contains(body, "Target for errors") {
 		t.Error("a templ comment leaked into the page")
+	}
+}
+
+// primaries collects the primary buttons of a page by the view they are seen in:
+// "page", the page plus one tab panel ("tab:<n>"), or an overlay ("overlay:<n>").
+// A primary is a <button> or <a> with the exact class bg-primary (badges, checked
+// controls and calendar days use prefixed or other slots).
+func primaries(t *testing.T, body string) map[string][]string {
+	t.Helper()
+	doc, err := html.Parse(strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := map[string][]string{}
+	n := 0
+	var text func(*html.Node) string
+	text = func(x *html.Node) string {
+		if x.Type == html.TextNode {
+			return strings.TrimSpace(x.Data)
+		}
+		var b strings.Builder
+		for c := x.FirstChild; c != nil; c = c.NextSibling {
+			b.WriteString(text(c))
+		}
+		return b.String()
+	}
+	var walk func(x *html.Node, view string)
+	walk = func(x *html.Node, view string) {
+		if x.Type == html.ElementNode {
+			slot, cls := "", ""
+			for _, a := range x.Attr {
+				switch a.Key {
+				case "data-slot":
+					slot = a.Val
+				case "class":
+					cls = a.Val
+				}
+			}
+			switch slot {
+			case "dialog-content", "alert-dialog-content", "sheet-content", "popover-content", "dropdown-menu-content":
+				n++
+				view = "overlay:" + strconv.Itoa(n)
+			case "tabs-content":
+				if view == "page" {
+					n++
+					view = "tab:" + strconv.Itoa(n)
+				}
+			}
+			if (x.Data == "button" || x.Data == "a") && strings.Contains(" "+cls+" ", " bg-primary ") {
+				out[view] = append(out[view], text(x))
+			}
+		}
+		for c := x.FirstChild; c != nil; c = c.NextSibling {
+			walk(c, view)
+		}
+	}
+	walk(doc, "page")
+	return out
+}
+
+func TestOnePrimaryButtonPerView(t *testing.T) {
+	h := newMux(newStore())
+	for _, path := range []string{"/apps", "/metrics", "/settings", "/nope"} {
+		views := primaries(t, get(h, path).Body.String())
+		page := views["page"]
+		if len(page) > 1 {
+			t.Errorf("%s: %d primary buttons on the page: %q", path, len(page), page)
+		}
+		for v, b := range views {
+			switch {
+			case strings.HasPrefix(v, "tab:") && len(page)+len(b) > 1:
+				t.Errorf("%s: %s shows %q next to the page's %q", path, v, b, page)
+			case strings.HasPrefix(v, "overlay:") && len(b) > 1:
+				t.Errorf("%s: %s has %d primary buttons: %q", path, v, len(b), b)
+			}
+		}
+	}
+}
+
+func TestPrimaryCounterSeesViolations(t *testing.T) {
+	const two = `<main><button class="x bg-primary y">A</button><a class="bg-primary">B</a>` +
+		`<span data-slot="badge" class="bg-primary">badge</span><button class="data-checked:bg-primary">c</button>` +
+		`<div data-slot="tabs-content"><button class="bg-primary">T</button></div>` +
+		`<div data-slot="dialog-content"><button class="bg-primary">D</button></div></main>`
+	v := primaries(t, two)
+	if len(v["page"]) != 2 || len(v["tab:1"]) != 1 || len(v["overlay:2"]) != 1 {
+		t.Errorf("got %v", v)
 	}
 }
