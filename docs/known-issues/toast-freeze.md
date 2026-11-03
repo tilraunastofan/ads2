@@ -10,6 +10,10 @@ A toast is showing ("Restarting pods", "Application created" …). Before it dis
 
 ## Reproduce
 
+Standalone: https://github.com/jakobjs/shadcn-templ-toast-freeze-repro is a fresh `shadcn-templ init` (v2.0.0) with only the toast, a boosted body and two pages; `go run .` and follow its README. It freezes on a clean project, so the cause is in shadcn-templ, not in this repo.
+
+In this repo:
+
 Without the workaround (remove the `toast-guard.js` `<script>` from `patterns.Base`, or test an app that never had it):
 
 1. Open `/apps`.
