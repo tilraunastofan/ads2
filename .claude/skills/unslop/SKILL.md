@@ -12,6 +12,8 @@ metadata:
 
 unslop was created by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)), who started the Unslopping series on X. It is licensed under CC BY 4.0, so keep this credit in any copy or adaptation.
 
+This copy is adapted for the ads2 repo (Arion Design System 2): one change, the rule that a project's written design system overrides this skill's tokens and checklist (step 3 and the last checklist item).
+
 Vibecoded UI fails in the same predictable ways. Every surface glows, every label has an emoji, spacing is whatever the model typed that day, and the copy shouts. Unslopping fixes the craft and keeps the product. The features, content and order of sections stay. What changes is that every size, color, word and image becomes deliberate.
 
 Removing slop is only half the job. A screen that is clean but could belong to any product is the next template. Every run ends with a screen that only this product could have.
@@ -41,6 +43,7 @@ Which visual styles tend to work, and which fail, is in [references/visuals.md](
    - **Heavy slop**, many signs across color, type, icons and copy. Run the full process below.
    - **Light slop**, a screen that is mostly designed with a few signs left. Polish mode. Fix only what the audit found, take the direction from the existing brand instead of inventing a new one, and keep the palette, type, layout and visual. Bigger ideas, like a moment that is missing or a scene for the hero, go into the report as suggestions, not changes.
    - **No slop.** Say so plainly and suggest two or three small refinements at most, with exact values. Apply them only if the user agrees, and stop there. Never change a good screen just to make it different.
+   - **A written design system wins.** If the project has a design-system document or token file, read it before the audit; in this repo that is `docs/design-system.md` and `tokens/tokens.json`. It overrides this skill's tokens and checklist, and a project with one is never heavy slop: run polish mode at most. A sign that only contradicts an approved rule there, like a weight, radius, icon stroke, surface tint or punctuation choice, is not a fix. Put it in the report as a suggestion for the design system's owner and leave the code alone. In ads2 the deliberate differences are serif page titles at weight 600, a 10px card radius, Lucide at stroke 2, navy dark surfaces and full sentences with periods.
 4. **Set the direction and stop.** Write the five lines described below. Show the audit and the direction to the user and wait for their answer before editing, since changing the direction later means redoing everything. If you have a tool for asking the user questions, ask through it, otherwise ask in plain text and stop. Skip the wait only when the user already said to just do it.
 5. **Fix in nine passes, in order.** Finish a pass across the whole screen before starting the next. When nearly every line changes, plan the passes in order and then write the new screen in one go, as long as every pass is applied. Spacing comes first because everything else reads differently once the rhythm is right. Copy comes before type and layout because the length of the headline decides its size and where it sits. Visuals and motion come last because they should fit a screen that already works without them.
 6. **Check.** Run the checklist at the end of this file, render again and compare with the audit list. Anything still on the list gets fixed.
@@ -231,3 +234,4 @@ It adds a few minutes, so make it only when the user wants it.
 - [ ] The first screen is composed as a whole with no dead empty band
 - [ ] No looping or bouncy motion, one easing curve, no animated layout properties
 - [ ] Template check. If you swapped the product name for another product's, would the screen still fit? If yes, push the direction harder in the copy, the visual and the signature detail
+- [ ] Nothing that the project's design system approves was changed; conflicts with it are listed in the report as suggestions
