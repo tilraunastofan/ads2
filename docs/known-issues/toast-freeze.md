@@ -1,7 +1,7 @@
 # Toast freezes the tab on page change
 
-**Status:** worked around in this repo (`assets/js/toast-guard.js`, commit `f7e017e`). Not fixed upstream. Not yet reported to shadcn-templ.
-**Affects:** shadcn-templ `v2.0.0-beta.15` toast (`components/toast/toast.js`), with htmx 4.0.0 and 4.0.1.
+**Status:** worked around in this repo (`assets/js/toast-guard.js`, commit `f7e017e`). Not fixed upstream. Not yet reported to shadcn-templ (no matching issue as of 3 Nov 2026; the fix to propose is under **Fixing it upstream**).
+**Affects:** shadcn-templ's toast (`components/toast/toast.js`) in every v2 release: reproduced on `v2.0.0-beta.15` (ours); the file is byte-identical in `beta.16`, `v2.0.0` and `main` as of 3 Nov 2026, so upgrading does not fix it. Independent of the htmx version (4.0.0 and 4.0.1 both freeze). shadcn's own React toast is not affected (see **Upstream analysis**).
 **Severity:** high. The tab hangs until it is closed, and it takes only an ordinary click.
 
 ## What users see
@@ -34,6 +34,20 @@ The observers stay attached to the now-detached toast. `recalculateHeight()` upd
 The component does disconnect a toast's observers when that toast is closed normally (line 1034). Only the path where the whole viewport goes away misses it.
 
 **Evidence:** with `MutationObserver` wrapped in a counter, a boosted navigation with one toast showing produced 2.000+ callbacks within seconds (zero before the click). With the observers disconnected first, the count stayed at 0 and the navigation completed.
+
+## Upstream analysis
+
+Compared on 3 Nov 2026, from source.
+
+| Code | Observers cleaned up when the toaster goes away? | Affected |
+| --- | --- | --- |
+| shadcn `apps/v4/registry/bases/base/ui/toast.tsx` (the Base UI variant) | Adds no observers or effects of its own; composes Base UI's `Toast` primitives. | No |
+| Base UI `packages/react/src/toast/content/ToastContent.tsx` (1.6.0, which shadcn-templ ports, and `master`) | Yes. The observers live in a layout effect whose cleanup disconnects both, and React runs it whenever a toast unmounts, including when its viewport or provider unmounts. | No |
+| shadcn-templ `components/toast/toast.js` (`beta.15`, `beta.16`, `v2.0.0`, `main`; SHA-256 `300c0829…` for all four) | No. Per-toast cleanup runs only when one toast leaves the list (`renderList`, line 1034); the viewport's `destroy()` (line 1116) unsubscribes and clears timers but never runs it. | Yes |
+
+So this is a gap in the port, not in the original. React tears down every child of an unmounted tree; the vanilla port has to do that by hand in `destroy()`, and doesn't. React apps also rarely unmount the toaster at all (it sits in the root layout and survives client-side navigation), while `hx-boost` replaces `<body>`, and with it the toaster, on every navigation.
+
+`components/baseui/lifecycle.js`, which calls `destroy()`, is also identical across these versions. Upstream issue #514 ("Tolerate HTMX history restore with Toast timers", v1 line, closed) is related but different: a restarted timer, not a freeze.
 
 ## Workaround in this repo
 
@@ -74,16 +88,21 @@ If it prints `false` with a toast visible, the component changed: read the new `
 
 ## Fixing it upstream
 
-Report the bug to shadcn-templ (`github.com/axadrn/shadcn-templ`) with the reproduction above. The fix is one line in the viewport's `destroy()`:
+Report the bug to shadcn-templ (`github.com/axadrn/shadcn-templ`, bug form, title prefix `[bug]: `). The fix mirrors what React does on unmount: in the viewport's `destroy()`, run the same per-toast cleanup `renderList` already runs for a removed toast:
 
 ```js
 destroy(viewport) {
   const provider = viewport._templToastProvider;
   if (!provider) return;
-  provider.toasts.forEach((r) => r.observers.forEach((o) => o.disconnect())); // missing today
+  provider.toasts.forEach((r) => {            // missing today
+    r.observers.forEach((o) => o.disconnect());
+    r.dragAbortController?.abort();
+  });
   provider.unsubscribe();
   provider.store.clearTimers();
 },
 ```
+
+A draft of the issue was prepared on 3 Nov 2026 (it is not stored in this repo). When it is posted, replace "Not yet reported" in **Status** with the issue link.
 
 Once a release contains it: update the module, run the checks above **without** `toast-guard.js`, then delete the script, its `<script>` tag in `patterns/shell.templ`, its rows in `CLAUDE.md`, and this file.
