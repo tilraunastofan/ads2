@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/a-h/templ"
 )
 
 func get(h http.Handler, path string, hdr ...string) *httptest.ResponseRecorder {
@@ -115,5 +118,47 @@ func TestSettingsApproval(t *testing.T) {
 	ok := post(h, "/settings/approve", "code=123456")
 	if ok.Code != 200 || !strings.Contains(ok.Body.String(), "Freeze lifted") || !strings.Contains(ok.Body.String(), `hx-target="#toasts"`) {
 		t.Errorf("right code: status %d, body %q", ok.Code, ok.Body.String())
+	}
+}
+
+func TestAppsCSV(t *testing.T) {
+	h := newMux(newStore())
+	w := get(h, "/apps.csv")
+	if w.Code != 200 || !strings.HasPrefix(w.Header().Get("Content-Type"), "text/csv") {
+		t.Fatalf("status %d, Content-Type %q", w.Code, w.Header().Get("Content-Type"))
+	}
+	if !strings.Contains(w.Header().Get("Content-Disposition"), "attachment") {
+		t.Error("CSV is not served as a download")
+	}
+	body := w.Body.String()
+	if !strings.HasPrefix(body, "application,environment,version,health\n") || !strings.Contains(body, "payments-api,Production,1.42.0,Healthy\n") {
+		t.Errorf("body %q", body)
+	}
+	// The Export button must be a download link, or htmx's boost swaps the CSV into the page.
+	if page := get(h, "/apps").Body.String(); !strings.Contains(page, `download="applications.csv"`) {
+		t.Error("Export link lacks the download attribute")
+	}
+}
+
+func TestPartialEscapesAttributes(t *testing.T) {
+	var b strings.Builder
+	if err := partial(`#x" onclick="y`, "outerHTML", templ.Raw("")).Render(context.Background(), &b); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(b.String(), `" onclick="`) {
+		t.Errorf("target broke out of the attribute: %s", b.String())
+	}
+}
+
+func TestShellAccessibility(t *testing.T) {
+	body := get(newMux(newStore()), "/apps").Body.String()
+	skip := strings.Index(body, `href="#main"`)
+	if skip < 0 || skip > strings.Index(body, `data-sidebar="trigger"`) {
+		t.Error("skip link missing or not before the navigation")
+	}
+	for _, want := range []string{`<main id="main" tabindex="-1"`, `aria-label="Toggle sidebar"`, `aria-label="Dark theme"`, `aria-pressed="false"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("page lacks %s", want)
+		}
 	}
 }

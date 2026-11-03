@@ -46,7 +46,12 @@ templ Showcase(vm ShowcaseVM) {
 			Title:  "Releases",
 			Status: "ocp-prod-1 · 42 applications · synced 1 minute ago",
 		}) {
-			@button.Button(button.Props{Variant: button.VariantOutline, Href: "/apps.csv"}) {
+			@button.Button(button.Props{
+				Variant: button.VariantOutline,
+				Href:    "/apps.csv",
+				// download: the browser saves the file, and htmx's boost leaves the link alone.
+				Attributes: templ.Attributes{"download": "applications.csv"},
+			}) {
 				@icon.Download()
 				Export
 			}
