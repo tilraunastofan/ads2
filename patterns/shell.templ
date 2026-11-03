@@ -24,7 +24,9 @@ type ShellProps struct {
 
 // Base is the HTML document: the two fonts every page shows, preloaded so they
 // download alongside the CSS instead of after it; the font and theme CSS; theme.js
-// (before paint, so no flash); vendored htmx 4; the component bundle; and the
+// (before paint, so no flash); vendored htmx 4; toast-guard.js (works around a
+// toast freeze on boosted navigation); filter-form.js (form[data-filter-form]
+// fires filter-change when its values change); the component bundle; and the
 // toast mount.
 templ Base(title, lang string) {
 	<!DOCTYPE html>
@@ -40,6 +42,8 @@ templ Base(title, lang string) {
 			<link rel="stylesheet" href="/assets/css/output.css"/>
 			<script src="/assets/js/theme.js"></script>
 			<script src="/assets/js/htmx.min.js" defer></script>
+			<script src="/assets/js/toast-guard.js" defer></script>
+			<script src="/assets/js/filter-form.js" defer></script>
 			@components.Scripts()
 		</head>
 		<body class="style-nova min-h-svh" hx-boost:inherited="true">
