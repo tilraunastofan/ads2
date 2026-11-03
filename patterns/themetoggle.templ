@@ -6,12 +6,14 @@ import (
 )
 
 // ThemeToggle flips `class="dark"` on <html>. assets/js/theme.js (loaded by
-// Base) handles the click, remembers the choice and starts from the OS setting.
-templ ThemeToggle() {
+// Base) handles the click, remembers the choice, starts from the OS setting and
+// keeps aria-pressed in step. Pass the page language for its accessible name
+// ("Dark theme" / "Dökkt þema"); it defaults to English.
+templ ThemeToggle(lang ...string) {
 	@button.Button(button.Props{
 		Variant:    button.VariantGhost,
 		Size:       button.SizeIcon,
-		Attributes: templ.Attributes{"aria-label": "Toggle theme", "data-theme-toggle": "true", "hx-disable": "this"},
+		Attributes: templ.Attributes{"aria-label": labelsFor(first(lang)).DarkTheme, "aria-pressed": "false", "title": labelsFor(first(lang)).DarkTheme, "data-theme-toggle": "true", "hx-disable": "this"},
 	}) {
 		<span class="dark:hidden">@icon.Moon()</span>
 		<span class="hidden dark:inline">@icon.Sun()</span>

@@ -14,8 +14,10 @@ import (
 )
 
 // ThemeToggle flips `class="dark"` on <html>. assets/js/theme.js (loaded by
-// Base) handles the click, remembers the choice and starts from the OS setting.
-func ThemeToggle() templ.Component {
+// Base) handles the click, remembers the choice, starts from the OS setting and
+// keeps aria-pressed in step. Pass the page language for its accessible name
+// ("Dark theme" / "Dökkt þema"); it defaults to English.
+func ThemeToggle(lang ...string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -73,7 +75,7 @@ func ThemeToggle() templ.Component {
 		templ_7745c5c3_Err = button.Button(button.Props{
 			Variant:    button.VariantGhost,
 			Size:       button.SizeIcon,
-			Attributes: templ.Attributes{"aria-label": "Toggle theme", "data-theme-toggle": "true", "hx-disable": "this"},
+			Attributes: templ.Attributes{"aria-label": labelsFor(first(lang)).DarkTheme, "aria-pressed": "false", "title": labelsFor(first(lang)).DarkTheme, "data-theme-toggle": "true", "hx-disable": "this"},
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

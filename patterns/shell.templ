@@ -50,6 +50,13 @@ templ Base(title, lang string) {
 	</html>
 }
 
+func first(s []string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	return s[0]
+}
+
 func langOr(l string) string {
 	if l == "" {
 		return "en"
@@ -59,8 +66,10 @@ func langOr(l string) string {
 
 // Shell is the internal-tool layout: sidebar navigation plus an inset holding a
 // single column (max 1200px, 24px padding) with the theme toggle in its top bar.
+// A skip link, the first thing a keyboard reaches, jumps past the navigation.
 templ Shell(p ShellProps) {
 	@Base(p.Title, p.Lang) {
+		@SkipLink(p.Lang)
 		@sidebar.Provider() {
 			@sidebar.Sidebar(sidebar.Props{Collapsible: sidebar.CollapsibleIcon}) {
 				@sidebar.Header() {
@@ -92,13 +101,24 @@ templ Shell(p ShellProps) {
 			}
 			@sidebar.Inset() {
 				<header class="flex h-14 items-center justify-between gap-2 border-b px-4">
-					@sidebar.Trigger()
-					@ThemeToggle()
+					@sidebar.Trigger(sidebar.TriggerProps{Attributes: templ.Attributes{"aria-label": labelsFor(p.Lang).ToggleSidebar}})
+					@ThemeToggle(p.Lang)
 				</header>
-				<main id="main" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6">
+				<main id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none">
 					{ children... }
 				</main>
 			}
 		}
 	}
+}
+
+// SkipLink is hidden until focused, then jumps to <main id="main">. Shell renders
+// it; pages on Base with their own <main id="main" tabindex="-1"> can use it too.
+templ SkipLink(lang string) {
+	<a
+		href="#main"
+		class="sr-only rounded-lg bg-background px-3 py-2 text-sm font-medium text-foreground ring-2 ring-ring focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
+	>
+		{ labelsFor(lang).SkipToContent }
+	</a>
 }

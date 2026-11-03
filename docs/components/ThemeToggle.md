@@ -7,10 +7,13 @@ A ghost icon button that switches light and dark. `patterns.ThemeToggle()` from 
 ```templ
 <header class="flex h-14 items-center justify-between gap-2 border-b px-4">
     @sidebar.Trigger()
-    @patterns.ThemeToggle()
+    @patterns.ThemeToggle("en") // page language: "Dark theme" / "Dökkt þema"
 </header>
 ```
 
 - First visit follows the OS (`prefers-color-scheme`); after a click the choice is stored in `localStorage` and wins.
 - Dark mode is the `dark` class on `<html>`: it swaps the token variables and enables `dark:`. `data-theme` is not used.
 - `theme.js` runs before first paint, so there is no flash of the wrong theme.
+- Until the user clicks, the page follows OS theme changes live.
+- It is a toggle button: the name stays "Dark theme" and `theme.js` keeps `aria-pressed` in step (also after boosted navigation).
+- The theme sets `color-scheme`, so scrollbars and native date inputs follow it.
