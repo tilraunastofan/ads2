@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -160,5 +163,85 @@ func TestShellAccessibility(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("page lacks %s", want)
 		}
+	}
+}
+
+func gunzip(t *testing.T, b []byte) string {
+	t.Helper()
+	zr, err := gzip.NewReader(bytes.NewReader(b))
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := io.ReadAll(zr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(out)
+}
+
+func TestAssetsArePrecompressed(t *testing.T) {
+	h := compress(assetHandler())
+	plain := get(h, "/css/fonts.css")
+	gz := get(h, "/css/fonts.css", "Accept-Encoding", "br, gzip")
+	if gz.Header().Get("Content-Encoding") != "gzip" || !strings.Contains(gz.Header().Get("Vary"), "Accept-Encoding") {
+		t.Fatalf("Content-Encoding %q, Vary %q", gz.Header().Get("Content-Encoding"), gz.Header().Get("Vary"))
+	}
+	if got := gunzip(t, gz.Body.Bytes()); got != plain.Body.String() {
+		t.Error("gzipped asset differs from the plain one")
+	}
+	if !strings.HasPrefix(gz.Header().Get("Content-Type"), "text/css") {
+		t.Errorf("Content-Type %q", gz.Header().Get("Content-Type"))
+	}
+	tag := gz.Header().Get("ETag")
+	if tag == plain.Header().Get("ETag") {
+		t.Error("gzip and identity share an ETag")
+	}
+	if again := get(h, "/css/fonts.css", "Accept-Encoding", "gzip", "If-None-Match", tag); again.Code != http.StatusNotModified {
+		t.Errorf("revalidation of gzipped asset: %d, want 304", again.Code)
+	}
+	if w := get(h, "/css/fonts.css", "Accept-Encoding", "gzip;q=0"); w.Header().Get("Content-Encoding") != "" {
+		t.Error("gzip;q=0 still got gzip")
+	}
+	// woff2 is already compressed.
+	if w := get(h, "/fonts/hanken-grotesk-latin-wght-normal.woff2", "Accept-Encoding", "gzip"); w.Header().Get("Content-Encoding") != "" {
+		t.Error("font was gzipped")
+	}
+}
+
+func TestPagesAreCompressed(t *testing.T) {
+	h := secure(compress(newMux(newStore())))
+	w := get(h, "/apps", "Accept-Encoding", "gzip")
+	if w.Header().Get("Content-Encoding") != "gzip" {
+		t.Fatalf("Content-Encoding %q", w.Header().Get("Content-Encoding"))
+	}
+	if body := gunzip(t, w.Body.Bytes()); !strings.Contains(body, "Releases") {
+		t.Error("decompressed page lacks its title")
+	}
+	if w := get(h, "/apps"); w.Header().Get("Content-Encoding") != "" || !strings.Contains(w.Body.String(), "Releases") {
+		t.Error("client without gzip got a compressed or broken page")
+	}
+}
+
+func TestNotFoundPage(t *testing.T) {
+	h := newMux(newStore())
+	w := get(h, "/metrics/nope")
+	body := w.Body.String()
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("status %d", w.Code)
+	}
+	for _, want := range []string{"Page not found", `<code class="font-mono text-code break-all text-foreground">/metrics/nope</code>`, `href="/metrics"`, "Go to Metrics", `data-sidebar="trigger"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("404 page lacks %s", want)
+		}
+	}
+	if !strings.Contains(get(h, "/nope").Body.String(), "Go to Applications") {
+		t.Error("unknown section should fall back to Applications")
+	}
+	// A broken hx-get must not swap a whole page into its target.
+	if p := get(h, "/nope", "HX-Request", "true", "HX-Request-Type", "partial"); p.Code != 404 || strings.Contains(p.Body.String(), "<html") {
+		t.Errorf("partial 404: status %d, body %q", p.Code, p.Body.String())
+	}
+	if p := get(h, "/nope", "HX-Request", "true", "HX-Request-Type", "full"); !strings.Contains(p.Body.String(), "Page not found") {
+		t.Error("boosted navigation should get the 404 page")
 	}
 }

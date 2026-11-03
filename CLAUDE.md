@@ -21,7 +21,7 @@ Module: `github.com/tilraunastofan/ads2`.
 | `ui/pages/metrics.templ` | `/metrics`: DatePicker (popover + range calendar), Combobox filter, Chart, DataCard with a Sheet per release. |
 | `ui/pages/settings.templ` | `/settings`: step-up approval with InputOTP (showcase code `123456`). |
 | `.github/workflows/ci.yml` | `task check`, then `task build` with the Tailwind standalone CLI and a smoke test of `/apps`, `/metrics`, `/settings`. |
-| `cmd/showcase` | `net/http` server for the showcase: embedded assets, cache headers, CSP. |
+| `cmd/showcase` | `net/http` server for the showcase: embedded assets (text types gzipped once at first request), cache headers, CSP, gzip for HTML/CSV, server timeouts, graceful shutdown on SIGTERM, Arion 404 page (`ui/pages/notfound.templ`; htmx fragment requests keep a plain 404). |
 | `docs/` | Brand book (`design-system.md`), `setup.md`, `htmx-patterns.md`, `patterns.md`, one file per component. **Read these before writing UI.** |
 
 ## Setup & commands

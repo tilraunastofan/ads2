@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/csv"
@@ -17,10 +18,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/a-h/templ"
@@ -189,7 +192,7 @@ func assetHandler() http.Handler {
 	if dev {
 		disk = http.FileServer(http.Dir("assets"))
 	}
-	var etags sync.Map // asset name -> ETag
+	var cache sync.Map // asset name -> *cachedAsset
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		name := strings.TrimPrefix(r.URL.Path, "/")
 		immutable := strings.HasPrefix(name, "fonts/") || strings.HasPrefix(name, "js/shadcn-templ-")
@@ -210,15 +213,118 @@ func assetHandler() http.Handler {
 			http.NotFound(w, r)
 			return
 		}
-		tag, ok := etags.Load(name)
+		a, ok := cache.Load(name)
 		if !ok {
-			sum := sha256.Sum256(body)
-			tag, _ = etags.LoadOrStore(name, `"`+hex.EncodeToString(sum[:8])+`"`)
+			a, _ = cache.LoadOrStore(name, newCachedAsset(name, body))
 		}
-		w.Header().Set("ETag", tag.(string))
+		ca := a.(*cachedAsset)
+		etag := ca.etag
+		if ca.gz != nil {
+			w.Header().Add("Vary", "Accept-Encoding")
+			if acceptsGzip(r) {
+				// The gzipped bytes are their own representation: own ETag, and
+				// ServeContent applies ranges and If-None-Match to them.
+				body, etag = ca.gz, ca.gzETag
+				w.Header().Set("Content-Encoding", "gzip")
+			}
+		}
+		w.Header().Set("ETag", etag)
 		http.ServeContent(w, r, path.Base(name), time.Time{}, bytes.NewReader(body))
 	})
 }
+
+// cachedAsset is an embedded file's ETag and, for text types, its gzipped bytes,
+// computed once per process.
+type cachedAsset struct {
+	etag   string
+	gz     []byte
+	gzETag string
+}
+
+func newCachedAsset(name string, body []byte) *cachedAsset {
+	sum := sha256.Sum256(body)
+	h := hex.EncodeToString(sum[:8])
+	a := &cachedAsset{etag: `"` + h + `"`}
+	switch path.Ext(name) {
+	case ".css", ".js", ".svg", ".json", ".txt":
+		var b bytes.Buffer
+		zw, _ := gzip.NewWriterLevel(&b, gzip.BestCompression)
+		_, _ = zw.Write(body)
+		if zw.Close() == nil && b.Len() < len(body) {
+			a.gz, a.gzETag = b.Bytes(), `"`+h+`-gz"`
+		}
+	}
+	return a
+}
+
+func acceptsGzip(r *http.Request) bool {
+	for _, part := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+		enc, params, _ := strings.Cut(strings.TrimSpace(part), ";")
+		if strings.EqualFold(strings.TrimSpace(enc), "gzip") {
+			return strings.ReplaceAll(params, " ", "") != "q=0"
+		}
+	}
+	return false
+}
+
+// compress gzips HTML and CSV responses for clients that accept it. Responses that
+// already carry a Content-Encoding (the precompressed assets) pass through.
+func compress(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !acceptsGzip(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		gw := &gzipWriter{ResponseWriter: w}
+		defer gw.close()
+		next.ServeHTTP(gw, r)
+	})
+}
+
+type gzipWriter struct {
+	http.ResponseWriter
+	zw          *gzip.Writer
+	wroteHeader bool
+}
+
+func (g *gzipWriter) WriteHeader(code int) {
+	if g.wroteHeader {
+		return
+	}
+	g.wroteHeader = true
+	h := g.Header()
+	ct := h.Get("Content-Type")
+	if code != http.StatusNoContent && code != http.StatusNotModified && h.Get("Content-Encoding") == "" &&
+		(strings.HasPrefix(ct, "text/html") || strings.HasPrefix(ct, "text/csv")) {
+		h.Set("Content-Encoding", "gzip")
+		h.Add("Vary", "Accept-Encoding")
+		h.Del("Content-Length")
+		g.zw = gzip.NewWriter(g.ResponseWriter)
+	}
+	g.ResponseWriter.WriteHeader(code)
+}
+
+func (g *gzipWriter) Write(b []byte) (int, error) {
+	if !g.wroteHeader {
+		if g.Header().Get("Content-Type") == "" {
+			g.Header().Set("Content-Type", http.DetectContentType(b))
+		}
+		g.WriteHeader(http.StatusOK)
+	}
+	if g.zw != nil {
+		return g.zw.Write(b)
+	}
+	return g.ResponseWriter.Write(b)
+}
+
+func (g *gzipWriter) close() {
+	if g.zw != nil {
+		_ = g.zw.Close()
+	}
+}
+
+// Unwrap lets http.ResponseController reach the underlying writer.
+func (g *gzipWriter) Unwrap() http.ResponseWriter { return g.ResponseWriter }
 
 // secure sets the security headers an on-prem deployment should send. Scripts and
 // stylesheets are same-origin files. Components write a few inline style="…"
@@ -365,6 +471,17 @@ func newMux(s *store) http.Handler {
 		))
 	})
 
+	// Everything unmatched: the Arion 404 page for page loads and boosted links.
+	// htmx fragment requests keep the plain 404, so a broken hx-get can't swap a
+	// whole page into a table body.
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("HX-Request-Type") == "partial" {
+			http.NotFound(w, r)
+			return
+		}
+		render(w, r, http.StatusNotFound, pages.NotFound(r.URL.Path))
+	})
+
 	return mux
 }
 
@@ -373,6 +490,34 @@ func main() {
 	if port == "" {
 		port = "8090"
 	}
-	log.Printf("showcase on http://localhost:%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, secure(newMux(newStore()))))
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           secure(compress(newMux(newStore()))),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       2 * time.Minute,
+	}
+
+	// SIGTERM (OpenShift stopping the pod) or Ctrl-C: stop accepting, let requests
+	// in flight finish, then exit.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	errc := make(chan error, 1)
+	go func() {
+		log.Printf("showcase on http://localhost:%s", port)
+		errc <- srv.ListenAndServe()
+	}()
+	select {
+	case err := <-errc:
+		log.Fatal(err)
+	case <-ctx.Done():
+	}
+	stop()
+	shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdown); err != nil {
+		log.Printf("shutdown: %v", err)
+	}
+	log.Print("showcase stopped")
 }
