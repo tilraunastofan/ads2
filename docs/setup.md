@@ -41,7 +41,7 @@ Then apply the Arion theme:
 
 ## Layout skeleton
 
-Use `patterns.Shell` (sidebar, theme toggle, 1200px column) or `patterns.Base` (bare document) instead of writing the document by hand. They load, in this order: `fonts.css`, `output.css`, `theme.js` (blocking, so dark mode has no flash), vendored htmx 4 (`defer`), `components.Scripts()`; and they mount `<div id="toasts" hidden>` (the target of `<hx-partial hx-target="#toasts">` responses) plus `toast.Toaster()`. The body is boosted with `hx-boost:inherited="true"`; `lang` defaults to `en` (`ShellProps.Lang` for Icelandic pages).
+Use `patterns.Shell` (sidebar, theme toggle, 1200px column) or `patterns.Base` (bare document) instead of writing the document by hand. With `Shell`, wrap the server's handler in `patterns.SidebarState(mux)` so a collapsed sidebar stays collapsed across pages. They load, in this order: `fonts.css`, `output.css`, `theme.js` (blocking, so dark mode has no flash), vendored htmx 4 (`defer`), `components.Scripts()`; and they mount `<div id="toasts" hidden>` (the target of `<hx-partial hx-target="#toasts">` responses) plus `toast.Toaster()`. The body is boosted with `hx-boost:inherited="true"`; `lang` defaults to `en` (`ShellProps.Lang` for Icelandic pages).
 
 ```templ
 templ App(title, currentPath string) {

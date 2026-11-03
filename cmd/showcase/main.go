@@ -622,7 +622,7 @@ func main() {
 	}
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           secure(compress(recoverer(newMux(newStore())))),
+		Handler:           secure(compress(recoverer(patterns.SidebarState(newMux(newStore()))))),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,

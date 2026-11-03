@@ -179,7 +179,7 @@ func Shell(p ShellProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "   ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "      ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -234,7 +234,7 @@ func Shell(p ShellProps) templ.Component {
 						var templ_7745c5c3_Var9 string
 						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Product)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 103, Col: 53}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 109, Col: 53}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 						if templ_7745c5c3_Err != nil {
@@ -247,7 +247,7 @@ func Shell(p ShellProps) templ.Component {
 						var templ_7745c5c3_Var10 string
 						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(p.Tagline)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 104, Col: 71}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 110, Col: 71}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 						if templ_7745c5c3_Err != nil {
@@ -304,7 +304,7 @@ func Shell(p ShellProps) templ.Component {
 										var templ_7745c5c3_Var14 string
 										templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(g.Label)
 										if templ_7745c5c3_Err != nil {
-											return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 113, Col: 18}
+											return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 119, Col: 18}
 										}
 										_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 										if templ_7745c5c3_Err != nil {
@@ -369,7 +369,7 @@ func Shell(p ShellProps) templ.Component {
 												var templ_7745c5c3_Var18 string
 												templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(it.Label)
 												if templ_7745c5c3_Err != nil {
-													return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 121, Col: 27}
+													return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 127, Col: 27}
 												}
 												_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 												if templ_7745c5c3_Err != nil {
@@ -461,7 +461,10 @@ func Shell(p ShellProps) templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = sidebar.Provider(sidebar.ProviderProps{Attributes: templ.Attributes{"style": "--sidebar-width: 16rem; --sidebar-width-icon: 4rem;"}}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = sidebar.Provider(sidebar.ProviderProps{
+				DisableDefaultOpen: sidebarCollapsed(ctx),
+				Attributes:         templ.Attributes{"style": "--sidebar-width: 16rem; --sidebar-width-icon: 4rem;"},
+			}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -501,7 +504,7 @@ func SkipLink(lang string) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(labelsFor(lang).SkipToContent)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 153, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/shell.templ`, Line: 159, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {

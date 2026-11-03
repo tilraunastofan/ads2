@@ -60,6 +60,7 @@ Verified in Chrome against `task dev`: search filters rows; the row menu's Resta
 - The Tailwind watcher only rebuilds on a change. After pulling or switching branches with new templates, run `tailwindcss -i ./assets/css/globals.css -o ./assets/css/output.css` once; otherwise new classes (`h-[240px]`) are missing and e.g. charts collapse to zero height.
 - CSP blocks `eval`: htmx trigger filters (`input-otp-change[detail.value.length==6]`) never fire and log nothing in the console. Use plain event triggers. Listen for `securitypolicyviolation` to see what is blocked.
 - The showcase store is in memory; a restart brings deleted rows back.
+- The sidebar's collapsed state lives in the `sidebar_state` cookie; the server renders it only through `patterns.SidebarState` (wired in `main`). Tests that call `newMux` directly skip it. Cookies on `localhost` are shared across ports, so a state set on :8090 shows up on :7331 and :8092 too.
 - Body is boosted: a link to a file download needs the `download` attribute (htmx then leaves it alone), or the file is swapped into the page.
 - Build query strings with `url.Values`, never `"?a=" + x`.
 - Filter forms trigger on `filter-change` (`data-filter-form`), never plain `change`: an unnamed combobox input fires `change` on blur, and the refetch replaced the Details sheet as it opened. Lazy fragments in filtered results carry the filter values in their URL.

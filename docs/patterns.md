@@ -10,6 +10,7 @@ Compositions of shadcn-templ components that every app needs, in `github.com/til
 | `Stat(StatProps)` / `StatRow()` | KPI card: metric name, the value at `heading-1`, then the change with sign, arrow and colour and `Since` ("vs last week"). `Good` and `Up` are independent. |
 | `StatusBadge(Status, label)` | A state as a pill with icon and word. `StatusPositive` (healthy), `StatusWarning` (progressing), `StatusDestructive` (degraded, failed), `StatusNeutral`. |
 | `DataCard(DataCardProps)` | A card holding a full-width table, with optional description and header action (search, button). First and last columns get the card inset: no `pl-4` / `pr-4` on cells. |
+| `SidebarState(http.Handler)` | Middleware: reads `sidebar.js`'s `sidebar_state` cookie so `Shell` renders the sidebar collapsed or expanded as the user left it. Wrap your mux in it, or the sidebar re-expands on every navigation. |
 | `ThemeToggle(lang...)` | Ghost icon button wired to `assets/js/theme.js`, named "Dark theme" / "Dökkt þema" with `aria-pressed`. Already in `Shell`. |
 | `SkipLink(lang)` | "Skip to content" link, visible on focus, to `<main id="main" tabindex="-1">`. Already in `Shell`; add it yourself on `Base` pages. |
 | `Int`, `Dec`, `Signed`, `Pct`, `SignedPct` | Arion number format: `1.284.500`, `2,3`, `+9,5`, `2,3%`, real minus `−`. |

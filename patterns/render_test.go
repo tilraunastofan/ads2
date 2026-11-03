@@ -2,6 +2,8 @@ package patterns
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -105,6 +107,32 @@ func TestDataCardOptionalParts(t *testing.T) {
 	for _, want := range []string{`id="apps"`, "Argo CD", `id="act"`, "[&amp;_tr&gt;:first-child]:pl-4"} {
 		if !strings.Contains(full, want) {
 			t.Errorf("DataCard lacks %s", want)
+		}
+	}
+}
+
+// A collapsed sidebar stays collapsed across page loads: SidebarState reads the
+// cookie sidebar.js writes, and Shell renders that state.
+func TestShellKeepsTheSidebarCollapsed(t *testing.T) {
+	page := ShellProps{Title: "T", Nav: []NavItem{{Label: "A", Href: "/a", Icon: templ.NopComponent}}}
+	h := SidebarState(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = Shell(page).Render(r.Context(), w)
+	}))
+	get := func(cookie string) string {
+		r := httptest.NewRequest("GET", "/a", nil)
+		if cookie != "" {
+			r.AddCookie(&http.Cookie{Name: "sidebar_state", Value: cookie})
+		}
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		return w.Body.String()
+	}
+	if b := get("false"); !strings.Contains(b, `data-state="collapsed"`) || !strings.Contains(b, `data-collapsible="icon"`) {
+		t.Error("sidebar_state=false should render the sidebar collapsed to icons")
+	}
+	for _, c := range []string{"", "true"} {
+		if b := get(c); strings.Contains(b, `data-state="collapsed"`) {
+			t.Errorf("cookie %q should render the sidebar expanded", c)
 		}
 	}
 }

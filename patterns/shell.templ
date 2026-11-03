@@ -94,7 +94,13 @@ templ Shell(p ShellProps) {
 		// The collapsed rail is 4rem, not shadcn's 3rem: the 32px mark plus the header's
 		// and the link's 8px padding on each side need 64px. The menu icons are centred
 		// in it (group-data-[collapsible=icon]:items-center) so they line up under the mark.
-		@sidebar.Provider(sidebar.ProviderProps{Attributes: templ.Attributes{"style": "--sidebar-width: 16rem; --sidebar-width-icon: 4rem;"}}) {
+		// DisableDefaultOpen: render the state the user left the sidebar in (the
+		// SidebarState middleware reads sidebar.js's cookie), or every page load and
+		// boosted navigation would expand it again.
+		@sidebar.Provider(sidebar.ProviderProps{
+			DisableDefaultOpen: sidebarCollapsed(ctx),
+			Attributes:         templ.Attributes{"style": "--sidebar-width: 16rem; --sidebar-width-icon: 4rem;"},
+		}) {
 			@sidebar.Sidebar(sidebar.Props{Collapsible: sidebar.CollapsibleIcon}) {
 				@sidebar.Header() {
 					<a href="/" class="flex items-center gap-2 p-2">
