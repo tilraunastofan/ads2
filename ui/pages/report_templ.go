@@ -445,7 +445,7 @@ func Report(vm ReportVM) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = patterns.ReportShell(patterns.ReportShellProps{
-			Title:   vm.Title + " · Arion Design System 2",
+			Title:   vm.Title + " – Arion Design System 2",
 			Product: "Fjárhagsupplýsingar",
 			Lang:    reportLang,
 			Cover: patterns.ReportCover(patterns.ReportCoverProps{

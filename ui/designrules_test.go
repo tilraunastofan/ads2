@@ -55,6 +55,11 @@ var rules = []rule{
 		},
 	},
 	{
+		name: "middle-dot meta string",
+		re:   regexp.MustCompile(`·`),
+		why:  "don't join metadata with middle dots; write a sentence or use separate elements",
+	},
+	{
 		name: "page title outside PageHeader",
 		re:   regexp.MustCompile(`<h1\b`),
 		why:  "the one display title per page comes from patterns.PageHeader",
@@ -129,6 +134,7 @@ func TestRulesCatchViolations(t *testing.T) {
 		`<button type="submit">`:                            "raw form or table element",
 		`<input type="text" name="q">`:                      "raw form or table element",
 		`<h1>Releases</h1>`:                                 "page title outside PageHeader",
+		`Status: "ocp-prod-1 · 42 applications"`:            "middle-dot meta string",
 	}
 	for src, want := range bad {
 		vs := check("ui/pages/x.templ", src)

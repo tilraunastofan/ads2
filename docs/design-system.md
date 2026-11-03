@@ -16,6 +16,8 @@ Arion Design System 2 dresses **shadcn-templ v2** (nova style) in Arion banki's 
 - **Language:** English for internal platform tools. Customer-facing and finance views follow Arion and use Icelandic ("Fjárhagsupplýsingar", "Hagnaður 3F 2026"). Never mix the two inside one sentence, which includes units: "41 min" on an English page, "41 mín." on an Icelandic one.
 - **Numbers:** one format in every language, Arion's: `.` groups thousands and `,` is the decimal mark (`1.284.500`, `2,3%`, `+9,5%`), also on English pages. Only the words and units around the number follow the page language (`1.284.500 kr.` / `128,4 m.kr.`). Put units in the table caption or column header, not in every cell. Losses use a real minus sign `−`. Dates read `23. október 2026` in Icelandic UI and `23 Oct 2026` in English UI. Times use 24 hours. Format with `patterns.Int`, `Dec`, `Signed`, `Pct`, `Date` and `DateRange` rather than by hand.
 - **Identifiers:** image tags, SHAs, namespaces and commands are set in `code` (JetBrains Mono).
+- **Metadata:** write it as a sentence ("Cluster ocp-prod-1, synced 1 minute ago.") or as separate elements, never as fragments joined with middle dots. The design-rules test rejects `·` in templates.
+- **One name per thing:** a sidebar item, its breadcrumb and its page title use the same words, and an action keeps its name from button to toast ("Lift freeze" → "Freeze lifted").
 
 ## Color
 
@@ -27,7 +29,7 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 - **Hover and selection.** `accent` (pale Arion blue) with `accent-foreground` covers ghost and menu hover, the active sidebar item and highlighted rows. Text selection uses `selection` (`#acd5ff`, Arion's focus fill).
 - **Status.** Errors use `destructive` (Arion red, darkened to `#cc0000`). Gains and healthy states use `positive` (teal, an addition to the Arion palette). In-progress and caution states use `warning`; degraded, failed and down states use `destructive` (amber-brown, also an addition). Teal and red stay apart for all common forms of colour blindness. Status is never shown by colour alone: always add a word, icon, sign or arrow. Use `patterns.StatusBadge` for state pills (Healthy / Progressing / Degraded) so every app maps states the same way; each token has a `*-foreground` for solid fills.
 - **Editorial accents.** `ink` is Arion's dark CTA (one per page at most, never beside a blue primary). `gold` and `plum` are for highlight figures and charts. `sand` is the band behind report covers: Arion's warm sand in light, a navy-tinted band in dark.
-- **Charts.** Use `chart-1` to `chart-5` in order: blue, gold, plum, slate, light slate. Label series directly; the five are tuned to stay apart under red–green colour blindness.
+- **Charts.** Use `chart-1` to `chart-5` in order: blue, gold, plum, slate, light slate. Name every series, with a legend under the chart or with direct labels on the lines; never by colour alone. The five are tuned to stay apart under red–green colour blindness.
 - **Contrast.** Every text token clears 4.5:1, and every control border, focus ring and chart mark clears 3:1, on the surfaces its usage note names, in both themes. `cmd/gentheme` checks this on every `task theme` and `task check`, so a token edit that breaks a claim fails the build. Four Arion source values were adjusted to pass: `muted-foreground` `#5e7788` → `#536a7a`, `destructive` `#d70000` → `#cc0000`, the `input` border (50% navy, 2.9:1) → solid `#7b8c98`, and light `chart-5` → `#8294a0`. Dark `destructive` is `#ff7a70` so nova's 20% tint badge stays legible.
 
 ## Typography
@@ -38,7 +40,7 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 - **Utilities.** Every style in `tokens.json` is a Tailwind utility with its line height, weight and tracking: `text-display-sm`, `text-heading-1…4`, `text-body-lg`, `text-body`, `text-body-sm`, `text-label`, `text-caption`, `text-figure`, `text-code`. Use `font-display text-display-sm` for a page title and `font-mono text-code` for identifiers; never `text-[40px]`. Gotcha: `utils.CN` (the class merger behind every component's `Class`) doesn't know these names, so on a shadcn component that already sets a size (CardTitle is `text-base`) write the scale class important, with the v4 suffix, and the line height too because CardTitle sets `leading-snug`: `Class: "text-display-sm! leading-11!"` (44px = `leading-11`; `text-heading-3!` pairs with `leading-7!`). On your own elements (`<h1>`, table cells) plain `text-display-sm` is fine.
 - **Headings.** `heading-1` to `heading-4` (sans, 600) are for sections inside a page. shadcn titles (`CardTitle`, `DialogTitle`) stay sans: `font-heading` is mapped to `--font-sans`.
 - **Text.** Component text is shadcn's `text-sm` (`body-sm`, 14px). Docs and long descriptions use `body` (16px). `caption` (12px) is for timestamps and footnotes only.
-- **Numbers.** Amounts use `figure`: `font-mono tabular-nums`, right-aligned.
+- **Numbers.** Amounts in tables use `figure`: `font-mono tabular-nums`, right-aligned. KPI values (`patterns.Stat`) are sans with `tabular-nums` at `heading-1`, the largest thing in their card.
 
 ## Spacing, radii, elevation
 
@@ -57,7 +59,7 @@ Tokens are shadcn's own variable names, so shadcn-templ components pick them up 
 ## Iconography
 
 - **Icon set.** Use **Lucide**, through shadcn-templ's `components/icon` package (`@icon.Download()`, `@icon.CircleAlert()`). Stroke 2, size 16px inside components (they size `svg` themselves). Icons inherit `currentColor`.
-- **Pairing with labels.** Icons accompany labels; icon-only buttons need `aria-label` and a `tooltip`. No emoji, no filled or duotone sets, no custom drawings.
+- **Pairing with labels.** Icons accompany labels; icon-only buttons need an `aria-label`, and a `tooltip` unless the icon is a standard control: the ⋯ row menu, the sidebar toggle and the theme toggle (which carries a `title`). No emoji, no filled or duotone sets, no custom drawings.
 - **Logos.** The star mark is `patterns.ArionMark` (inline SVG, geometry from `assets/img/arion-mark.svg`), filled with the `brand-mark` token: Arion blue `#005ab4` on light surfaces and pure white in dark mode, the two colours Arion's brand assets use. It goes in the sidebar header and the report top bar at 24–32px; the favicon is `assets/img/arion-mark-favicon.svg`, which follows the browser's light or dark chrome. It is a vector trace of Arion's logo; never redraw it, and use no colours other than those two. The full lockup (charcoal wordmark) is for `background` or `card` in the light theme only; in dark mode use the mark alone. Give every logo clear space of at least half its height, and never stretch it or place it on `primary`.
 
 ## Components

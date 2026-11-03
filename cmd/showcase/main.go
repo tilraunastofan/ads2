@@ -64,6 +64,42 @@ func (s *store) search(q string) []pages.App {
 	return out
 }
 
+// add appends a new application; false if the name is taken.
+func (s *store) add(a pages.App) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, x := range s.apps {
+		if x.Name == a.Name {
+			return false
+		}
+	}
+	s.apps = append(s.apps, a)
+	return true
+}
+
+// week is the demo deploy history: deployments and rollbacks in ISO week wk. The
+// Applications KPIs and the Metrics chart both read it, so they never disagree.
+func week(wk int) (deploys, rollbacks int) {
+	return 18 + (wk*7)%17, 1 + (wk*3)%5
+}
+
+// appsKPIs are this ISO week against the last one.
+func appsKPIs(now time.Time) []patterns.StatProps {
+	_, wk := now.ISOWeek()
+	d, r := week(wk)
+	pd, pr := week(wk - 1)
+	cfr, prev := 100*float64(r)/float64(d), 100*float64(pr)/float64(pd)
+	deployChange := 100 * float64(d-pd) / float64(pd)
+	return []patterns.StatProps{
+		{Label: "Deploys this week", Value: patterns.Int(int64(d)), Delta: patterns.SignedPct(deployChange, 0), Since: "vs last week",
+			Good: d >= pd, Up: d >= pd},
+		{Label: "Change failure rate", Value: patterns.Pct(cfr, 1), Delta: patterns.Signed(cfr-prev, 1) + " pp", Since: "vs last week",
+			Good: cfr <= prev, Up: cfr > prev},
+		{Label: "Mean time to restore", Value: patterns.Dec(41, 0) + " min", Delta: patterns.Signed(6, 0) + " min", Since: "vs last week",
+			Good: false, Up: true},
+	}
+}
+
 func (s *store) remove(name string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -130,18 +166,21 @@ func (s *store) metrics(r *http.Request) pages.MetricsVM {
 	app := q.Get("app")
 
 	s.mu.Lock()
-	apps := make([]string, 0, len(s.apps))
-	for _, a := range s.apps {
+	all := append([]pages.App(nil), s.apps...)
+	s.mu.Unlock()
+	apps := make([]string, 0, len(all))
+	for _, a := range all {
 		apps = append(apps, a.Name)
 	}
-	s.mu.Unlock()
 
 	var weeks []pages.WeekStat
 	deploys, rollbacks := 0, 0
-	for d := from; !d.After(to); d = d.AddDate(0, 0, 7) {
+	// One bar per ISO week the range touches, from the Monday of from's week, so the
+	// current week is always there (the Applications KPIs report it).
+	monday := from.AddDate(0, 0, -((int(from.Weekday()) + 6) % 7))
+	for d := monday; !d.After(to); d = d.AddDate(0, 0, 7) {
 		_, wk := d.ISOWeek()
-		dep := 18 + (wk*7)%17
-		rb := 1 + (wk*3)%5
+		dep, rb := week(wk)
 		if app != "" {
 			dep, rb = max(dep/5, 1), rb/3
 		}
@@ -150,19 +189,20 @@ func (s *store) metrics(r *http.Request) pages.MetricsVM {
 		rollbacks += rb
 	}
 
+	// Each application's current release, with the version, environment and health
+	// the Applications page shows.
 	var releases []pages.Release
-	health := []string{"Healthy", "Healthy", "Progressing", "Healthy", "Degraded"}
-	for i, a := range apps {
-		if app != "" && a != app {
+	for i, a := range all {
+		if app != "" && a.Name != app {
 			continue
 		}
 		releases = append(releases, pages.Release{
-			App:     a,
-			Version: "1." + strconv.Itoa(40+i) + ".0",
-			Env:     "Production",
+			App:     a.Name,
+			Version: a.Version,
+			Env:     a.Env,
 			At:      to.Add(time.Duration(9+i)*time.Hour).AddDate(0, 0, -i),
-			By:      "Kargo · stage prod",
-			Health:  health[i%len(health)],
+			By:      "Kargo, stage " + strings.ToLower(a.Env),
+			Health:  a.Health,
 		})
 	}
 
@@ -204,12 +244,12 @@ func report() pages.ReportVM {
 		PrevPeriod: "3F 2025",
 		Published:  time.Date(2026, time.October, 23, 0, 0, 0, 0, time.Local),
 		KPIs: []patterns.StatProps{
-			{Label: "Hagnaður", Value: patterns.Int(profit.Now) + " m.kr.", Delta: patterns.SignedPct(profitChange, 1),
+			{Label: "Hagnaður", Value: patterns.Int(profit.Now) + " m.kr.", Delta: patterns.SignedPct(profitChange, 1), Since: "miðað við 3F 2025",
 				Good: profitChange >= 0, Up: profitChange >= 0},
-			{Label: "Arðsemi eigin fjár", Value: patterns.Pct(roeNow, 1), Delta: patterns.Signed(roeNow-roePrev, 1) + " pst.",
+			{Label: "Arðsemi eigin fjár", Value: patterns.Pct(roeNow, 1), Delta: patterns.Signed(roeNow-roePrev, 1) + " pst.", Since: "miðað við 3F 2025",
 				Good: roeNow >= roePrev, Up: roeNow >= roePrev},
 			// A falling cost ratio is good: Up and Good are independent.
-			{Label: "Kostnaðarhlutfall", Value: patterns.Pct(costNow, 1), Delta: patterns.Signed(costNow-costPrev, 1) + " pst.",
+			{Label: "Kostnaðarhlutfall", Value: patterns.Pct(costNow, 1), Delta: patterns.Signed(costNow-costPrev, 1) + " pst.", Since: "miðað við 3F 2025",
 				Good: costNow <= costPrev, Up: costNow > costPrev},
 		},
 		Lines: []pages.ReportLine{nii, fee, other, income, cost, impair, pretax, tax, profit},
@@ -437,11 +477,7 @@ func newMux(s *store) http.Handler {
 
 	mux.HandleFunc("GET /apps", func(w http.ResponseWriter, r *http.Request) {
 		vm := pages.ShowcaseVM{
-			KPIs: []patterns.StatProps{
-				{Label: "Deploys this week", Value: patterns.Int(128), Delta: patterns.SignedPct(18, 0), Good: true, Up: true},
-				{Label: "Change failure rate", Value: patterns.Pct(2.3, 1), Delta: patterns.Signed(-0.8, 1) + " pp", Good: true, Up: false},
-				{Label: "Mean time to restore", Value: patterns.Dec(41, 0) + " min", Delta: patterns.Signed(6, 0) + " min", Good: false, Up: true},
-			},
+			KPIs:  appsKPIs(time.Now()),
 			Apps:  s.search(r.URL.Query().Get("q")),
 			Query: r.URL.Query().Get("q"),
 		}
@@ -476,12 +512,16 @@ func newMux(s *store) http.Handler {
 		if n, err := strconv.Atoi(r.FormValue("replicas")); err != nil || n < 2 {
 			e.Replicas = "Must be at least 2 in production."
 		}
+		if e.Name == "" && e.Replicas == "" && !s.add(pages.App{Name: r.FormValue("name"), Env: "Production", Version: "0.1.0", Health: "Progressing"}) {
+			e.Name = "An application with this name already exists."
+		}
 		if e.Name != "" || e.Replicas != "" {
 			render(w, r, http.StatusUnprocessableEntity, pages.NewAppForm(e))
 			return
 		}
 		render(w, r, http.StatusOK, templ.Join(
 			pages.NewAppForm(pages.NewAppErrors{}),
+			partial("#app-rows", "outerHTML", pages.AppRows(s.search(""))),
 			toastPartial("Application created", r.FormValue("name")+" will sync within a minute.", toast.TypeSuccess),
 		))
 	})
@@ -505,7 +545,7 @@ func newMux(s *store) http.Handler {
 	})
 
 	mux.HandleFunc("POST /scale", func(w http.ResponseWriter, r *http.Request) {
-		render(w, r, http.StatusOK, toastPartial("Pull request opened", "Scale to "+r.FormValue("replicas")+" replicas", toast.TypeSuccess))
+		render(w, r, http.StatusOK, toastPartial("Pull request opened", "Scale "+r.FormValue("app")+" to "+r.FormValue("replicas")+" replicas.", toast.TypeSuccess))
 	})
 
 	mux.HandleFunc("GET /rollout", func(w http.ResponseWriter, r *http.Request) {
@@ -557,7 +597,7 @@ func newMux(s *store) http.Handler {
 		}
 		render(w, r, http.StatusOK, templ.Join(
 			pages.ApprovalForm("", true),
-			toastPartial("Deployment freeze lifted", "Until 18:00 today", toast.TypeSuccess),
+			toastPartial("Freeze lifted", "Kargo can promote to production until 18:00 today.", toast.TypeSuccess),
 		))
 	})
 

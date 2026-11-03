@@ -14,14 +14,28 @@ import (
 	"github.com/tilraunastofan/ads2/patterns"
 )
 
-func Nav() []patterns.NavItem {
-	return []patterns.NavItem{
-		{Label: "Overview", Href: "/", Icon: icon.House()},
-		{Label: "Applications", Href: "/apps", Icon: icon.GitBranch()},
-		{Label: "Metrics", Href: "/metrics", Icon: icon.ChartColumn()},
-		{Label: "Settings", Href: "/settings", Icon: icon.Settings2()},
-		{Label: "Quarterly report", Href: "/uppgjor", Icon: icon.Landmark()},
+// NavGroups is the showcase's sidebar. Each item's label is also its page's title,
+// so the sidebar, the breadcrumb and the heading always say the same thing.
+func NavGroups() []patterns.NavGroup {
+	return []patterns.NavGroup{
+		{Label: "Deployments", Items: []patterns.NavItem{
+			{Label: "Applications", Href: "/apps", Icon: icon.GitBranch()},
+			{Label: "Metrics", Href: "/metrics", Icon: icon.ChartColumn()},
+			{Label: "Deployment freeze", Href: "/settings", Icon: icon.Snowflake()},
+		}},
+		{Label: "Reports", Items: []patterns.NavItem{
+			{Label: "Quarterly report", Href: "/uppgjor", Icon: icon.Landmark()},
+		}},
 	}
+}
+
+// Nav is every sidebar item, in order.
+func Nav() []patterns.NavItem {
+	var out []patterns.NavItem
+	for _, g := range NavGroups() {
+		out = append(out, g.Items...)
+	}
+	return out
 }
 
 // App is the showcase's shell: patterns.Shell with this app's navigation.
@@ -62,11 +76,10 @@ func App(title, currentPath string) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = patterns.Shell(patterns.ShellProps{
-			Title:       title + " · Arion Design System 2",
+			Title:       title + " – Arion Design System 2",
 			Product:     "Platform",
-			Tagline:     "on-prem · OpenShift",
-			GroupLabel:  "Workloads",
-			Nav:         Nav(),
+			Tagline:     "OpenShift on-prem",
+			Groups:      NavGroups(),
 			CurrentPath: currentPath,
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

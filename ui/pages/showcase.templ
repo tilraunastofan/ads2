@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"strconv"
+
 	"github.com/tilraunastofan/ads2/components/alert"
 	"github.com/tilraunastofan/ads2/components/alertdialog"
 	"github.com/tilraunastofan/ads2/components/button"
@@ -14,6 +16,7 @@ import (
 	"github.com/tilraunastofan/ads2/components/inputgroup"
 	"github.com/tilraunastofan/ads2/components/nativeselect"
 	"github.com/tilraunastofan/ads2/components/progress"
+	"github.com/tilraunastofan/ads2/components/sheet"
 	switchcomp "github.com/tilraunastofan/ads2/components/switch"
 	"github.com/tilraunastofan/ads2/components/table"
 	"github.com/tilraunastofan/ads2/components/tabs"
@@ -40,11 +43,11 @@ type ShowcaseVM struct {
 // ---- page --------------------------------------------------------------------
 
 templ Showcase(vm ShowcaseVM) {
-	@layouts.App("Releases", "/apps") {
+	@layouts.App("Applications", "/apps") {
 		@patterns.PageHeader(patterns.PageHeaderProps{
-			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Releases"}},
-			Title:  "Releases",
-			Status: "ocp-prod-1 · 42 applications · synced 1 minute ago",
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Applications"}},
+			Title:  "Applications",
+			Status: "Cluster ocp-prod-1, synced 1 minute ago.",
 		}) {
 			@button.Button(button.Props{
 				Variant: button.VariantOutline,
@@ -55,30 +58,24 @@ templ Showcase(vm ShowcaseVM) {
 				@icon.Download()
 				Export
 			}
-			@ScaleDialog()
+			@NewAppSheet()
 		}
 		@patterns.StatRow() {
 			for _, k := range vm.KPIs {
 				@patterns.Stat(k)
 			}
 		}
-		@tabs.Tabs(tabs.Props{DefaultValue: "apps"}) {
+		@tabs.Tabs(tabs.Props{DefaultValue: "health"}) {
 			@tabs.List(tabs.ListProps{Variant: tabs.VariantLine}) {
-				@tabs.Trigger(tabs.TriggerProps{Value: "apps"}) {
-					Applications
-				}
-				@tabs.Trigger(tabs.TriggerProps{Value: "new"}) {
-					New application
+				@tabs.Trigger(tabs.TriggerProps{Value: "health"}) {
+					Health
 				}
 				@tabs.Trigger(tabs.TriggerProps{Value: "rollout"}) {
 					Rollout
 				}
 			}
-			@tabs.Content(tabs.ContentProps{Value: "apps"}) {
+			@tabs.Content(tabs.ContentProps{Value: "health"}) {
 				@AppsCard(vm)
-			}
-			@tabs.Content(tabs.ContentProps{Value: "new"}) {
-				@NewAppForm(NewAppErrors{})
 			}
 			@tabs.Content(tabs.ContentProps{Value: "rollout"}) {
 				@RolloutCard(2, 3, "intersect once")
@@ -91,8 +88,8 @@ templ Showcase(vm ShowcaseVM) {
 
 templ AppsCard(vm ShowcaseVM) {
 	@patterns.DataCard(patterns.DataCardProps{
-		Title:       "Applications",
-		Description: "Argo CD sync and health",
+		Title:       "Sync and health",
+		Description: "Argo CD in ocp-prod-1",
 		Action:      AppSearch(vm.Query),
 	}) {
 		@table.Table() {
@@ -224,20 +221,34 @@ templ RowActions(a App) {
 				@icon.GitBranch()
 				Sync now
 			}
+			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: opens(scaleID(a))}) {
+				@icon.Scaling()
+				Scale…
+			}
+			@dropdownmenu.Separator()
+			@dropdownmenu.Item(dropdownmenu.ItemProps{Variant: dropdownmenu.ItemVariantDestructive, Attributes: opens(deleteID(a))}) {
+				@icon.Trash2()
+				Delete…
+			}
 		}
 	}
+	@ScaleDialog(a)
 	@DeleteApp(a)
 }
 
+func scaleID(a App) string  { return "scale-" + a.Name }
+func deleteID(a App) string { return "delete-" + a.Name }
+
+// opens makes a menu item open the dialog or alert dialog with that ID (the
+// dialogs' TriggerFor, minus the attributes that would override the item's own
+// slot, role and focus handling).
+func opens(id string) templ.Attributes {
+	return templ.Attributes{"data-base-ui-click-trigger": true, "data-templ-controls": id, "aria-haspopup": "dialog"}
+}
+
+// DeleteApp is the confirmation the row menu's Delete… opens.
 templ DeleteApp(a App) {
-	@alertdialog.AlertDialog() {
-		@button.Button(button.Props{
-			Variant:    button.VariantGhost,
-			Size:       button.SizeIconSm,
-			Attributes: mergeAttrs(alertdialog.Trigger(ctx), templ.Attributes{"aria-label": "Delete " + a.Name}),
-		}) {
-			@icon.Trash2()
-		}
+	@alertdialog.AlertDialog(alertdialog.Props{ID: deleteID(a)}) {
 		@alertdialog.Content() {
 			@alertdialog.Header() {
 				@alertdialog.Title() {
@@ -293,6 +304,14 @@ func (e NewAppErrors) val(k string) string {
 	return e.Values[k]
 }
 
+// replicas is the submitted value, or 3 on a fresh form.
+func (e NewAppErrors) replicas() string {
+	if e.Values == nil {
+		return "3"
+	}
+	return e.Values["replicas"]
+}
+
 func invalid(msg string) templ.Attributes {
 	if msg == "" {
 		return templ.Attributes{}
@@ -300,76 +319,96 @@ func invalid(msg string) templ.Attributes {
 	return templ.Attributes{"data-invalid": "true"}
 }
 
-templ NewAppForm(e NewAppErrors) {
-	<form id="new-app" hx-post="/apps" hx-target="this" hx-swap="outerHTML" hx-status:422="target:this" class="max-w-xl">
-		@card.Card() {
-			@card.Header() {
-				@card.Title() {
+const newAppSheetID = "new-app"
+
+// NewAppSheet is the page's primary action: a sheet holding the create form.
+templ NewAppSheet() {
+	@sheet.Sheet(sheet.Props{ID: newAppSheetID}) {
+		@button.Button(button.Props{Attributes: sheet.Trigger(ctx)}) {
+			@icon.Plus()
+			New application
+		}
+		@sheet.Content() {
+			@sheet.Header() {
+				@sheet.Title() {
 					New application
 				}
-				@card.Description() {
+				@sheet.Description() {
 					Creates a Helm release and an Argo CD application.
 				}
 			}
-			@card.Content() {
-				@field.Group() {
-					@field.Field(field.Props{Attributes: invalid(e.Name)}) {
-						@field.Label(field.LabelProps{For: "name"}) {
-							Application name
+			@NewAppForm(NewAppErrors{})
+		}
+	}
+}
+
+// NewAppForm posts itself and is re-rendered by the server: with field errors on
+// 422 (the sheet stays open), empty on success, when the response also refreshes
+// the table and raises a toast and dialog-form.js closes the sheet.
+templ NewAppForm(e NewAppErrors) {
+	<form id="new-app-form" hx-post="/apps" hx-target="this" hx-swap="outerHTML" hx-status:422="target:this" data-close-on-success class="flex flex-1 flex-col">
+		<div class="flex-1 px-4">
+			@field.Group() {
+				@field.Field(field.Props{Attributes: invalid(e.Name)}) {
+					@field.Label(field.LabelProps{For: "name"}) {
+						Application name
+					}
+					@input.Input(input.Props{ID: "name", Name: "name", Value: e.val("name"), Attributes: templ.Attributes{"aria-invalid": e.Name != "", "autocomplete": "off"}})
+					if e.Name != "" {
+						@field.Error() {
+							{ e.Name }
 						}
-						@input.Input(input.Props{ID: "name", Name: "name", Value: e.val("name"), Placeholder: "payments-api", Attributes: templ.Attributes{"aria-invalid": e.Name != ""}})
-						if e.Name != "" {
-							@field.Error() {
-								{ e.Name }
-							}
-						} else {
-							@field.Description() {
-								Lowercase letters, digits and dashes.
-							}
+					} else {
+						@field.Description() {
+							Lowercase letters, digits and dashes.
 						}
 					}
-					@field.Field() {
-						@field.Label(field.LabelProps{For: "namespace"}) {
-							Namespace
+				}
+				@field.Field() {
+					@field.Label(field.LabelProps{For: "namespace"}) {
+						Namespace
+					}
+					@nativeselect.NativeSelect(nativeselect.Props{ID: "namespace", Name: "namespace"}) {
+						@nativeselect.Option(nativeselect.OptionProps{Value: "payments"}) {
+							payments
 						}
-						@nativeselect.NativeSelect(nativeselect.Props{ID: "namespace", Name: "namespace"}) {
-							@nativeselect.Option(nativeselect.OptionProps{Value: "payments"}) {
-								payments
-							}
-							@nativeselect.Option(nativeselect.OptionProps{Value: "lending"}) {
-								lending
-							}
-							@nativeselect.Option(nativeselect.OptionProps{Value: "platform"}) {
-								platform
-							}
+						@nativeselect.Option(nativeselect.OptionProps{Value: "lending"}) {
+							lending
+						}
+						@nativeselect.Option(nativeselect.OptionProps{Value: "platform"}) {
+							platform
 						}
 					}
-					@field.Field(field.Props{Attributes: invalid(e.Replicas)}) {
-						@field.Label(field.LabelProps{For: "replicas"}) {
-							Replicas
+				}
+				@field.Field(field.Props{Attributes: invalid(e.Replicas)}) {
+					@field.Label(field.LabelProps{For: "replicas"}) {
+						Replicas
+					}
+					@input.Input(input.Props{ID: "replicas", Name: "replicas", Type: "number", Value: e.replicas(), Attributes: templ.Attributes{"aria-invalid": e.Replicas != ""}})
+					if e.Replicas != "" {
+						@field.Error() {
+							{ e.Replicas }
 						}
-						@input.Input(input.Props{ID: "replicas", Name: "replicas", Type: "number", Value: e.val("replicas"), Attributes: templ.Attributes{"aria-invalid": e.Replicas != ""}})
-						if e.Replicas != "" {
-							@field.Error() {
-								{ e.Replicas }
-							}
+					} else {
+						@field.Description() {
+							At least 2 in production.
 						}
 					}
-					@field.Field(field.Props{Orientation: field.OrientationHorizontal}) {
-						@switchcomp.Switch(switchcomp.Props{ID: "autosync", Name: "autosync", DefaultChecked: true})
-						@field.Label(field.LabelProps{For: "autosync"}) {
-							Auto-sync with Argo CD
-						}
+				}
+				@field.Field(field.Props{Orientation: field.OrientationHorizontal}) {
+					@switchcomp.Switch(switchcomp.Props{ID: "autosync", Name: "autosync", DefaultChecked: true})
+					@field.Label(field.LabelProps{For: "autosync"}) {
+						Auto-sync with Argo CD
 					}
 				}
 			}
-			@card.Footer(card.FooterProps{Class: "justify-end gap-2"}) {
-				@button.Button(button.Props{Variant: button.VariantOutline, Type: button.TypeReset}) {
-					Reset
-				}
-				@button.Button(button.Props{Type: button.TypeSubmit, Attributes: templ.Attributes{"hx-disable": "this"}}) {
-					Create application
-				}
+		</div>
+		@sheet.Footer() {
+			@button.Button(button.Props{Type: button.TypeSubmit, Attributes: templ.Attributes{"hx-disable": "this"}}) {
+				Create application
+			}
+			@button.Button(button.Props{Variant: button.VariantOutline, Attributes: sheet.CloseFor(newAppSheetID)}) {
+				Cancel
 			}
 		}
 	</form>
@@ -400,7 +439,15 @@ templ RolloutCard(ready, desired int, trigger string) {
 				}
 			}
 			@card.Content() {
-				@progress.Progress(progress.Props{Value: ready, Max: desired})
+				@progress.Progress(progress.Props{Value: ready, Max: desired}) {
+					@progress.Label() {
+						Pods ready
+					}
+					// An element child: progress.js only rewrites a bare-text value to "67%".
+					@progress.Value() {
+						<span>{ strconv.Itoa(ready) } of { strconv.Itoa(desired) }</span>
+					}
+				}
 				if ready >= desired {
 					@alert.Alert(alert.Props{Class: "mt-4"}) {
 						@icon.CircleCheck()
@@ -419,35 +466,31 @@ templ RolloutCard(ready, desired int, trigger string) {
 
 // ---- dialog -------------------------------------------------------------------
 
-templ ScaleDialog() {
-	@dialog.Dialog(dialog.Props{ID: "scale"}) {
-		// Outline: the header's actions show on every tab, and the New application tab
-		// has its own primary (Create application). One primary per view.
-		@button.Button(button.Props{Variant: button.VariantOutline, Attributes: dialog.Trigger(ctx)}) {
-			@icon.Plus()
-			Scale deployment
-		}
+// ScaleDialog scales one application; the row menu's Scale… opens it.
+templ ScaleDialog(a App) {
+	@dialog.Dialog(dialog.Props{ID: scaleID(a)}) {
 		@dialog.Content() {
-			<form hx-post="/scale" hx-swap="none" class="grid gap-4">
+			<form hx-post="/scale" hx-swap="none" data-close-on-success class="grid gap-4">
+				<input type="hidden" name="app" value={ a.Name }/>
 				@dialog.Header() {
 					@dialog.Title() {
-						Scale deployment
+						Scale { a.Name }
 					}
 					@dialog.Description() {
-						Changes apply through Git. Argo CD syncs within a minute.
+						Opens a pull request that sets the replica count. Argo CD syncs within a minute of the merge.
 					}
 				}
 				@field.Field() {
-					@field.Label(field.LabelProps{For: "scale-replicas"}) {
+					@field.Label(field.LabelProps{For: scaleID(a) + "-replicas"}) {
 						Replicas
 					}
-					@input.Input(input.Props{ID: "scale-replicas", Name: "replicas", Type: "number", Value: "3"})
+					@input.Input(input.Props{ID: scaleID(a) + "-replicas", Name: "replicas", Type: "number", Value: "3"})
 				}
 				@dialog.Footer() {
 					@button.Button(button.Props{Variant: button.VariantOutline, Attributes: dialog.Close(ctx)}) {
 						Cancel
 					}
-					@button.Button(button.Props{Type: button.TypeSubmit}) {
+					@button.Button(button.Props{Type: button.TypeSubmit, Attributes: templ.Attributes{"hx-disable": "this"}}) {
 						Open pull request
 					}
 				}

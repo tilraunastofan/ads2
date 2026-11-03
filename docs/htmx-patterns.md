@@ -32,7 +32,7 @@ shadcn-templ's scripts re-initialise components inside swapped content, so dialo
 
 **Live search (inputgroup + table):** `hx-trigger="input changed delay:300ms, search"`, `hx-target="#rows"`, `hx-push-url="true"`. The handler renders only `table.Body` when `HX-Request` is set.
 
-**Row action with confirmation (dropdownmenu → alertdialog):** the `alertdialog.Action` carries `hx-delete`, `hx-target="#rows"`, `hx-swap="outerHTML"` and `hx-include="#search"`. The handler returns the re-rendered `table.Body` for the current query (so the last deletion shows the `empty` state) plus an `<hx-partial hx-target="#toasts">` holding a `toast.Toast`. Don't swap just the row (`hx-swap="delete"`): when the last matching row goes it leaves a bare table header instead of the `empty` state.
+**Row action with confirmation (dropdownmenu → alertdialog):** the row's ⋯ menu ends with a destructive **Delete…** item that opens the row's `alertdialog` (see **DropdownMenu**). The `alertdialog.Action` carries `hx-delete`, `hx-target="#rows"`, `hx-swap="outerHTML"` and `hx-include="#search"`. The handler returns the re-rendered `table.Body` for the current query (so the last deletion shows the `empty` state) plus an `<hx-partial hx-target="#toasts">` holding a `toast.Toast`. Don't swap just the row (`hx-swap="delete"`): when the last matching row goes it leaves a bare table header instead of the `empty` state.
 
 **Toggle a setting (switch):** `hx-post` + `hx-trigger="change from:#<ID>"` + `hx-include="#<ID>"` + `hx-swap="none"` (the switch's `change` fires on its hidden checkbox, not on the root that holds `Attributes`; see **Switch**). The response is only a `toast.Toast` partial. On error (5xx) re-render the switch in its old state.
 

@@ -11,8 +11,11 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/a-h/templ"
+	"github.com/tilraunastofan/ads2/patterns"
+	"github.com/tilraunastofan/ads2/ui/layouts"
 	"golang.org/x/net/html"
 )
 
@@ -92,7 +95,7 @@ func TestMetricsFilter(t *testing.T) {
 
 func TestReleaseDetails(t *testing.T) {
 	h := newMux(newStore())
-	if w := get(h, "/metrics/release?app=payments-api&version=1.40.0"); w.Code != 200 || !strings.Contains(w.Body.String(), "registry.internal/arion/payments-api:1.40.0") {
+	if w := get(h, "/metrics/release?app=payments-api&version=1.42.0"); w.Code != 200 || !strings.Contains(w.Body.String(), "registry.internal/arion/payments-api:1.42.0") {
 		t.Errorf("known release: status %d", w.Code)
 	}
 	if w := get(h, "/metrics/release?app=nope&version=9"); w.Code != 404 {
@@ -217,10 +220,10 @@ func TestPagesAreCompressed(t *testing.T) {
 	if w.Header().Get("Content-Encoding") != "gzip" {
 		t.Fatalf("Content-Encoding %q", w.Header().Get("Content-Encoding"))
 	}
-	if body := gunzip(t, w.Body.Bytes()); !strings.Contains(body, "Releases") {
+	if body := gunzip(t, w.Body.Bytes()); !strings.Contains(body, "Sync and health") {
 		t.Error("decompressed page lacks its title")
 	}
-	if w := get(h, "/apps"); w.Header().Get("Content-Encoding") != "" || !strings.Contains(w.Body.String(), "Releases") {
+	if w := get(h, "/apps"); w.Header().Get("Content-Encoding") != "" || !strings.Contains(w.Body.String(), "Sync and health") {
 		t.Error("client without gzip got a compressed or broken page")
 	}
 }
@@ -257,11 +260,11 @@ func TestReleaseDetailsFollowTheSelectedRange(t *testing.T) {
 	if !strings.Contains(body, "18 Sep 2026, 11:00") {
 		t.Fatalf("table lacks the fx-rates release time for the range")
 	}
-	const want = `hx-get="/metrics/release?app=fx-rates&amp;from=2026-09-08&amp;to=2026-09-20&amp;version=1.42.0"`
+	const want = `hx-get="/metrics/release?app=fx-rates&amp;from=2026-09-08&amp;to=2026-09-20&amp;version=3.1.0"`
 	if !strings.Contains(body, want) {
 		t.Fatalf("sheet URL lacks the range; want %s", want)
 	}
-	details := get(h, "/metrics/release?app=fx-rates&from=2026-09-08&to=2026-09-20&version=1.42.0").Body.String()
+	details := get(h, "/metrics/release?app=fx-rates&from=2026-09-08&to=2026-09-20&version=3.1.0").Body.String()
 	if !strings.Contains(details, "18 Sep 2026, 11:00") {
 		t.Errorf("details show another release time than the table")
 	}
@@ -409,5 +412,94 @@ func TestIcelandicReport(t *testing.T) {
 	}
 	if !regexp.MustCompile(`(?s)text-positive"><svg[^>]*lucide-trending-down.*?−0,9 pst\.`).MatchString(body) {
 		t.Error("falling cost ratio should be good (positive) with a down arrow")
+	}
+}
+
+// One name per thing: the sidebar label, the breadcrumb and the page title agree,
+// and no sidebar item is a second way to the same page.
+func TestNavLabelsMatchPageTitles(t *testing.T) {
+	h := newMux(newStore())
+	titles := map[string]string{"/apps": "Applications", "/metrics": "Metrics", "/settings": "Deployment freeze"}
+	for _, it := range layouts.Nav() {
+		want, ok := titles[it.Href]
+		if !ok {
+			continue // the report page has its own layout
+		}
+		if it.Label != want {
+			t.Errorf("sidebar says %q for %s, page is %q", it.Label, it.Href, want)
+		}
+		body := get(h, it.Href).Body.String()
+		if !strings.Contains(body, `<h1 class="font-display text-display-sm">`+want+`</h1>`) {
+			t.Errorf("%s: title is not %q", it.Href, want)
+		}
+	}
+	seen := map[string]bool{}
+	for _, it := range layouts.Nav() {
+		if seen[it.Href] || it.Href == "/" {
+			t.Errorf("sidebar item %q duplicates another destination (%s)", it.Label, it.Href)
+		}
+		seen[it.Href] = true
+	}
+}
+
+// Delete and Scale live in the row menu and open the dialog for that row.
+func TestRowMenuOpensTheRowsDialogs(t *testing.T) {
+	body := get(newMux(newStore()), "/apps").Body.String()
+	if strings.Contains(body, `aria-label="Delete payments-api"`) {
+		t.Error("a delete button is still shown outside the row menu")
+	}
+	for _, id := range []string{"delete-payments-api", "scale-payments-api"} {
+		if !strings.Contains(body, `data-templ-controls="`+id+`"`) || !strings.Contains(body, `id="`+id+`"`) {
+			t.Errorf("menu item or dialog for %s missing", id)
+		}
+	}
+	if !strings.Contains(body, "Scale payments-api") {
+		t.Error("scale dialog does not name its application")
+	}
+}
+
+func TestCreateApplicationAddsARow(t *testing.T) {
+	h := newMux(newStore())
+	ok := post(h, "/apps", "name=ledger-sync&replicas=3&namespace=payments")
+	b := ok.Body.String()
+	if ok.Code != 200 || !strings.Contains(b, `<hx-partial hx-target="#app-rows"`) || !strings.Contains(b, `id="app-ledger-sync"`) {
+		t.Fatalf("create: status %d, row partial missing", ok.Code)
+	}
+	if dup := post(h, "/apps", "name=ledger-sync&replicas=3"); dup.Code != http.StatusUnprocessableEntity || !strings.Contains(dup.Body.String(), "already exists") {
+		t.Errorf("duplicate name: status %d", dup.Code)
+	}
+	if !strings.Contains(get(h, "/apps").Body.String(), `id="app-ledger-sync"`) {
+		t.Error("new application missing after reload")
+	}
+}
+
+func TestScaleToastNamesTheApplication(t *testing.T) {
+	w := post(newMux(newStore()), "/scale", "app=fx-rates&replicas=4")
+	if !strings.Contains(w.Body.String(), "Scale fx-rates to 4 replicas.") {
+		t.Errorf("toast: %q", w.Body.String())
+	}
+}
+
+// The Applications KPIs and the Metrics chart read the same week data.
+func TestApplicationsKPIsMatchMetrics(t *testing.T) {
+	now := time.Now()
+	_, wk := now.ISOWeek()
+	d, _ := week(wk)
+	if got := appsKPIs(now)[0].Value; got != patterns.Int(int64(d)) {
+		t.Errorf("Deploys this week = %s, week data says %d", got, d)
+	}
+	body := get(newMux(newStore()), "/metrics").Body.String()
+	if !strings.Contains(body, "W"+strconv.Itoa(wk)) {
+		t.Errorf("metrics chart lacks this week W%d", wk)
+	}
+}
+
+func TestFreezeCopyKeepsOneName(t *testing.T) {
+	h := newMux(newStore())
+	if !strings.Contains(get(h, "/settings").Body.String(), "Lift freeze") {
+		t.Error("button is not Lift freeze")
+	}
+	if !strings.Contains(post(h, "/settings/approve", "code=123456").Body.String(), "Freeze lifted") {
+		t.Error("success does not say Freeze lifted")
 	}
 }

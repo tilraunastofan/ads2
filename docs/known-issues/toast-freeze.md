@@ -79,7 +79,7 @@ Until the bug is fixed upstream, check this by hand in Chrome whenever `github.c
 
 1. `task dev`, open http://localhost:7331/apps.
 2. Raise a toast (row menu → **Restart**), and while it shows click **Settings**. The Settings page must load.
-3. Raise a toast on Settings (code `123456`, **Approve**), and while it shows press Back. Applications must load.
+3. Raise a toast on Deployment freeze (code `123456`, **Lift freeze**), and while it shows press Back. Applications must load.
 
 For a quick look at whether the guard still reaches the internals, run this in the console while a toast is showing. It must print `true`:
 

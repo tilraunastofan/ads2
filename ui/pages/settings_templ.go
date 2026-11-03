@@ -52,9 +52,9 @@ func Settings() templ.Component {
 			}
 			ctx = templ.InitializeContext(ctx)
 			templ_7745c5c3_Err = patterns.PageHeader(patterns.PageHeaderProps{
-				Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Settings"}},
-				Title:  "Settings",
-				Status: "Production change controls",
+				Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Deployment freeze"}},
+				Title:  "Deployment freeze",
+				Status: "Production is frozen for changes today.",
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -65,7 +65,7 @@ func Settings() templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.App("Settings", "/settings").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.App("Deployment freeze", "/settings").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -141,7 +141,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Lift the deployment freeze")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Lift the freeze")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -163,7 +163,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Lets Kargo promote to production during the freeze window until 18:00 today.")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Lets Kargo promote to production until 18:00 today.")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -429,7 +429,7 @@ func ApprovalForm(errMsg string, done bool) templ.Component {
 							}()
 						}
 						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Approve")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Lift freeze")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

@@ -256,7 +256,7 @@ templ ReleaseSheet(vm MetricsVM, r Release) {
 					{ r.App }
 				}
 				@sheet.Description() {
-					Release { r.Version } · { r.Env }
+					Release { r.Version } in { r.Env }
 				}
 			}
 			<div

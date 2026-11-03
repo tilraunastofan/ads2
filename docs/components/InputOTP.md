@@ -16,7 +16,7 @@ One-time-code entry: `inputotp.InputOTP{MaxLength, Pattern}`, `Group`, `Slot{Ind
         }
         @field.Description() { Enter the 6-digit code from your authenticator. }
     }
-    @button.Button(button.Props{Type: button.TypeSubmit}) { Approve }
+    @button.Button(button.Props{Type: button.TypeSubmit}) { Lift freeze }
 </form>
 ```
 

@@ -14,11 +14,11 @@ import (
 const ShowcaseApprovalCode = "123456"
 
 templ Settings() {
-	@layouts.App("Settings", "/settings") {
+	@layouts.App("Deployment freeze", "/settings") {
 		@patterns.PageHeader(patterns.PageHeaderProps{
-			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Settings"}},
-			Title:  "Settings",
-			Status: "Production change controls",
+			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Deployment freeze"}},
+			Title:  "Deployment freeze",
+			Status: "Production is frozen for changes today.",
 		})
 		@ApprovalForm("", false)
 	}
@@ -47,10 +47,10 @@ templ ApprovalForm(errMsg string, done bool) {
 		@card.Card() {
 			@card.Header() {
 				@card.Title() {
-					Lift the deployment freeze
+					Lift the freeze
 				}
 				@card.Description() {
-					Lets Kargo promote to production during the freeze window until 18:00 today.
+					Lets Kargo promote to production until 18:00 today.
 				}
 			}
 			@card.Content() {
@@ -96,7 +96,7 @@ templ ApprovalForm(errMsg string, done bool) {
 			if !done {
 				@card.Footer(card.FooterProps{Class: "justify-end"}) {
 					@button.Button(button.Props{Type: button.TypeSubmit, Attributes: templ.Attributes{"hx-disable": "this"}}) {
-						Approve
+						Lift freeze
 					}
 				}
 			}
