@@ -43,3 +43,15 @@ task dev   # http://localhost:7331/apps
 ```
 
 Starting a new project on this system: `docs/setup.md`. Working in this repo: `CLAUDE.md`.
+
+## Reviewing a page with Claude Code
+
+`task check` catches mechanical rule breaks. For a review of usability, accessibility (WCAG 2.1 AA) and design-system fit, install [design-superpowers](https://github.com/LSDimi/design-superpowers) and run `/design-review` on a page:
+
+```
+/plugin marketplace add github:LSDimi/design-superpowers
+/plugin install design-superpowers@design-superpowers
+/design-review ui/pages/metrics.templ
+```
+
+It reads [`.ds-context.md`](.ds-context.md), which points it at the brand book and tokens and tells it to report conflicts with an approved rule as suggestions instead of changing them.
