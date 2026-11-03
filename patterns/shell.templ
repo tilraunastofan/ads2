@@ -9,7 +9,7 @@ import (
 type NavItem struct {
 	Label string
 	Href  string
-	Icon  templ.Component
+	Icon  templ.Component // optional; a collapsed sidebar shows only icons, so give every item one
 }
 
 // NavGroup is one labelled group of sidebar items.
@@ -123,7 +123,9 @@ templ Shell(p ShellProps) {
 								for _, it := range g.Items {
 									@sidebar.MenuItem() {
 										@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: it.Href == p.CurrentPath, Tooltip: it.Label}) {
-											@it.Icon
+											if it.Icon != nil {
+												@it.Icon
+											}
 											<span>{ it.Label }</span>
 										}
 									}
@@ -138,19 +140,21 @@ templ Shell(p ShellProps) {
 					@sidebar.Trigger(sidebar.TriggerProps{Attributes: templ.Attributes{"aria-label": labelsFor(p.Lang).ToggleSidebar}})
 					@ThemeToggle(p.Lang)
 				</header>
-				<main id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none">
+				// The sidebar inset is the page's one <main>; this is the skip link's target.
+				<div id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none">
 					// Target for errors that belong on the page rather than in a toast:
 					// hx-status:5xx="target:#page-alerts" with an alert.Alert response.
 					<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>
 					{ children... }
-				</main>
+				</div>
 			}
 		}
 	}
 }
 
-// SkipLink is hidden until focused, then jumps to <main id="main">. Shell renders
-// it; pages on Base with their own <main id="main" tabindex="-1"> can use it too.
+// SkipLink is hidden until focused, then jumps to #main. Shell renders it (its #main
+// sits inside the sidebar inset, the page's one <main>); pages on Base with their
+// own <main id="main" tabindex="-1"> can use it too.
 templ SkipLink(lang string) {
 	<a
 		href="#main"

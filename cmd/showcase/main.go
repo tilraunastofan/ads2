@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"regexp"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -111,6 +112,20 @@ func (s *store) remove(name string) {
 	}
 }
 
+// appName is a Kubernetes-style name (a DNS label): lowercase letters, digits and
+// dashes, at most 63, starting and ending with a letter or digit. It goes into URL
+// paths and the CSV export, so nothing else may get through.
+var appName = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
+
+// csvCell keeps a spreadsheet from running a cell as a formula (CSV injection):
+// a value starting with = + - @ or a tab or carriage return gets a leading '.
+func csvCell(v string) string {
+	if v != "" && strings.ContainsRune("=+-@\t\r", rune(v[0])) {
+		return "'" + v
+	}
+	return v
+}
+
 func render(w http.ResponseWriter, r *http.Request, status int, c templ.Component) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
@@ -149,6 +164,24 @@ func partial(target, swap string, c templ.Component) templ.Component {
 	})
 }
 
+// maxRange is the longest range /metrics renders: one bar per ISO week, so a
+// year is at most 54 bars. A longer range from the URL would make the server
+// build one bar per week of it (a crafted ?from=0001-01-01 is 500,000 bars).
+const maxRange = 366 * 24 * time.Hour
+
+// boundRange puts a reversed range the right way round and shortens one longer
+// than maxRange to the year that ends at to. The response's range label shows
+// the range it was given, so the user sees what the numbers cover.
+func boundRange(from, to time.Time) (time.Time, time.Time) {
+	if from.After(to) {
+		from, to = to, from
+	}
+	if to.Sub(from) > maxRange {
+		from = to.AddDate(-1, 0, 1)
+	}
+	return from, to
+}
+
 // metrics builds the Metrics view model from the query (from, to, app). The data
 // is generated deterministically so the showcase needs no backend.
 func (s *store) metrics(r *http.Request) pages.MetricsVM {
@@ -160,9 +193,10 @@ func (s *store) metrics(r *http.Request) pages.MetricsVM {
 		to = today
 	}
 	from, err := patterns.ParseISODate(q.Get("from"), time.Local)
-	if err != nil || from.After(to) {
+	if err != nil {
 		from = to.AddDate(0, 0, -41) // six weeks
 	}
+	from, to = boundRange(from, to)
 	app := q.Get("app")
 
 	s.mu.Lock()
@@ -491,7 +525,7 @@ func newMux(s *store) http.Handler {
 		cw := csv.NewWriter(w)
 		_ = cw.Write([]string{"application", "environment", "version", "health"})
 		for _, a := range s.search("") {
-			_ = cw.Write([]string{a.Name, a.Env, a.Version, a.Health})
+			_ = cw.Write([]string{csvCell(a.Name), csvCell(a.Env), csvCell(a.Version), csvCell(a.Health)})
 		}
 		cw.Flush()
 		if err := cw.Error(); err != nil {
@@ -506,8 +540,8 @@ func newMux(s *store) http.Handler {
 	mux.HandleFunc("POST /apps", func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		e := pages.NewAppErrors{Values: map[string]string{"name": r.FormValue("name"), "replicas": r.FormValue("replicas")}}
-		if n := r.FormValue("name"); n == "" || strings.ToLower(n) != n || strings.ContainsAny(n, " _.") {
-			e.Name = "Use lowercase letters, digits and dashes."
+		if !appName.MatchString(r.FormValue("name")) {
+			e.Name = "Use lowercase letters, digits and dashes, at most 63, starting and ending with a letter or digit."
 		}
 		if n, err := strconv.Atoi(r.FormValue("replicas")); err != nil || n < 2 {
 			e.Replicas = "Must be at least 2 in production."

@@ -1,6 +1,9 @@
 package patterns
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestFormat(t *testing.T) {
 	cases := []struct{ got, want string }{
@@ -20,6 +23,19 @@ func TestFormat(t *testing.T) {
 		{Pct(2.3, 1), "2,3%"},
 		{SignedPct(18, 0), "+18%"},
 		{SignedPct(-0.8, 1), "−0,8%"},
+		{Int(math.MinInt64), "−9.223.372.036.854.775.808"},
+		// Beyond int64: grouped as text, not clamped to math.MaxInt64.
+		{Dec(1e20, 0), "100.000.000.000.000.000.000"},
+		{Dec(-1e20, 1), "−100.000.000.000.000.000.000,0"},
+		{Signed(1e19, 0), "+10.000.000.000.000.000.000"},
+		// Not a number (a change from zero): an en dash, never "0" or "−0".
+		{Dec(math.NaN(), 1), NotAvailable},
+		{Dec(math.Inf(1), 0), NotAvailable},
+		{Dec(math.Inf(-1), 0), NotAvailable},
+		{Signed(math.Inf(1), 1), NotAvailable},
+		{Signed(math.NaN(), 1), NotAvailable},
+		{Pct(math.NaN(), 1), NotAvailable},
+		{SignedPct(math.Inf(-1), 0), NotAvailable},
 	}
 	for _, c := range cases {
 		if c.got != c.want {

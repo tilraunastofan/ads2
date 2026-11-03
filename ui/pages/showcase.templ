@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"net/url"
 	"strconv"
 
 	"github.com/tilraunastofan/ads2/components/alert"
@@ -213,11 +214,11 @@ templ RowActions(a App) {
 			@dropdownmenu.Label() {
 				{ a.Name }
 			}
-			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: templ.Attributes{"hx-post": "/apps/" + a.Name + "/restart", "hx-swap": "none"}}) {
+			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: templ.Attributes{"hx-post": appPath(a.Name, "restart"), "hx-swap": "none"}}) {
 				@icon.RotateCcw()
 				Restart pods
 			}
-			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: templ.Attributes{"hx-post": "/apps/" + a.Name + "/sync", "hx-swap": "none"}}) {
+			@dropdownmenu.Item(dropdownmenu.ItemProps{Attributes: templ.Attributes{"hx-post": appPath(a.Name, "sync"), "hx-swap": "none"}}) {
 				@icon.GitBranch()
 				Sync now
 			}
@@ -265,7 +266,7 @@ templ DeleteApp(a App) {
 				@alertdialog.Action(alertdialog.ActionProps{
 					Variant: button.VariantDestructive,
 					Attributes: templ.Attributes{
-						"hx-delete":  "/apps/" + a.Name,
+						"hx-delete":  appPath(a.Name),
 						"hx-include": "#app-search",
 						"hx-target":  "#app-rows",
 						"hx-swap":    "outerHTML",
@@ -312,6 +313,30 @@ func (e NewAppErrors) replicas() string {
 	return e.Values["replicas"]
 }
 
+// appPath is /apps/{name}[/{action}] with the name escaped as a path segment.
+func appPath(name string, action ...string) string {
+	p := "/apps/" + url.PathEscape(name)
+	for _, a := range action {
+		p += "/" + url.PathEscape(a)
+	}
+	return p
+}
+
+// fieldInput is an input's attributes in a field: aria-invalid="true" while it has
+// an error (a Go bool would render a bare attribute, which ARIA reads as false and
+// Tailwind's aria-invalid: variant doesn't match), and aria-describedby pointing at
+// the hint, which is the error while there is one and the description otherwise.
+func fieldInput(id, errMsg string, extra templ.Attributes) templ.Attributes {
+	a := templ.Attributes{"aria-describedby": id + "-hint"}
+	for k, v := range extra {
+		a[k] = v
+	}
+	if errMsg != "" {
+		a["aria-invalid"] = "true"
+	}
+	return a
+}
+
 func invalid(msg string) templ.Attributes {
 	if msg == "" {
 		return templ.Attributes{}
@@ -353,13 +378,13 @@ templ NewAppForm(e NewAppErrors) {
 					@field.Label(field.LabelProps{For: "name"}) {
 						Application name
 					}
-					@input.Input(input.Props{ID: "name", Name: "name", Value: e.val("name"), Attributes: templ.Attributes{"aria-invalid": e.Name != "", "autocomplete": "off"}})
+					@input.Input(input.Props{ID: "name", Name: "name", Value: e.val("name"), Attributes: fieldInput("name", e.Name, templ.Attributes{"autocomplete": "off"})})
 					if e.Name != "" {
-						@field.Error() {
+						@field.Error(field.ErrorProps{ID: "name-hint"}) {
 							{ e.Name }
 						}
 					} else {
-						@field.Description() {
+						@field.Description(field.DescriptionProps{ID: "name-hint"}) {
 							Lowercase letters, digits and dashes.
 						}
 					}
@@ -384,13 +409,13 @@ templ NewAppForm(e NewAppErrors) {
 					@field.Label(field.LabelProps{For: "replicas"}) {
 						Replicas
 					}
-					@input.Input(input.Props{ID: "replicas", Name: "replicas", Type: "number", Value: e.replicas(), Attributes: templ.Attributes{"aria-invalid": e.Replicas != ""}})
+					@input.Input(input.Props{ID: "replicas", Name: "replicas", Type: "number", Value: e.replicas(), Attributes: fieldInput("replicas", e.Replicas, nil)})
 					if e.Replicas != "" {
-						@field.Error() {
+						@field.Error(field.ErrorProps{ID: "replicas-hint"}) {
 							{ e.Replicas }
 						}
 					} else {
-						@field.Description() {
+						@field.Description(field.DescriptionProps{ID: "replicas-hint"}) {
 							At least 2 in production.
 						}
 					}

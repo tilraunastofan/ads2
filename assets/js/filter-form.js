@@ -11,10 +11,22 @@
 // So: on any change inside the form (or on the form), compare its form data with what
 // it last sent and fire "filter-change" only when it differs. Nothing is stopped, so
 // components that listen for change keep working.
+//
+// "What it last sent" starts as the values the page loaded with, recorded the first
+// time focus enters the form, which comes before any change a user can make.
+// Without it the first change always fired, so the blur case above still refetched
+// once per page load.
+const snapshot = (form) => new URLSearchParams(new FormData(form)).toString();
+
+document.addEventListener("focusin", (e) => {
+  const form = e.target instanceof Element && e.target.closest("form[data-filter-form]");
+  if (form && form._filterValues === undefined) form._filterValues = snapshot(form);
+});
+
 document.addEventListener("change", (e) => {
   const form = e.target instanceof Element && e.target.closest("form[data-filter-form]");
   if (!form) return;
-  const values = new URLSearchParams(new FormData(form)).toString();
+  const values = snapshot(form);
   if (values === form._filterValues) return;
   form._filterValues = values;
   form.dispatchEvent(new CustomEvent("filter-change"));

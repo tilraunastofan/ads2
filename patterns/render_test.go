@@ -136,3 +136,14 @@ func TestShellKeepsTheSidebarCollapsed(t *testing.T) {
 		}
 	}
 }
+
+func TestShellRendersANavItemWithoutAnIcon(t *testing.T) {
+	page := ShellProps{Title: "T", Nav: []NavItem{{Label: "No icon", Href: "/a"}}}
+	var b strings.Builder
+	if err := Shell(page).Render(context.Background(), &b); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(b.String(), "No icon") {
+		t.Error("item missing")
+	}
+}

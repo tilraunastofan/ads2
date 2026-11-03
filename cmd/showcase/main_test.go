@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -165,7 +166,11 @@ func TestShellAccessibility(t *testing.T) {
 	if skip < 0 || skip > strings.Index(body, `data-sidebar="trigger"`) {
 		t.Error("skip link missing or not before the navigation")
 	}
-	for _, want := range []string{`<main id="main" tabindex="-1"`, `aria-label="Toggle sidebar"`, `aria-label="Dark theme"`, `aria-pressed="false"`} {
+	// One <main> landmark: the sidebar inset. The skip link's target is inside it.
+	if n := strings.Count(body, "<main"); n != 1 {
+		t.Errorf("%d <main> landmarks, want 1", n)
+	}
+	for _, want := range []string{`<div id="main" tabindex="-1"`, `aria-label="Toggle sidebar"`, `aria-label="Dark theme"`, `aria-pressed="false"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("page lacks %s", want)
 		}
@@ -516,5 +521,66 @@ func TestDeployChartHighlightsTheLatestWeek(t *testing.T) {
 	}
 	if !strings.Contains(body, `"key":"rollbacks","label":"Rollbacks","color":"var(--chart-4)"`) || strings.Contains(body, "var(--chart-2)") {
 		t.Error("rollbacks should be chart-4 (slate), and gold chart-2 is no longer used")
+	}
+}
+
+func TestNewAppFieldErrorsAreAnnounced(t *testing.T) {
+	h := newMux(newStore())
+	b := post(h, "/apps", "name=Bad_Name&replicas=1").Body.String()
+	// A bare aria-invalid reads as false; it must be the string "true", on both inputs.
+	if n := strings.Count(b, `aria-invalid="true"`); n != 2 {
+		t.Errorf("%d aria-invalid=\"true\", want 2", n)
+	}
+	for _, id := range []string{"name", "replicas"} {
+		if !strings.Contains(b, `aria-describedby="`+id+`-hint"`) || !strings.Contains(b, `id="`+id+`-hint"`) {
+			t.Errorf("%s: error not tied to the input by aria-describedby", id)
+		}
+	}
+	fresh := get(h, "/apps").Body.String()
+	if strings.Contains(fresh, `aria-invalid="true"`) || strings.Contains(fresh, "aria-invalid ") || strings.Contains(fresh, "aria-invalid>") {
+		t.Error("fresh form is marked invalid")
+	}
+	if !strings.Contains(fresh, `aria-describedby="name-hint"`) {
+		t.Error("description not tied to the name input")
+	}
+}
+
+func TestAppNamesAreDNSLabels(t *testing.T) {
+	h := newMux(newStore())
+	// Each would break the row's /apps/{name} URLs, or run as a spreadsheet formula
+	// in /apps.csv.
+	for _, name := range []string{"a/b", "a?b", "a#b", "=1+1", "+1", "-app", "app-", "a.b", "Ab", strings.Repeat("a", 64), ""} {
+		if w := post(h, "/apps", "replicas=3&name="+url.QueryEscape(name)); w.Code != http.StatusUnprocessableEntity {
+			t.Errorf("name %q: status %d, want 422", name, w.Code)
+		}
+	}
+	for _, name := range []string{"a", "ledger-sync", "app2", strings.Repeat("a", 63)} {
+		if w := post(h, "/apps", "replicas=3&name="+name); w.Code != 200 {
+			t.Errorf("name %q: status %d, want 200", name, w.Code)
+		}
+	}
+}
+
+func TestCSVCellsNeverRunAsFormulas(t *testing.T) {
+	for in, want := range map[string]string{"=1+1": "'=1+1", "+1": "'+1", "-1": "'-1", "@x": "'@x", "\tx": "'\tx", "ledger": "ledger", "": ""} {
+		if got := csvCell(in); got != want {
+			t.Errorf("csvCell(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestMetricsRangeIsBounded(t *testing.T) {
+	h := newMux(newStore())
+	// A crafted range of 10,000 years would be one bar per week of it.
+	w := get(h, "/metrics/body?from=0001-01-01&to=9999-12-31")
+	if w.Code != 200 {
+		t.Fatalf("status %d", w.Code)
+	}
+	if n := strings.Count(w.Body.String(), `"week":`); n > 54 {
+		t.Errorf("%d weeks rendered, want at most 54", n)
+	}
+	from, to := boundRange(time.Date(2026, 10, 12, 0, 0, 0, 0, time.UTC), time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC))
+	if !from.Before(to) || from.Month() != 9 || to.Month() != 10 {
+		t.Errorf("reversed range: got %s to %s, want it put the right way round", from, to)
 	}
 }

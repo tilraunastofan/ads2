@@ -60,6 +60,11 @@ var rules = []rule{
 		why:  "don't join metadata with middle dots; write a sentence or use separate elements",
 	},
 	{
+		name: "bool aria attribute",
+		re:   regexp.MustCompile(`"aria-[a-z]+"\s*:\s*[^",}]*(?:!=|==|\btrue\b|\bfalse\b)`),
+		why:  `templ renders a Go bool as a bare attribute (aria-invalid), which ARIA reads as false; pass "true" as a string, or leave the attribute out`,
+	},
+	{
 		name: "page title outside PageHeader",
 		re:   regexp.MustCompile(`<h1\b`),
 		why:  "the one display title per page comes from patterns.PageHeader",
@@ -126,15 +131,17 @@ func TestTemplatesFollowDesignRules(t *testing.T) {
 // the named rule, and the allowed forms must pass.
 func TestRulesCatchViolations(t *testing.T) {
 	bad := map[string]string{
-		`<div class="bg-[#005ab4]">`:                        "hex colour",
-		`<span class="text-blue-600">`:                      "Tailwind palette colour",
-		`@button.Button(button.Props{Class: "text-white"})`: "Tailwind palette colour",
-		`<p class="text-[40px]">`:                           "arbitrary font size",
-		`<a hx-delete="/x" hx-confirm="Sure?">`:             "hx-confirm",
-		`<button type="submit">`:                            "raw form or table element",
-		`<input type="text" name="q">`:                      "raw form or table element",
-		`<h1>Releases</h1>`:                                 "page title outside PageHeader",
-		`Status: "ocp-prod-1 · 42 applications"`:            "middle-dot meta string",
+		`<div class="bg-[#005ab4]">`:                                 "hex colour",
+		`<span class="text-blue-600">`:                               "Tailwind palette colour",
+		`@button.Button(button.Props{Class: "text-white"})`:          "Tailwind palette colour",
+		`<p class="text-[40px]">`:                                    "arbitrary font size",
+		`<a hx-delete="/x" hx-confirm="Sure?">`:                      "hx-confirm",
+		`<button type="submit">`:                                     "raw form or table element",
+		`<input type="text" name="q">`:                               "raw form or table element",
+		`<h1>Releases</h1>`:                                          "page title outside PageHeader",
+		`Status: "ocp-prod-1 · 42 applications"`:                     "middle-dot meta string",
+		`Attributes: templ.Attributes{"aria-invalid": e.Name != ""}`: "bool aria attribute",
+		`templ.Attributes{"aria-expanded": true}`:                    "bool aria attribute",
 	}
 	for src, want := range bad {
 		vs := check("ui/pages/x.templ", src)
@@ -148,6 +155,7 @@ func TestRulesCatchViolations(t *testing.T) {
 		`hx-target="#app-rows"`,
 		`<div class="w-[260px] h-[240px]">`,
 		`// never text-blue-600 or <button>`,
+		`templ.Attributes{"aria-invalid": "true", "aria-hidden": "true"}`,
 	}
 	for _, src := range good {
 		if vs := check("ui/pages/x.templ", src); len(vs) != 0 {

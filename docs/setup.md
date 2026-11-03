@@ -7,7 +7,7 @@ How to start a Go project on this system. The reference starter lives in the `ad
 | Layer | Choice | Notes |
 | --- | --- | --- |
 | Server | Go 1.26+, `net/http` `ServeMux` | Handlers render templ components; no JSON for UI routes. |
-| Templates | templ (`github.com/a-h/templ`) | Pin as a Go tool: `go get -tool github.com/a-h/templ/cmd/templ`. Commit generated `*_templ.go`; CI runs `templ generate` + `git diff --exit-code`. |
+| Templates | templ (`github.com/a-h/templ`) | Pin as a Go tool: `go get -tool github.com/a-h/templ/cmd/templ`. Commit generated `*_templ.go`; CI runs `templ generate` and fails if `git status --porcelain -- '*_templ.go'` lists anything (a plain `git diff` misses new, untracked files). |
 | Components | shadcn-templ v2 (`github.com/axadrn/shadcn-templ/v2`) | Style **nova** (`base-nova` in `components.json`). Add components with `shadcn-templ add <name>`. |
 | Interactivity | htmx 4 | Vendored into `assets/js/` (on-prem: no runtime CDN). See **htmx patterns**. |
 | CSS | Tailwind CSS v4.1+ standalone CLI | `assets/css/globals.css` → `assets/css/output.css`. |
