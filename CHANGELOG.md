@@ -1,0 +1,39 @@
+# Changelog
+
+What changed in each release of `github.com/tilraunastofan/ads2`, and what an app has to do to take it. Apps update with `go get -u github.com/tilraunastofan/ads2` (see **Updating later** in `docs/migrate-to-module.md`).
+
+Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`v0.2.0`) may break the API, and its entry says how to update; a patch (`v0.1.1`) never does.
+
+Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
+
+## v0.1.0 (3 Nov 2026)
+
+The first release, and the first one apps import as a Go module instead of copying. Apps that copied `components/`, `patterns/` and the assets: follow `docs/migrate-to-module.md`.
+
+**Added**
+
+- Apps import the design system: `github.com/tilraunastofan/ads2/patterns`, `/components/<name>`, `/assets` (see **How apps use ads2** in `docs/setup.md`).
+- `assets.Handler(fsys)` serves the theme, fonts, htmx, helper scripts and component bundle with ETags, gzip and a year-long cache for fonts and the hashed bundle. `assets.Overlay(app)` puts the app's own files (its `css/output.css`) on top. `assets.AcceptsGzip` and `assets.CacheControl` are the rules it uses.
+- `cmd/ads2css` (`go tool ads2css`) writes the CSS file that connects an app's Tailwind build to the module: the module's `assets/css/ads2.css` and `@source` lines for its components and patterns.
+- `patterns.ChartNumber` and `patterns.ChartTooltipRow`: Arion numbers in `components/chart`, whose tooltip defaults to en-US. Pass `ChartTooltipRow` as the tooltip `Formatter` in every chart (`docs/components/Chart.md`).
+- `patterns.NotAvailable` (`–`), what `Dec`, `Signed`, `Pct` and `SignedPct` return for NaN and ±Inf.
+- `assets/js/focus-after-swap.js`, loaded by `patterns.Base`: focus moves to the new page's `<h1>` after a boosted navigation, and to the first invalid field of a form re-rendered with a 422.
+
+**Changed** (for apps migrating from an older copy)
+
+- `patterns.Base` loads every helper script, `datepicker.js` included. Remove `<script src="/assets/js/datepicker.js">` from pages: a script inside a page runs again on every boosted visit.
+- `PageHeader`'s `<h1>` has `tabindex="-1"` (the focus target after navigation).
+- `Shell`'s skip-link target `#main` is a `<div>` inside the sidebar inset, which is the page's one `<main>`.
+- `aria-invalid` must be the string `"true"`, never a Go bool (a bool renders a bare attribute, which ARIA reads as false). The design-rules test rejects bools.
+- The type scale replaces Tailwind's text sizes in patterns (`text-body-sm`, `text-caption`); do the same in app templates.
+- Bars in charts: `Radius: []float64{4, 4, 0, 0}` (square on the baseline).
+- Token: dark `chart-5` is `#8ea0ab`, a slate (was near-white `#e7e0d8`).
+
+**Fixed**
+
+- `Dec` and `Signed` format any finite value exactly (1e20 was clamped to `math.MaxInt64`).
+- `Shell` renders a `NavItem` without an `Icon` instead of panicking.
+- `filter-form.js` no longer refetches on the first blur of a filter form.
+- `AcceptsGzip` refuses `gzip;q=0.0` (only `q=0` was refused).
+
+Built on shadcn-templ `v2.0.0`, htmx `4.0.1`, templ `v0.3.1100`. The vendored toast still has the freeze reported as [axadrn/shadcn-templ#656](https://github.com/axadrn/shadcn-templ/issues/656); `assets/js/toast-guard.js`, loaded by `Base`, prevents it.

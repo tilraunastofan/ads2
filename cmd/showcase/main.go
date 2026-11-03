@@ -6,20 +6,15 @@
 package main
 
 import (
-	"bytes"
 	"compress/gzip"
 	"context"
-	"crypto/sha256"
 	"encoding/csv"
-	"encoding/hex"
 	"html"
 	"io"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"path"
 	"regexp"
 	"runtime/debug"
 	"strconv"
@@ -290,99 +285,30 @@ func report() pages.ReportVM {
 	}
 }
 
-// assetHandler serves the embedded assets, or ./assets when SHADCN_TEMPL_DEV=true
-// so the watchers' output shows up without a rebuild.
-//
-// Fonts and the hashed component bundle never change under their name, so they are
-// cached for a year, in dev too (re-downloading fonts on every refresh makes text
-// flash from the fallback font). Everything else revalidates; embedded files carry
-// no modification time, so they get a content-hash ETag and a refresh costs a 304.
+// assetHandler serves the embedded assets through assets.Handler, the handler apps
+// use, or ./assets when SHADCN_TEMPL_DEV=true so the watchers' output shows up
+// without a rebuild. Dev keeps the year-long cache for fonts and the hashed bundle
+// (re-downloading fonts on every refresh makes text flash from the fallback font).
 func assetHandler() http.Handler {
-	dev := os.Getenv("SHADCN_TEMPL_DEV") == "true"
-	var disk http.Handler
-	if dev {
-		disk = http.FileServer(http.Dir("assets"))
+	if os.Getenv("SHADCN_TEMPL_DEV") != "true" {
+		return assets.Handler(assets.Assets)
 	}
-	var cache sync.Map // asset name -> *cachedAsset
+	disk := http.FileServer(http.Dir("assets"))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		name := strings.TrimPrefix(r.URL.Path, "/")
-		immutable := strings.HasPrefix(name, "fonts/") || strings.HasPrefix(name, "js/shadcn-templ-")
-		switch {
-		case immutable:
-			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		case dev:
-			w.Header().Set("Cache-Control", "no-store")
-		default:
-			w.Header().Set("Cache-Control", "no-cache")
+		cc := assets.CacheControl(strings.TrimPrefix(r.URL.Path, "/"))
+		if cc == "no-cache" {
+			cc = "no-store"
 		}
-		if dev {
-			disk.ServeHTTP(w, r)
-			return
-		}
-		body, err := fs.ReadFile(assets.Assets, name)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-		a, ok := cache.Load(name)
-		if !ok {
-			a, _ = cache.LoadOrStore(name, newCachedAsset(name, body))
-		}
-		ca := a.(*cachedAsset)
-		etag := ca.etag
-		if ca.gz != nil {
-			w.Header().Add("Vary", "Accept-Encoding")
-			if acceptsGzip(r) {
-				// The gzipped bytes are their own representation: own ETag, and
-				// ServeContent applies ranges and If-None-Match to them.
-				body, etag = ca.gz, ca.gzETag
-				w.Header().Set("Content-Encoding", "gzip")
-			}
-		}
-		w.Header().Set("ETag", etag)
-		http.ServeContent(w, r, path.Base(name), time.Time{}, bytes.NewReader(body))
+		w.Header().Set("Cache-Control", cc)
+		disk.ServeHTTP(w, r)
 	})
-}
-
-// cachedAsset is an embedded file's ETag and, for text types, its gzipped bytes,
-// computed once per process.
-type cachedAsset struct {
-	etag   string
-	gz     []byte
-	gzETag string
-}
-
-func newCachedAsset(name string, body []byte) *cachedAsset {
-	sum := sha256.Sum256(body)
-	h := hex.EncodeToString(sum[:8])
-	a := &cachedAsset{etag: `"` + h + `"`}
-	switch path.Ext(name) {
-	case ".css", ".js", ".svg", ".json", ".txt":
-		var b bytes.Buffer
-		zw, _ := gzip.NewWriterLevel(&b, gzip.BestCompression)
-		_, _ = zw.Write(body)
-		if zw.Close() == nil && b.Len() < len(body) {
-			a.gz, a.gzETag = b.Bytes(), `"`+h+`-gz"`
-		}
-	}
-	return a
-}
-
-func acceptsGzip(r *http.Request) bool {
-	for _, part := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
-		enc, params, _ := strings.Cut(strings.TrimSpace(part), ";")
-		if strings.EqualFold(strings.TrimSpace(enc), "gzip") {
-			return strings.ReplaceAll(params, " ", "") != "q=0"
-		}
-	}
-	return false
 }
 
 // compress gzips HTML and CSV responses for clients that accept it. Responses that
 // already carry a Content-Encoding (the precompressed assets) pass through.
 func compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !acceptsGzip(r) {
+		if !assets.AcceptsGzip(r) {
 			next.ServeHTTP(w, r)
 			return
 		}

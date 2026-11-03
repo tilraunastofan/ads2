@@ -6,6 +6,7 @@ package ui
 import (
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -228,5 +229,21 @@ func TestDocExamplesFollowDesignRules(t *testing.T) {
 	}
 	if n == 0 {
 		t.Fatal("no ```templ examples found in docs/")
+	}
+}
+
+// TestModulePackagesStandAlone keeps what apps import (patterns, assets, components,
+// utils) free of the showcase: an import of ui/ or cmd/ from there would pull the
+// showcase's pages, demo data and dependencies into every app.
+func TestModulePackagesStandAlone(t *testing.T) {
+	out, err := exec.Command("go", "list", "-deps", "-f", "{{.ImportPath}}",
+		"../patterns", "../assets", "../components/...", "../utils").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range strings.Fields(string(out)) {
+		if strings.HasPrefix(p, "github.com/tilraunastofan/ads2/ui") || strings.HasPrefix(p, "github.com/tilraunastofan/ads2/cmd") {
+			t.Errorf("a package apps import depends on %s", p)
+		}
 	}
 }

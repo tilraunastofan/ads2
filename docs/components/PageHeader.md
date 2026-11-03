@@ -1,6 +1,6 @@
 # PageHeader
 
-The top of every page: optional breadcrumb, the one serif display title, a status line, and up to two actions. `patterns.PageHeader(PageHeaderProps)` from `github.com/tilraunastofan/ads2/patterns` (copy the package into your app like `components/`).
+The top of every page: optional breadcrumb, the one serif display title, a status line, and up to two actions. `patterns.PageHeader(PageHeaderProps)` from `github.com/tilraunastofan/ads2/patterns` (imported from the ads2 module, see `docs/setup.md`).
 
 **Consumer provides:** `Crumbs []Crumb{Label, Href}` (last one is the current page, `Href` empty), `Title`, `Status` (one sentence), and the actions as children.
 

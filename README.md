@@ -3,22 +3,22 @@
 A design system for Go web projects built with **Go + templ + htmx 4 + [shadcn-templ](https://shadcn-templ.com)**. It themes shadcn-templ v2 (nova style) with Arion banki's colours and adds usage rules, htmx patterns and a reference app.
 
 - **Brand book and rules:** [`docs/design-system.md`](docs/design-system.md)
-- **Wiring it into a project:** [`docs/setup.md`](docs/setup.md)
+- **Using it in a project (a Go module):** [`docs/setup.md`](docs/setup.md); migrating an app that copied it: [`docs/migrate-to-module.md`](docs/migrate-to-module.md); releases: [`CHANGELOG.md`](CHANGELOG.md)
 - **Shared page patterns:** [`docs/patterns.md`](docs/patterns.md) (`patterns/` package)
 - **htmx 4 recipes:** [`docs/htmx-patterns.md`](docs/htmx-patterns.md)
 - **Per-component guidance (templ + htmx):** [`docs/components/`](docs/components)
 - **Tokens:** [`tokens/tokens.json`](tokens/tokens.json) → `go run ./cmd/gentheme` → [`assets/css/arion-theme.css`](assets/css/arion-theme.css)
 
-## Use the theme in another project
+## Use it in a project
+
+Apps import ads2 as a Go module, so `go get -u` brings every fix:
 
 ```sh
-shadcn-templ init --preset nova
-cp /path/to/ads2/assets/css/{arion-theme,fonts}.css assets/css/
-cp -r /path/to/ads2/assets/fonts assets/ && cp /path/to/ads2/assets/js/theme.js assets/js/
-cp -r /path/to/ads2/patterns . # then rewrite its import paths
-# in assets/css/globals.css: remove the :root / .dark / @theme inline blocks, then
-#   @import "./arion-theme.css";
+go get github.com/tilraunastofan/ads2@latest
+go get -tool github.com/tilraunastofan/ads2/cmd/ads2css
 ```
+
+The rest (Tailwind entry, serving the assets, the build) is in [`docs/setup.md`](docs/setup.md). An app that copied the files from an older ads2: [`docs/migrate-to-module.md`](docs/migrate-to-module.md). What changed per version: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Palette (light / dark)
 

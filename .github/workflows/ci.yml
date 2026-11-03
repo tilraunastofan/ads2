@@ -58,3 +58,7 @@ jobs:
           # Text assets and pages are gzipped for clients that accept it.
           curl -fsS -H 'Accept-Encoding: gzip' -D - -o /dev/null http://localhost:8099/assets/css/output.css | grep -qi '^content-encoding: gzip'
           curl -fsS -H 'Accept-Encoding: gzip' -D - -o /dev/null http://localhost:8099/apps | grep -qi '^content-encoding: gzip'
+      # An app on the ads2 module (testdata/consumer, the app docs/setup.md
+      # describes) builds against this commit and serves every asset it links to.
+      - name: Consumer app smoke test
+        run: PORT=8098 scripts/consumer-smoke.sh

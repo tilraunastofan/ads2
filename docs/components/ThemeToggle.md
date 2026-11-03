@@ -1,6 +1,6 @@
 # ThemeToggle
 
-A ghost icon button that switches light and dark. `patterns.ThemeToggle()` from `github.com/tilraunastofan/ads2/patterns` (copy the package into your app like `components/`), wired to `assets/js/theme.js`; already in `patterns.Shell`'s top bar.
+A ghost icon button that switches light and dark. `patterns.ThemeToggle()` from `github.com/tilraunastofan/ads2/patterns` (imported from the ads2 module, see `docs/setup.md`), wired to `assets/js/theme.js`; already in `patterns.Shell`'s top bar.
 
 **Consumer provides:** nothing but `theme.js` loaded as a plain (not deferred) `<script>` in `<head>`, which `patterns.Base` does.
 

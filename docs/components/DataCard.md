@@ -1,6 +1,6 @@
 # DataCard
 
-A card whose content is a table running edge to edge, with a title, optional description and one header action. `patterns.DataCard(DataCardProps)` from `github.com/tilraunastofan/ads2/patterns` (copy the package into your app like `components/`).
+A card whose content is a table running edge to edge, with a title, optional description and one header action. `patterns.DataCard(DataCardProps)` from `github.com/tilraunastofan/ads2/patterns` (imported from the ads2 module, see `docs/setup.md`).
 
 **Consumer provides:** `ID` (to swap the whole card), `Title`, `Description`, `Action` (a `templ.Component`: search box, button or menu), and the `table.Table` as children.
 

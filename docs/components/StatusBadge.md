@@ -1,6 +1,6 @@
 # StatusBadge
 
-A state as a pill with icon and word, mapped the same way in every app. `patterns.StatusBadge(Status, label)` from `github.com/tilraunastofan/ads2/patterns` (copy the package into your app like `components/`).
+A state as a pill with icon and word, mapped the same way in every app. `patterns.StatusBadge(Status, label)` from `github.com/tilraunastofan/ads2/patterns` (imported from the ads2 module, see `docs/setup.md`).
 
 **Consumer provides:** one `patterns.Status` — `StatusPositive` (healthy, synced, succeeded), `StatusWarning` (progressing, needs attention), `StatusDestructive` (failed, degraded, down, out of sync), `StatusNeutral` (unknown, pending, archived) — and the label in the page language.
 

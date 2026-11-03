@@ -1,6 +1,6 @@
 # Patterns
 
-Compositions of shadcn-templ components that every app needs, in `github.com/tilraunastofan/ads2/patterns`. Copy the package into a project like `components/` and rewrite its import paths to your module. They add no styling of their own: only token classes and component props.
+Compositions of shadcn-templ components that every app needs, in `github.com/tilraunastofan/ads2/patterns`. Apps import it from the ads2 module (`go get github.com/tilraunastofan/ads2`, see `docs/setup.md`); they never copy it, so `go get -u` brings every fix. They add no styling of their own: only token classes and component props.
 
 | Pattern | Use |
 | --- | --- |

@@ -1,14 +1,4 @@
 @import "tailwindcss";
-@import "./tw-animate.css";
-@import "./shadcn-tailwind.css";
-
-@import "./arion-theme.css";
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
+/* The same entry an app imports (through ads2.gen.css). In this repo Tailwind finds
+   components/ and patterns/ by itself, so no @source is needed. */
+@import "./ads2.css";

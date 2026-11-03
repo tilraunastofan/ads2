@@ -19,8 +19,9 @@ Module: `github.com/tilraunastofan/ads2`.
 | `assets/js/dialog-form.js` | `form[data-close-on-success]` inside a dialog or sheet closes it after a 2xx (closing on the submit click cancels the submit). |
 | `assets/js/datepicker.js` | Copies a calendar selection into hidden inputs of a `form[data-date-picker]` and fires `change` (see `docs/components/DatePicker.md`). |
 | `assets/js/focus-after-swap.js` | When a swap removes the focused element: focus the new page's `<h1>` after a boosted navigation, or the first `aria-invalid="true"` field of a re-rendered form. All helpers load once in `patterns.Base`; never add a helper `<script>` to a page (it reruns on every boosted visit). |
-| `assets/assets.go` | `go:embed` of `css`, `fonts`, `img`, `js` for the binary. |
-| `patterns/` | Reusable compositions: `Shell`, `Base`, `ReportShell`, `ReportCover`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting (`format.go`, `dates.go`), Arion numbers for charts (`chart.templ`). Copied into apps like `components/`. |
+| `assets/assets.go`, `assets/handler.go` | `go:embed` of `css`, `fonts`, `img`, `js`, and `assets.Handler` / `assets.Overlay`, which the showcase and every app serve them with. `assets/css/ads2.css` is the CSS entry apps import (theme, shadcn styles, base layer); this repo's `globals.css` imports it too. |
+| `cmd/ads2css` | `go tool ads2css` in an app: writes `ads2.gen.css`, which imports the module's `ads2.css` and adds `@source` lines for its components and patterns. |
+| `patterns/` | Reusable compositions: `Shell`, `Base`, `ReportShell`, `ReportCover`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting (`format.go`, `dates.go`), Arion numbers for charts (`chart.templ`). Apps import it from the module, with `components/` and `assets/`. |
 | `ui/layouts/app.templ` | The showcase's navigation on top of `patterns.Shell`. |
 | `ui/pages/showcase.templ` | Reference page using the patterns and ~20 components with htmx patterns. |
 | `ui/pages/metrics.templ` | `/metrics`: DatePicker (popover + range calendar), Combobox filter, Chart, DataCard with a Sheet per release. |
@@ -29,6 +30,9 @@ Module: `github.com/tilraunastofan/ads2`.
 | `.github/workflows/ci.yml` | `task check`, then `task build` with the Tailwind standalone CLI and a smoke test of `/apps`, `/metrics`, `/settings`, `/uppgjor`, the 404 status and gzip. |
 | `.github/dependabot.yml` | Weekly grouped PRs for Go modules and GitHub Actions. Vendored htmx and the pinned Tailwind CLI are bumped by hand. |
 | `cmd/showcase` | `net/http` server for the showcase: embedded assets (text types gzipped once at first request), cache headers, CSP, gzip for HTML/CSV, server timeouts, graceful shutdown on SIGTERM, panic recovery (toast for htmx requests, error page otherwise), Arion 404 page (`ui/pages/notfound.templ`; htmx fragment requests keep a plain 404). |
+| `CHANGELOG.md` | Per release: what changed and what an app has to do. Apps read it when they `go get -u`. |
+| `docs/migrate-to-module.md` | For agents: convert an app that copied `components/`, `patterns/` and the assets to importing the module. |
+| `testdata/consumer`, `scripts/consumer-smoke.sh` | The smallest app on the module (the one `docs/setup.md` describes); CI builds it against each commit and checks every asset it links to. |
 | `docs/known-issues/` | Bugs in vendored code we work around, with reproduction, cause and the checks to run after an upgrade (`toast-freeze.md`). |
 | `docs/` | Brand book (`design-system.md`), `setup.md`, `htmx-patterns.md`, `patterns.md`, one file per component. **Read these before writing UI.** |
 
@@ -36,7 +40,7 @@ Module: `github.com/tilraunastofan/ads2`.
 
 Prerequisites: Go ≥ 1.26 (verified on 1.27), [Task](https://taskfile.dev), Tailwind CSS v4.1+ standalone CLI (`brew install tailwindcss`).
 
-Already done (committed): `shadcn-templ init --preset nova --css assets/css/globals.css`, `globals.css` imports `arion-theme.css` instead of defining its own theme blocks, htmx 4.0.1 vendored at `assets/js/htmx.min.js`, all components named in `docs/components/` installed, generated `*_templ.go` and `components/scripts_bundle.go`.
+Already done (committed): `shadcn-templ init --preset nova --css assets/css/globals.css`, `globals.css` imports `ads2.css` (which imports `arion-theme.css`) instead of defining its own theme blocks, htmx 4.0.1 vendored at `assets/js/htmx.min.js`, all components named in `docs/components/` installed, generated `*_templ.go` and `components/scripts_bundle.go`.
 
 - Add components with the registry's **kebab-case** names: `shadcn-templ add alert-dialog dropdown-menu input-group native-select …` (`alertdialog`, `dropdownmenu`, `inputgroup`, `nativeselect` 404). `input-group` needs `textarea` added explicitly.
 - `task dev` — tailwind + script bundler + templ watcher; open http://localhost:7331/apps (app itself listens on :8090, override with `PORT`, but the templ proxy in `Taskfile.yml` targets :8090).
@@ -49,6 +53,11 @@ Already done (committed): `shadcn-templ init --preset nova --css assets/css/glob
 Verified in Chrome against `task dev`: search filters rows; the row menu's Restart and Sync raise a toast, Scale… opens a dialog for that row that closes after the pull-request toast, Delete… asks in an alert dialog and removes the row; New application opens a sheet that keeps 422 field errors and on success closes, adds the row and toasts; Rollout shows "2 of 3", reaches "3 of 3" and stops polling; dark mode via `class="dark"` on `<html>` swaps the tokens. `/metrics`: the range picker updates the label, KPIs, chart and table, the app filter narrows them, Details opens a sheet whose body loads lazily, also right after changing the range and typing in the app filter, and shows the release time of its row. A toast showing during a boosted navigation or browser Back no longer freezes the tab. `/settings` (Deployment freeze): `111111` shows the 422 error, **Lift freeze** with `123456` shows "Freeze lifted" and a toast. Dark mode: the Arion mark turns white. Note: a dark-mode browser extension (e.g. Dark Reader) darkens the page even without `.dark`; disable it when judging themes.
 
 ## Notes for agents
+
+**This repo is a Go module that apps import** (`patterns`, `components`, `assets`, `utils`, `cmd/ads2css`). An exported name, a prop, a CSS class a pattern relies on, an asset path or a token is API: apps get the change on their next `go get -u`.
+- Breaking one is allowed before v1, but add it under the next version in `CHANGELOG.md` (**Breaking**, with the one thing an app does about it) in the same commit.
+- Keep those packages free of `ui/` and `cmd/` imports (`TestModulePackagesStandAlone`), and run `scripts/consumer-smoke.sh` after changing `assets/`, `cmd/ads2css` or `Base`.
+- Releases are git tags (`v0.1.0` …) on `main`, made by the owner's request, with the `CHANGELOG.md` entry dated in the same commit. The Go module mirror keeps every tagged version forever, so never move or reuse a tag; fix forward with a new patch version.
 
 **Tooling**
 - `go tool templ generate && go mod tidy`, then `go build ./... && go vet ./...`, after any `.templ` edit or `shadcn-templ add`.

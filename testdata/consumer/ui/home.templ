@@ -1,0 +1,28 @@
+package ui
+
+import (
+	"github.com/tilraunastofan/ads2/components/button"
+	"github.com/tilraunastofan/ads2/components/card"
+	"github.com/tilraunastofan/ads2/components/icon"
+	"github.com/tilraunastofan/ads2/patterns"
+)
+
+templ Home() {
+	@patterns.Shell(patterns.ShellProps{
+		Title: "Home – Consumer", Product: "Consumer", Tagline: "A test app",
+		GroupLabel: "Main", Nav: []patterns.NavItem{{Label: "Home", Href: "/", Icon: icon.House()}},
+		CurrentPath: "/",
+	}) {
+		@patterns.PageHeader(patterns.PageHeaderProps{Title: "Home", Status: "Built on the ads2 module."}) {
+			@button.Button() {
+				New thing
+			}
+		}
+		@card.Card() {
+			@card.Content() {
+				<p class="text-body-sm">{ patterns.Int(1284500) } krónur.</p>
+				@patterns.StatusBadge(patterns.StatusPositive, "Healthy")
+			}
+		}
+	}
+}
