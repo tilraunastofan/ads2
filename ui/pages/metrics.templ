@@ -201,6 +201,15 @@ func weekRows(ws []WeekStat) []chart.Datum {
 	return out
 }
 
+// weekFill highlights the latest week of the range; the others are the quiet step
+// of the same blue, so the series still reads as one.
+func weekFill(i, n int) string {
+	if i == n-1 {
+		return "var(--chart-1)"
+	}
+	return "var(--chart-1-quiet)"
+}
+
 func tickInt(v any) string {
 	switch n := v.(type) {
 	case int:
@@ -218,19 +227,26 @@ templ DeployChart(ws []WeekStat) {
 				Deployments per week
 			}
 			@card.Description() {
-				Production, count per ISO week
+				Production, count per ISO week, latest week highlighted
 			}
 		}
 		@card.Content() {
-			@chart.Container(chart.ContainerProps{ID: "deploys", Config: deployConfig, Class: "aspect-auto h-[240px] w-full"}) {
+			// One series leads: deployments in Arion blue, the latest week in full
+			// chart-1 and earlier weeks in chart-1-quiet; rollbacks in neutral slate.
+			// Tick labels are mono, like every figure.
+			@chart.Container(chart.ContainerProps{ID: "deploys", Config: deployConfig, Class: "aspect-auto h-[300px] w-full [&_.recharts-cartesian-axis-tick_text]:font-mono"}) {
 				@chart.BarChart(chart.BarChartProps{Data: weekRows(ws), AccessibilityLayer: true}) {
 					@chart.CartesianGrid(chart.CartesianGridProps{Vertical: chart.Bool(false)})
 					@chart.XAxis(chart.XAxisProps{DataKey: "week", TickMargin: 8})
 					@chart.YAxis(chart.YAxisProps{Width: 32, TickFormatter: tickInt})
 					@chart.Tooltip()
 					@chart.Legend()
-					@chart.Bar(chart.BarProps{DataKey: "deploys", Fill: "var(--chart-1)", Radius: 4})
-					@chart.Bar(chart.BarProps{DataKey: "rollbacks", Fill: "var(--chart-2)", Radius: 4})
+					@chart.Bar(chart.BarProps{DataKey: "deploys", Fill: "var(--chart-1)", Radius: 4}) {
+						for i := range ws {
+							@chart.Cell(chart.CellProps{Fill: weekFill(i, len(ws))})
+						}
+					}
+					@chart.Bar(chart.BarProps{DataKey: "rollbacks", Fill: "var(--chart-4)", Radius: 4})
 				}
 			}
 		}

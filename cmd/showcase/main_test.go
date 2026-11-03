@@ -503,3 +503,18 @@ func TestFreezeCopyKeepsOneName(t *testing.T) {
 		t.Error("success does not say Freeze lifted")
 	}
 }
+
+// The deploy chart has one lead: the latest week in full chart-1, earlier weeks in
+// chart-1-quiet, rollbacks in neutral chart-4. The chart is drawn in the browser
+// from the JSON model in the response, so the test reads that.
+func TestDeployChartHighlightsTheLatestWeek(t *testing.T) {
+	// 7 Sep to 4 Oct 2026 is ISO weeks 37 to 40.
+	body := get(newMux(newStore()), "/metrics/body?from=2026-09-07&to=2026-10-04").Body.String()
+	const cells = `"cells":["var(--chart-1-quiet)","var(--chart-1-quiet)","var(--chart-1-quiet)","var(--chart-1)"]`
+	if !strings.Contains(body, cells) {
+		t.Errorf("deployments bar cells: want %s", cells)
+	}
+	if !strings.Contains(body, `"key":"rollbacks","label":"Rollbacks","color":"var(--chart-4)"`) || strings.Contains(body, "var(--chart-2)") {
+		t.Error("rollbacks should be chart-4 (slate), and gold chart-2 is no longer used")
+	}
+}

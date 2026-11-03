@@ -28,7 +28,9 @@ templ DeployChart(rows []chart.Datum) {
 ```
 
 - `TickFormatter` takes `any`: Go ints arrive as `int`, JSON-shaped data as `float64`. `tickInt` in `ui/pages/metrics.templ` handles both with `patterns.Int` / `patterns.Dec`.
-- Colours: `chart-1` … `chart-5` in order (blue, gold, plum, slate, light slate), set on each series as `Fill` / `Stroke: "var(--chart-N)"`; the legend and tooltip swatches follow. Leave `Config.Color` empty under a strict CSP, and never use hex.
+- Colours: the leading series in `chart-1`, other series in neutral `chart-4` / `chart-5`; `chart-2` (gold) and `chart-3` (plum) only for series of equal weight. Set them on each series as `Fill` / `Stroke: "var(--chart-N)"`; the legend and tooltip swatches follow. Leave `Config.Color` empty under a strict CSP, and never use hex.
+- Highlight one period with `chart.Cell` children on the leading bar: full `var(--chart-1)` for it and `var(--chart-1-quiet)` for the rest (the showcase's `weekFill`), and say so in the card description ("latest week highlighted").
+- Tick labels mono: add `[&_.recharts-cartesian-axis-tick_text]:font-mono` to the `chart.Container` `Class`. The main chart of a page is 280–360px tall (`h-[300px]` on Metrics).
 - Always a legend or direct labels, and a card title that names the unit. Format ticks and tooltips with `patterns.Dec` / `Pct` (Arion format).
 - Put charts in a `card`; refresh a chart by swapping its card with htmx (`hx-get` + `hx-trigger`), never by client-side data fetching.
 - Up to five series; beyond that, use a table.

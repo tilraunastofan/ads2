@@ -56,6 +56,7 @@ var requirements = []pair{
 	{"ring", "background", ui, 0, ""}, {"ring", "card", ui, 0, ""},
 	{"chart-1", "card", ui, 0, ""}, {"chart-2", "card", ui, 0, ""}, {"chart-3", "card", ui, 0, ""},
 	{"chart-4", "card", ui, 0, ""}, {"chart-5", "card", ui, 0, ""},
+	{"chart-1-quiet", "card", ui, 0, ""},
 }
 
 func parseHex(s string) ([3]float64, error) {
