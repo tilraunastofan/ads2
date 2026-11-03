@@ -8,7 +8,7 @@
 // old body, as they would without the bug. If the component's internals change, this
 // does nothing, silently, and the freeze returns. After every shadcn-templ update,
 // run the checks in docs/known-issues/toast-freeze.md. Remove this once upstream
-// disconnects the observers in destroy().
+// disconnects the observers in destroy(): https://github.com/axadrn/shadcn-templ/issues/656
 document.addEventListener("htmx:before:swap", (e) => {
   if (e.detail?.ctx?.target !== document.body) return;
   document.querySelectorAll('[data-slot="toast-viewport"]').forEach((viewport) => {

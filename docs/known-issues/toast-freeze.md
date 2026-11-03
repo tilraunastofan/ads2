@@ -1,6 +1,6 @@
 # Toast freezes the tab on page change
 
-**Status:** worked around in this repo (`assets/js/toast-guard.js`, commit `f7e017e`). Not fixed upstream. Not yet reported to shadcn-templ (no matching issue as of 3 Nov 2026; the fix to propose is under **Fixing it upstream**).
+**Status:** worked around in this repo (`assets/js/toast-guard.js`, commit `f7e017e`). Not fixed upstream. Reported 3 Nov 2026 as [axadrn/shadcn-templ#656](https://github.com/axadrn/shadcn-templ/issues/656), with the [standalone reproduction](https://github.com/jakobjs/shadcn-templ-toast-freeze-repro) and the fix under **Fixing it upstream**.
 **Affects:** shadcn-templ's toast (`components/toast/toast.js`) in every v2 release: reproduced on `v2.0.0-beta.15` (ours); the file is byte-identical in `beta.16`, `v2.0.0` and `main` as of 3 Nov 2026, so upgrading does not fix it. Independent of the htmx version (4.0.0 and 4.0.1 both freeze). shadcn's own React toast is not affected (see **Upstream analysis**).
 **Severity:** high. The tab hangs until it is closed, and it takes only an ordinary click.
 
@@ -107,6 +107,6 @@ destroy(viewport) {
 },
 ```
 
-A draft of the issue was prepared on 3 Nov 2026 (it is not stored in this repo). When it is posted, replace "Not yet reported" in **Status** with the issue link.
+Reported as [#656](https://github.com/axadrn/shadcn-templ/issues/656). Follow that issue; when a release closes it, do the removal steps below.
 
 Once a release contains it: update the module, run the checks above **without** `toast-guard.js`, then delete the script, its `<script>` tag in `patterns/shell.templ`, its rows in `CLAUDE.md`, and this file.

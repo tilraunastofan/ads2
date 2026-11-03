@@ -13,7 +13,7 @@ Module: `github.com/tilraunastofan/ads2`.
 | `assets/css/fonts.css`, `assets/fonts/` | Self-hosted variable woff2 (OFL). Suisse is optional and opt-in (see Typography in `design-system.md`). |
 | `assets/img/arion-mark.svg` | Arion star mark (vector trace of the Arion logo; use as is). |
 | `assets/js/theme.js` | Dark-mode class on `<html>`: OS setting first, then the toggle's saved choice. |
-| `assets/js/toast-guard.js` | Workaround for a freeze in the vendored toast: disconnects each toast's observers before a boosted body swap. Remove once shadcn-templ's toast `destroy()` does it. Relies on toast internals: after every shadcn-templ update, run the checks in `docs/known-issues/toast-freeze.md`. |
+| `assets/js/toast-guard.js` | Workaround for a freeze in the vendored toast: disconnects each toast's observers before a boosted body swap. Remove once shadcn-templ's toast `destroy()` does it ([shadcn-templ#656](https://github.com/axadrn/shadcn-templ/issues/656)). Relies on toast internals: after every shadcn-templ update, run the checks in `docs/known-issues/toast-freeze.md`. |
 | `assets/js/filter-form.js` | `form[data-filter-form]` fires `filter-change` only when its named values change (see **Filter form** in `docs/htmx-patterns.md`). |
 | `assets/js/request-errors.js` | Error toast for unreachable server and unhandled 5xx (cancels swapping raw error text); en/is wording. |
 | `assets/js/datepicker.js` | Copies a calendar selection into hidden inputs of a `form[data-date-picker]` and fires `change` (see `docs/components/DatePicker.md`). |
