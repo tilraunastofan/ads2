@@ -13,3 +13,4 @@ Transient confirmation: `toast.Toaster` (once in the layout) and `toast.Toast{Ti
 - Types: `TypeSuccess`, `TypeInfo`, `TypeWarning`, `TypeError`, `TypeLoading`; each draws its own icon.
 - Confirms what just happened; never the only place an error is shown (use `field.Error` or `alert`).
 - Preview is static; the live toast stacks bottom-right.
+- Known issue: a toast showing during a boosted navigation froze the tab. `patterns.Base` loads `assets/js/toast-guard.js` to prevent it; see `docs/known-issues/toast-freeze.md`, and recheck it after every shadcn-templ update.

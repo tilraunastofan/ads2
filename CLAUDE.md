@@ -13,7 +13,7 @@ Module: `github.com/tilraunastofan/ads2`.
 | `assets/css/fonts.css`, `assets/fonts/` | Self-hosted variable woff2 (OFL). Suisse is optional and opt-in (see Typography in `design-system.md`). |
 | `assets/img/arion-mark.svg` | Arion star mark (vector trace of the Arion logo; use as is). |
 | `assets/js/theme.js` | Dark-mode class on `<html>`: OS setting first, then the toggle's saved choice. |
-| `assets/js/toast-guard.js` | Workaround for a freeze in the vendored toast: disconnects each toast's observers before a boosted body swap. Remove once shadcn-templ's toast `destroy()` does it. |
+| `assets/js/toast-guard.js` | Workaround for a freeze in the vendored toast: disconnects each toast's observers before a boosted body swap. Remove once shadcn-templ's toast `destroy()` does it. Relies on toast internals: after every shadcn-templ update, run the checks in `docs/known-issues/toast-freeze.md`. |
 | `assets/js/filter-form.js` | `form[data-filter-form]` fires `filter-change` only when its named values change (see **Filter form** in `docs/htmx-patterns.md`). |
 | `assets/js/request-errors.js` | Error toast for unreachable server and unhandled 5xx (cancels swapping raw error text); en/is wording. |
 | `assets/js/datepicker.js` | Copies a calendar selection into hidden inputs of a `form[data-date-picker]` and fires `change` (see `docs/components/DatePicker.md`). |
@@ -27,6 +27,7 @@ Module: `github.com/tilraunastofan/ads2`.
 | `.github/workflows/ci.yml` | `task check`, then `task build` with the Tailwind standalone CLI and a smoke test of `/apps`, `/metrics`, `/settings`, `/uppgjor`, the 404 status and gzip. |
 | `.github/dependabot.yml` | Weekly grouped PRs for Go modules and GitHub Actions. Vendored htmx and the pinned Tailwind CLI are bumped by hand. |
 | `cmd/showcase` | `net/http` server for the showcase: embedded assets (text types gzipped once at first request), cache headers, CSP, gzip for HTML/CSV, server timeouts, graceful shutdown on SIGTERM, panic recovery (toast for htmx requests, error page otherwise), Arion 404 page (`ui/pages/notfound.templ`; htmx fragment requests keep a plain 404). |
+| `docs/known-issues/` | Bugs in vendored code we work around, with reproduction, cause and the checks to run after an upgrade (`toast-freeze.md`). |
 | `docs/` | Brand book (`design-system.md`), `setup.md`, `htmx-patterns.md`, `patterns.md`, one file per component. **Read these before writing UI.** |
 
 ## Setup & commands
