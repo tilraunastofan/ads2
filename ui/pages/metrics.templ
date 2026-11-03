@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/tilraunastofan/ads2/components/button"
@@ -253,7 +254,7 @@ templ ReleaseSheet(r Release) {
 				}
 			}
 			<div
-				hx-get={ "/metrics/release?app=" + r.App + "&version=" + r.Version }
+				hx-get={ releaseURL(r) }
 				hx-trigger="intersect once"
 				hx-swap="outerHTML"
 				class="px-4"
@@ -267,6 +268,12 @@ templ ReleaseSheet(r Release) {
 			}
 		}
 	}
+}
+
+// releaseURL is the lazy body's address. Query values go through url.Values, never
+// string concatenation, so a name with & or # can't change the request.
+func releaseURL(r Release) string {
+	return "/metrics/release?" + url.Values{"app": {r.App}, "version": {r.Version}}.Encode()
 }
 
 // ReleaseDetails is the lazily loaded body of ReleaseSheet.

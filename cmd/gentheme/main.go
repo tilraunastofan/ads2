@@ -150,7 +150,10 @@ func generate(raw []byte, in string) (string, *tokens, error) {
 
 	first := tk.Color.Themes[0].ID
 	w("")
+	// color-scheme makes native controls (scrollbars, date inputs, autofill) follow
+	// the theme; the theme ids are the CSS keywords "light" and "dark".
 	w(":root {")
+	w("  color-scheme: %s;", first)
 	for _, k := range []string{"sans", "display", "mono"} {
 		if v, ok := tk.Type.Families[k]; ok {
 			w("  --font-%s: %s;", k, v)
@@ -169,6 +172,7 @@ func generate(raw []byte, in string) (string, *tokens, error) {
 	for _, th := range tk.Color.Themes[1:] {
 		w("")
 		w(".%s {", th.ID)
+		w("  color-scheme: %s;", th.ID)
 		for _, t := range tk.Color.Tokens {
 			w("  --%s: %s;", t.Name, val(t, th.ID))
 		}

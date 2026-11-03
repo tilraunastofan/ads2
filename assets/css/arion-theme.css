@@ -124,6 +124,7 @@
 }
 
 :root {
+  color-scheme: light;
   --font-sans: "Hanken Grotesk", "Hanken Grotesk Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Source Serif 4", "Source Serif 4 Fallback", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -182,6 +183,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #0c171b;
   --foreground: #e6ecef;
   --card: #17212a;

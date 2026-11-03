@@ -9,7 +9,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/csv"
 	"encoding/hex"
+	"html"
 	"io"
 	"io/fs"
 	"log"
@@ -92,10 +94,11 @@ func toastPartial(title, desc string, t toast.Type) templ.Component {
 	})
 }
 
-// partial wraps a component in an htmx 4 <hx-partial> for a second target.
+// partial wraps a component in an htmx 4 <hx-partial> for a second target. The
+// attribute values are escaped, so a target can't break out of the tag.
 func partial(target, swap string, c templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if _, err := io.WriteString(w, `<hx-partial hx-target="`+target+`" hx-swap="`+swap+`">`); err != nil {
+		if _, err := io.WriteString(w, `<hx-partial hx-target="`+html.EscapeString(target)+`" hx-swap="`+html.EscapeString(swap)+`">`); err != nil {
 			return err
 		}
 		if err := c.Render(ctx, w); err != nil {
@@ -252,6 +255,21 @@ func newMux(s *store) http.Handler {
 			Query: r.URL.Query().Get("q"),
 		}
 		render(w, r, http.StatusOK, pages.Showcase(vm))
+	})
+
+	// The Export button's download: every application, as CSV.
+	mux.HandleFunc("GET /apps.csv", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+		w.Header().Set("Content-Disposition", `attachment; filename="applications.csv"`)
+		cw := csv.NewWriter(w)
+		_ = cw.Write([]string{"application", "environment", "version", "health"})
+		for _, a := range s.search("") {
+			_ = cw.Write([]string{a.Name, a.Env, a.Version, a.Health})
+		}
+		cw.Flush()
+		if err := cw.Error(); err != nil {
+			log.Printf("apps.csv: %v", err)
+		}
 	})
 
 	mux.HandleFunc("GET /apps/rows", func(w http.ResponseWriter, r *http.Request) {
