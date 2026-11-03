@@ -1,7 +1,11 @@
 package patterns
 
 import (
+	"cmp"
+
 	"github.com/tilraunastofan/ads2/components"
+	"github.com/tilraunastofan/ads2/components/alert"
+	"github.com/tilraunastofan/ads2/components/icon"
 	"github.com/tilraunastofan/ads2/components/sidebar"
 	"github.com/tilraunastofan/ads2/components/toast"
 )
@@ -10,6 +14,9 @@ type NavItem struct {
 	Label string
 	Href  string
 	Icon  templ.Component // optional; a collapsed sidebar shows only icons, so give every item one
+	// Children are sub-items listed under the item, always expanded (one level; their
+	// own Children and Icon are ignored). A collapsed sidebar hides them.
+	Children []NavItem
 }
 
 // NavGroup is one labelled group of sidebar items.
@@ -25,7 +32,7 @@ type ShellProps struct {
 	Groups      []NavGroup // sidebar groups; when empty, GroupLabel and Nav form one group
 	GroupLabel  string     // single-group form: the group heading
 	Nav         []NavItem  // single-group form: its items
-	CurrentPath string     // marks the active item
+	CurrentPath string     // marks the active item: the one whose Href is the longest match (the path or a segment prefix of it)
 	Lang        string     // defaults to "en"
 }
 
@@ -118,6 +125,7 @@ templ Shell(p ShellProps) {
 					</a>
 				}
 				@sidebar.Content() {
+					{{ active := activeHref(p.groups(), p.CurrentPath) }}
 					for _, g := range p.groups() {
 						@sidebar.Group() {
 							if g.Label != "" {
@@ -128,11 +136,22 @@ templ Shell(p ShellProps) {
 							@sidebar.Menu(sidebar.MenuProps{Class: "gap-1 group-data-[collapsible=icon]:items-center"}) {
 								for _, it := range g.Items {
 									@sidebar.MenuItem() {
-										@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: it.Href == p.CurrentPath, Tooltip: it.Label}) {
+										@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: itemActive(it, active), Tooltip: it.Label}) {
 											if it.Icon != nil {
 												@it.Icon
 											}
 											<span>{ it.Label }</span>
+										}
+										if len(it.Children) > 0 {
+											@sidebar.MenuSub() {
+												for _, c := range it.Children {
+													@sidebar.MenuSubItem() {
+														@sidebar.MenuSubButton(sidebar.MenuSubButtonProps{Href: c.Href, IsActive: c.Href == active}) {
+															<span>{ c.Label }</span>
+														}
+													}
+												}
+											}
 										}
 									}
 								}
@@ -151,9 +170,39 @@ templ Shell(p ShellProps) {
 					// Target for errors that belong on the page rather than in a toast:
 					// hx-status:5xx="target:#page-alerts" with an alert.Alert response.
 					<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>
+					if b := BannerFrom(ctx); b != nil {
+						@banner(*b)
+					}
 					{ children... }
 				</div>
 			}
+		}
+	}
+}
+
+// banner is the page-wide notice from WithBanner: destructive for a failure,
+// warning otherwise, with an icon so colour doesn't carry the state alone.
+templ banner(b Banner) {
+	if b.Destructive {
+		@alert.Alert(alert.Props{ID: "page-banner", Variant: alert.VariantDestructive}) {
+			@icon.CircleAlert()
+			@bannerBody(b)
+		}
+	} else {
+		@alert.Alert(alert.Props{ID: "page-banner", Class: "bg-card text-warning *:data-[slot=alert-description]:text-warning"}) {
+			@icon.TriangleAlert()
+			@bannerBody(b)
+		}
+	}
+}
+
+templ bannerBody(b Banner) {
+	@alert.Title() {
+		{ b.Text }
+	}
+	if b.Href != "" {
+		@alert.Description() {
+			<a href={ templ.SafeURL(b.Href) } class="underline underline-offset-4">{ cmp.Or(b.LinkText, b.Href) }</a>
 		}
 	}
 }

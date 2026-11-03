@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -146,5 +148,94 @@ func TestShellRendersANavItemWithoutAnIcon(t *testing.T) {
 	}
 	if !strings.Contains(b.String(), "No icon") {
 		t.Error("item missing")
+	}
+}
+
+func TestActiveNavItem(t *testing.T) {
+	groups := []NavGroup{{Items: []NavItem{
+		{Label: "Home", Href: "/"},
+		{Label: "Apps", Href: "/apps"},
+		{Label: "Releases", Href: "/apps/releases"},
+		{Label: "Help", Href: "/help", Children: []NavItem{{Label: "Guides", Href: "/help/guides"}}},
+	}}}
+	tests := []struct{ cur, want string }{
+		{"/", "/"},
+		{"/apps", "/apps"},
+		{"/apps/payments", "/apps"},             // a page below an item
+		{"/apps/releases/42", "/apps/releases"}, // the longest match wins over /apps
+		{"/apps-old", ""},                       // a segment prefix, not a string prefix
+		{"/help/guides/deploy", "/help/guides"}, // sub-items match like items
+		{"/settings", ""},                       // "/" matches only itself
+		{"", ""},
+	}
+	for _, tt := range tests {
+		if got := activeHref(groups, tt.cur); got != tt.want {
+			t.Errorf("activeHref(%q) = %q, want %q", tt.cur, got, tt.want)
+		}
+	}
+}
+
+func TestShellNavChildren(t *testing.T) {
+	page := ShellProps{Title: "T", CurrentPath: "/help/guides", Nav: []NavItem{
+		{Label: "Apps", Href: "/apps", Icon: templ.NopComponent},
+		{Label: "Help", Href: "/help", Icon: templ.NopComponent, Children: []NavItem{
+			{Label: "Guides", Href: "/help/guides"},
+			{Label: "FAQ", Href: "/help/faq"},
+		}},
+	}}
+	html := render(t, Shell(page))
+	if n := strings.Count(html, `data-slot="sidebar-menu-sub-button"`); n != 2 {
+		t.Fatalf("%d sub-items, want 2", n)
+	}
+	// The sub-list hides when the sidebar collapses to icons.
+	if !strings.Contains(html, `data-slot="sidebar-menu-sub"`) || !strings.Contains(html, "group-data-[collapsible=icon]:hidden") {
+		t.Error("sub-items are not in a sidebar sub-menu")
+	}
+	// The active sub-item and its parent are marked; nothing else is.
+	var active []string
+	for _, m := range regexp.MustCompile(`<a [^>]*>`).FindAllString(html, -1) {
+		if regexp.MustCompile(`\sdata-active[\s>]`).MatchString(m) {
+			active = append(active, regexp.MustCompile(`href="([^"]*)"`).FindStringSubmatch(m)[1])
+		}
+	}
+	if want := []string{"/help", "/help/guides"}; !slices.Equal(active, want) {
+		t.Errorf("active links %v, want %v", active, want)
+	}
+}
+
+func TestShellBanner(t *testing.T) {
+	page := ShellProps{Title: "T", Nav: []NavItem{{Label: "A", Href: "/a"}}}
+	shell := func(b *Banner) string {
+		var s strings.Builder
+		ctx := context.Background()
+		if b != nil {
+			ctx = WithBanner(ctx, func() *Banner { return b })
+		}
+		if err := Shell(page).Render(ctx, &s); err != nil {
+			t.Fatal(err)
+		}
+		return s.String()
+	}
+	if strings.Contains(shell(nil), `id="page-banner"`) {
+		t.Error("no banner set, but one rendered")
+	}
+	warn := shell(&Banner{Text: "Deploys are paused.", LinkText: "Status", Href: "/status"})
+	for _, want := range []string{`id="page-banner"`, "text-warning", "lucide-triangle-alert", "Deploys are paused.", `href="/status"`, ">Status</a>"} {
+		if !strings.Contains(warn, want) {
+			t.Errorf("warning banner lacks %s", want)
+		}
+	}
+	bad := shell(&Banner{Destructive: true, Text: "The cluster is unreachable."})
+	for _, want := range []string{"text-destructive", "lucide-circle-alert", "The cluster is unreachable."} {
+		if !strings.Contains(bad, want) {
+			t.Errorf("destructive banner lacks %s", want)
+		}
+	}
+	if strings.Contains(bad[strings.Index(bad, `id="page-banner"`):], `data-slot="alert-description"`) {
+		t.Error("a banner without Href should render no link line")
+	}
+	// The banner sits in the page column, before the page's content.
+	if strings.Index(warn, `id="page-banner"`) < strings.Index(warn, `id="main"`) {
+		t.Error("banner is outside #main")
 	}
 }

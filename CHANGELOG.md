@@ -6,6 +6,17 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
+## Unreleased
+
+**Added**
+
+- `NavItem.Children`: sub-items listed under a sidebar item, always expanded, hidden when the sidebar collapses to icons.
+- `patterns.Banner`, `WithBanner` and `BannerFrom`: a page-wide notice (warning, or destructive) that `Shell` shows above the page's content, with an optional link. Set it in middleware. An app that rendered its own banner above `Shell`'s children moves it here.
+
+**Changed**
+
+- `Shell` marks the item whose `Href` is the longest match for `CurrentPath`, the path itself or a segment prefix of it, instead of only an exact match: `/apps/payments` now marks `/apps`. `/` still matches only itself. Nothing to change unless a page relied on no item being marked below an item's path.
+
 ## v0.1.0 (3 Nov 2026)
 
 The first release, and the first one apps import as a Go module instead of copying. Apps that copied `components/`, `patterns/` and the assets: follow `docs/migrate-to-module.md`.
