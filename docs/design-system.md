@@ -72,7 +72,7 @@ These are shadcn-templ components, themed. Each card shows the markup the compon
 - **Navigation:** Sidebar, Breadcrumb, Tabs, Pagination, Accordion
 - **Data display:** Card, Table, Chart, Badge, Avatar, Item, Kbd, Separator
 - **Feedback:** Alert, Toast, Progress, Spinner, Skeleton, Empty
-- **Overlays:** Dialog, AlertDialog, Sheet, DropdownMenu, Tooltip
+- **Overlays:** Dialog, AlertDialog, Sheet, DropdownMenu, Popover, HoverCard, Tooltip
 - **Patterns** (`github.com/tilraunastofan/ads2/patterns`, see `docs/patterns.md`): `Shell`, `PageHeader`, `Stat`, `StatusBadge`, `DataCard`, `ThemeToggle`, number and date formatting, and the Dashboard page composition
 
 Every component above is installed in this repo (DatePicker is Popover + Calendar), as is AspectRatio. Other shadcn-templ components (Command, HoverCard, Drawer, ContextMenu, Menubar, NavigationMenu, Carousel, Resizable, ScrollArea, Collapsible) inherit the same theme with no extra rules. Use them as shadcn documents them.
