@@ -12,6 +12,7 @@ import (
 	"github.com/tilraunastofan/ads2/components/dropdownmenu"
 	"github.com/tilraunastofan/ads2/components/empty"
 	"github.com/tilraunastofan/ads2/components/field"
+	"github.com/tilraunastofan/ads2/components/hovercard"
 	"github.com/tilraunastofan/ads2/components/icon"
 	"github.com/tilraunastofan/ads2/components/input"
 	"github.com/tilraunastofan/ads2/components/inputgroup"
@@ -177,7 +178,7 @@ templ AppRow(a App) {
 			{ a.Env }
 		}
 		@table.Cell(table.CellProps{Class: "font-mono text-code"}) {
-			{ a.Version }
+			@VersionCard(a)
 		}
 		@table.Cell() {
 			@HealthBadge(a.Health)
@@ -186,6 +187,26 @@ templ AppRow(a App) {
 			@RowActions(a)
 		}
 	}
+}
+
+// VersionCard shows what a version is on hover or focus. The card is portaled
+// to <body>, so the cell's whitespace-nowrap and the table's scroll container
+// don't reach it; long values still need break-all.
+templ VersionCard(a App) {
+	@hovercard.HoverCard() {
+		<span class="underline decoration-dotted underline-offset-4" tabindex="0" { hovercard.Trigger(ctx)... }>{ a.Version }</span>
+		@hovercard.Content(hovercard.ContentProps{Class: "w-80", Align: hovercard.AlignStart}) {
+			<div class="flex flex-col gap-1 text-body-sm">
+				<div class="font-medium">{ a.Name } { a.Version }</div>
+				<div class="font-mono text-code break-all text-muted-foreground">{ imageRef(a) }</div>
+				<p class="text-muted-foreground">Deployed to { a.Env } by the release pipeline. Open the row's menu to roll back.</p>
+			</div>
+		}
+	}
+}
+
+func imageRef(a App) string {
+	return "registry.ocp-prod-1.arion.local/platform/" + a.Name + "@sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 }
 
 templ HealthBadge(h string) {

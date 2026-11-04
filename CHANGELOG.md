@@ -6,6 +6,14 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
+## v0.1.5 (4 Nov 2026)
+
+**Added**
+
+- `components/hovercard` (shadcn-templ's `hover-card`, Base UI's PreviewCard): read-only detail on hover or focus, portaled to `<body>` so table cells and scroll containers don't clip or squeeze it. See `docs/components/HoverCard.md`; the showcase's `/apps` version column uses it. The component script bundle is now `assets/js/shadcn-templ-85e9a7167c0ea409.js`; `components.Scripts()` links it.
+
+Nothing to change in apps: `go get -u`, then rebuild the CSS (`go tool ads2css` picks up the new component's classes).
+
 ## v0.1.4 (4 Nov 2026)
 
 **Fixed**

@@ -9,5 +9,5 @@ A short label on hover/focus: `tooltip.Tooltip`, `tooltip.Trigger(ctx)`, `toolti
 }
 ```
 
-- Names icon-only buttons and truncated values. Never holds information that exists nowhere else, and never interactive content (use `popover`).
+- Names icon-only buttons and truncated values. Never holds information that exists nowhere else, and never interactive content (use `popover`). Several lines of read-only detail go in a `hovercard`.
 - Inverted colours: `foreground` fill with `background` text.
