@@ -2,6 +2,7 @@ package patterns
 
 import (
 	"cmp"
+	"slices"
 
 	"github.com/tilraunastofan/ads2/components"
 	"github.com/tilraunastofan/ads2/components/alert"
@@ -34,6 +35,13 @@ type ShellProps struct {
 	Nav         []NavItem  // single-group form: its items
 	CurrentPath string     // marks the active item: the one whose Href is the longest match (the path or a segment prefix of it)
 	Lang        string     // defaults to "en"
+	Footer      []NavItem  // pinned to the bottom of the sidebar, below the scrolling groups (About, Account)
+	FooterNote  string     // small muted line under Footer, such as the version; hidden when the sidebar is collapsed
+}
+
+// navGroups is every group the active item is chosen from: the groups and the footer.
+func (p ShellProps) navGroups() []NavGroup {
+	return slices.Concat(p.groups(), []NavGroup{{Items: p.Footer}})
 }
 
 func (p ShellProps) groups() []NavGroup {
@@ -128,8 +136,8 @@ templ Shell(p ShellProps) {
 						</span>
 					</a>
 				}
+				{{ active := activeHref(p.navGroups(), p.CurrentPath) }}
 				@sidebar.Content() {
-					{{ active := activeHref(p.groups(), p.CurrentPath) }}
 					for _, g := range p.groups() {
 						@sidebar.Group() {
 							if g.Label != "" {
@@ -137,29 +145,18 @@ templ Shell(p ShellProps) {
 									{ g.Label }
 								}
 							}
-							@sidebar.Menu(sidebar.MenuProps{Class: "gap-1 group-data-[collapsible=icon]:items-center"}) {
-								for _, it := range g.Items {
-									@sidebar.MenuItem() {
-										@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: itemActive(it, active), Tooltip: it.Label}) {
-											if it.Icon != nil {
-												@it.Icon
-											}
-											<span>{ it.Label }</span>
-										}
-										if len(it.Children) > 0 {
-											@sidebar.MenuSub() {
-												for _, c := range it.Children {
-													@sidebar.MenuSubItem() {
-														@sidebar.MenuSubButton(sidebar.MenuSubButtonProps{Href: c.Href, IsActive: c.Href == active}) {
-															<span>{ c.Label }</span>
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
+							@navMenu(g.Items, active)
+						}
+					}
+				}
+				// The footer sits outside the scrolling Content, so it stays at the bottom.
+				if len(p.Footer) > 0 || p.FooterNote != "" {
+					@sidebar.Footer() {
+						if len(p.Footer) > 0 {
+							@navMenu(p.Footer, active)
+						}
+						if p.FooterNote != "" {
+							<p class="truncate px-2 text-caption text-muted-foreground group-data-[collapsible=icon]:hidden">{ p.FooterNote }</p>
 						}
 					}
 				}
@@ -223,4 +220,32 @@ templ SkipLink(lang string) {
 	>
 		{ labelsFor(lang).SkipToContent }
 	</a>
+}
+
+// navMenu is one sidebar menu: each item with its icon, tooltip and active state,
+// and its Children as an always-open sub-list.
+templ navMenu(items []NavItem, active string) {
+	@sidebar.Menu(sidebar.MenuProps{Class: "gap-1 group-data-[collapsible=icon]:items-center"}) {
+		for _, it := range items {
+			@sidebar.MenuItem() {
+				@sidebar.MenuButton(sidebar.MenuButtonProps{Href: it.Href, IsActive: itemActive(it, active), Tooltip: it.Label}) {
+					if it.Icon != nil {
+						@it.Icon
+					}
+					<span>{ it.Label }</span>
+				}
+				if len(it.Children) > 0 {
+					@sidebar.MenuSub() {
+						for _, c := range it.Children {
+							@sidebar.MenuSubItem() {
+								@sidebar.MenuSubButton(sidebar.MenuSubButtonProps{Href: c.Href, IsActive: c.Href == active}) {
+									<span>{ c.Label }</span>
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

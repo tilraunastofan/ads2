@@ -254,3 +254,49 @@ func TestShellInsetCanShrink(t *testing.T) {
 		t.Errorf("sidebar inset lacks min-w-0: %s", tag)
 	}
 }
+
+func TestShellFooter(t *testing.T) {
+	page := ShellProps{
+		Title:       "T",
+		CurrentPath: "/about",
+		Nav:         []NavItem{{Label: "Apps", Href: "/apps", Icon: templ.NopComponent}},
+		Footer:      []NavItem{{Label: "About", Href: "/about", Icon: templ.NopComponent}},
+		FooterNote:  "Version 1.2.3 (abc1234)",
+	}
+	html := render(t, Shell(page))
+	_, footer, ok := strings.Cut(html, `data-slot="sidebar-footer"`)
+	if !ok {
+		t.Fatal("no sidebar footer")
+	}
+	// The footer comes after the scrolling content, so it stays at the bottom.
+	if strings.Index(html, `data-slot="sidebar-content"`) > strings.Index(html, `data-slot="sidebar-footer"`) {
+		t.Error("footer is not after the sidebar content")
+	}
+	if !strings.Contains(footer, `href="/about"`) || strings.Contains(footer, `href="/apps"`) {
+		t.Error("the footer should hold the footer items and only those")
+	}
+	// The note is muted and hidden on the collapsed rail, where it does not fit.
+	if !regexp.MustCompile(`<p class="[^"]*text-muted-foreground[^"]*group-data-\[collapsible=icon\]:hidden[^"]*">Version 1.2.3 \(abc1234\)</p>`).MatchString(footer) {
+		t.Error("footer note missing, not muted, or not hidden when collapsed")
+	}
+	// A footer item is marked active like any other; nothing else is.
+	var active []string
+	for _, m := range regexp.MustCompile(`<a [^>]*>`).FindAllString(html, -1) {
+		if regexp.MustCompile(`\sdata-active[\s>]`).MatchString(m) {
+			active = append(active, regexp.MustCompile(`href="([^"]*)"`).FindStringSubmatch(m)[1])
+		}
+	}
+	if want := []string{"/about"}; !slices.Equal(active, want) {
+		t.Errorf("active links %v, want %v", active, want)
+	}
+
+	// Without Footer and FooterNote nothing is added, so existing apps look the same.
+	if bare := render(t, Shell(ShellProps{Title: "T", Nav: page.Nav})); strings.Contains(bare, `data-slot="sidebar-footer"`) {
+		t.Error("empty Footer and FooterNote should render no sidebar footer")
+	}
+	// The note alone renders without an empty menu.
+	noteOnly := render(t, Shell(ShellProps{Title: "T", Nav: page.Nav, FooterNote: "Version dev"}))
+	if _, f, _ := strings.Cut(noteOnly, `data-slot="sidebar-footer"`); !strings.Contains(f, "Version dev") || strings.Contains(f, `data-slot="sidebar-menu"`) {
+		t.Error("a note without items should render the note and no menu")
+	}
+}
