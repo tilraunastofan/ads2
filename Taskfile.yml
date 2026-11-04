@@ -26,7 +26,15 @@ tasks:
     env:
       SHADCN_TEMPL_DEV: "true"
     cmds:
+      # The script watcher writes the committed bundle unminified (same file
+      # name); put the minified one back when dev stops, Ctrl-C included.
+      - defer: { task: clean }
       - task --parallel tailwind scripts templ
+
+  clean:
+    desc: Put back the committed build files a dev session rewrote (the minified script bundle)
+    cmds:
+      - go tool shadcn-templ bundle
 
   build:
     desc: Production build to bin/showcase
@@ -42,6 +50,9 @@ tasks:
     cmds:
       - go run ./cmd/gentheme -check
       - go tool templ generate
+      # Rebuild the bundle minified, so a committed dev (unminified) bundle shows
+      # as changed below instead of shipping to every app.
+      - go tool shadcn-templ bundle
       # git status, not git diff: a new .templ whose _templ.go was never committed
       # shows as untracked, which git diff ignores, and a fresh clone wouldn't build.
       - |
