@@ -6,6 +6,14 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
+## Unreleased
+
+**Fixed**
+
+- `filter-form.js`: a live-search input (`hx-trigger="input changed delay:300ms, search"`) inside a `form[data-filter-form]` sent its request while typing, and the native `change` on blur then made the form refetch the same request and, with `hx-push-url`, push a duplicate history entry (Back needed two presses). The script now refreshes its snapshot on `htmx:before:request` from any element in the form.
+
+Nothing to change in apps: `go get -u`.
+
 ## v0.1.5 (4 Nov 2026)
 
 **Added**
