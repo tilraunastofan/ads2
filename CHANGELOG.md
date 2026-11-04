@@ -6,6 +6,15 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
+## v0.1.4 (4 Nov 2026)
+
+**Fixed**
+
+- `Shell`: a wide table or code block made the whole page scroll sideways at tablet width (768px, sidebar open) instead of scrolling inside its card. The sidebar inset now has `min-w-0`.
+- `PageHeader`: a long title without spaces (`IsIT.AML.Services`) ran off a phone screen; it now wraps (`break-words`, and `min-w-0` on its column).
+
+Nothing to change in apps: `go get -u`, then rebuild the CSS.
+
 ## v0.1.3 (3 Nov 2026)
 
 **Fixed**

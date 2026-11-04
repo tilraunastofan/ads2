@@ -450,7 +450,7 @@ func TestNavLabelsMatchPageTitles(t *testing.T) {
 			t.Errorf("sidebar says %q for %s, page is %q", it.Label, it.Href, want)
 		}
 		body := get(h, it.Href).Body.String()
-		if !strings.Contains(body, `<h1 tabindex="-1" class="font-display text-display-sm outline-none">`+want+`</h1>`) {
+		if !strings.Contains(body, `<h1 tabindex="-1" class="font-display text-display-sm break-words outline-none">`+want+`</h1>`) {
 			t.Errorf("%s: title is not %q", it.Href, want)
 		}
 	}

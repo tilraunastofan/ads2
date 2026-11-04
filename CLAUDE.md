@@ -64,6 +64,7 @@ Verified in Chrome against `task dev`: search filters rows; the row menu's Resta
 **Tooling**
 - `go tool templ generate && go mod tidy`, then `go build ./... && go vet ./...`, after any `.templ` edit or `shadcn-templ add`.
 - Don't edit `components/` or `assets/css/arion-theme.css`; change `tokens/tokens.json` and run `task theme`.
+- `utils/shadcn-templ.go` is vendored with one local change: `CN` merges with `merge` from `utils/typescale.go` (tailwind-merge that knows the type scale), not `twmerge.Merge`. Keep it when an upgrade rewrites the file; `TestCNKeepsTypeScaleAndColour` fails if it is lost. A new type-scale size goes in `typeScale` there (`TestTypeScaleMatchesTheme`).
 - `task dev` needs :8090 and :7331 free. If it fails to bind, check `lsof -nP -iTCP:8090 -sTCP:LISTEN` before assuming a code problem, and don't kill processes you didn't start.
 - Charts: set colours on the series (`Fill: "var(--chart-1)"`), never `chart.Config.Color`; a config colour makes the container write an inline `<style>`, which the CSP (`style-src 'self'`) blocks.
 - Calendar and DatePicker: weeks start Monday (`calendar.Monday`); `Locale` `en-GB` on English pages, `is` on Icelandic ones. Dates in text come from `patterns.Date` / `DateRange`.

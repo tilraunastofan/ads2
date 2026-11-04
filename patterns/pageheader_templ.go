@@ -173,14 +173,14 @@ func PageHeader(p PageHeaderProps) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flex flex-wrap items-end justify-between gap-4\"><div><h1 tabindex=\"-1\" class=\"font-display text-display-sm outline-none\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flex flex-wrap items-end justify-between gap-4\"><div class=\"min-w-0 max-w-full\"><h1 tabindex=\"-1\" class=\"font-display text-display-sm break-words outline-none\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/pageheader.templ`, Line: 48, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/pageheader.templ`, Line: 50, Col: 93}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -198,7 +198,7 @@ func PageHeader(p PageHeaderProps) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(p.Status)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/pageheader.templ`, Line: 50, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `patterns/pageheader.templ`, Line: 52, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
