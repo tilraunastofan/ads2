@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-
-	twmerge "github.com/Oudwins/tailwind-merge-go"
 )
 
 // CN combines Tailwind classes and resolves conflicts (definition below).
@@ -128,7 +126,8 @@ func CN(classes ...any) string {
 		merged[i] = twMapTokens(twV4Var.ReplaceAllString(c, "-[var($1)]"), twImportantToV3)
 	}
 	input := strings.Join(merged, " ")
-	out := twMapTokens(twReorder(input, twmerge.Merge(merged...)), twImportantToV4)
+	// merge, not twmerge.Merge: it knows the Arion type scale (typescale.go).
+	out := twMapTokens(twReorder(input, merge(merged...)), twImportantToV4)
 	return twV3Var.ReplaceAllString(out, "-($1)")
 }
 

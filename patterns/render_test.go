@@ -58,7 +58,7 @@ func TestPageHeader(t *testing.T) {
 		t.Errorf("%d <h1>, want exactly one", n)
 	}
 	// tabindex="-1": focus-after-swap.js focuses it after a boosted navigation.
-	if !strings.Contains(html, `<h1 tabindex="-1" class="font-display text-display-sm outline-none">Releases</h1>`) {
+	if !strings.Contains(html, `<h1 tabindex="-1" class="font-display text-display-sm break-words outline-none">Releases</h1>`) {
 		t.Error("title is not the display style")
 	}
 	if !strings.Contains(html, `href="/"`) || !strings.Contains(html, `href="/apps"`) {
@@ -237,5 +237,20 @@ func TestShellBanner(t *testing.T) {
 	// The banner sits in the page column, before the page's content.
 	if strings.Index(warn, `id="page-banner"`) < strings.Index(warn, `id="main"`) {
 		t.Error("banner is outside #main")
+	}
+}
+
+// A wide table or code block scrolls inside its card instead of widening the
+// page: the inset can shrink below its content (min-w-0 on a flex item).
+func TestShellInsetCanShrink(t *testing.T) {
+	html := render(t, Shell(ShellProps{Title: "T", Nav: []NavItem{{Label: "A", Href: "/a"}}}))
+	i := strings.Index(html, `data-slot="sidebar-inset"`)
+	if i < 0 {
+		t.Fatal("no sidebar inset")
+	}
+	tag := html[strings.LastIndex(html[:i], "<"):]
+	tag = tag[:strings.Index(tag, ">")]
+	if !strings.Contains(tag, "min-w-0") {
+		t.Errorf("sidebar inset lacks min-w-0: %s", tag)
 	}
 }

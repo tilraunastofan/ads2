@@ -42,10 +42,12 @@ templ PageHeader(p PageHeaderProps) {
 			}
 		}
 		<div class="flex flex-wrap items-end justify-between gap-4">
-			<div>
+			// min-w-0 and break-words: a long name without spaces (IsIT.AML.Services)
+			// wraps instead of running off a phone screen.
+			<div class="min-w-0 max-w-full">
 				// tabindex="-1": focus-after-swap.js moves focus here after a boosted
 				// navigation, so a screen reader announces the new page.
-				<h1 tabindex="-1" class="font-display text-display-sm outline-none">{ p.Title }</h1>
+				<h1 tabindex="-1" class="font-display text-display-sm break-words outline-none">{ p.Title }</h1>
 				if p.Status != "" {
 					<p class="mt-1 text-body-sm text-muted-foreground">{ p.Status }</p>
 				}

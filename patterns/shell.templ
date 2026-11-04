@@ -164,7 +164,9 @@ templ Shell(p ShellProps) {
 					}
 				}
 			}
-			@sidebar.Inset() {
+			// min-w-0: a flex item is never narrower than its content, so without it a
+			// wide table or code block widens the whole page instead of scrolling in its card.
+			@sidebar.Inset(sidebar.InsetProps{Class: "min-w-0"}) {
 				<header class="flex h-14 items-center justify-between gap-2 border-b px-4">
 					@sidebar.Trigger(sidebar.TriggerProps{Attributes: templ.Attributes{"aria-label": labelsFor(p.Lang).ToggleSidebar}})
 					@ThemeToggle(p.Lang)
