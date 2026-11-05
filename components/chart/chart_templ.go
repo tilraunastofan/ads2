@@ -2022,7 +2022,13 @@ func buildModel(ctx context.Context, st *chartState) Model {
 		m.Stacked = stacked
 	} else if st.kind == "line" {
 		for _, l := range st.lines {
-			s := modelSeries(config, l.props.DataKey, "", 0, st.data)
+			// The stroke is the line's color for legend and tooltip, like
+			// Recharts' getLegendItemColor; "none" falls back to the series.
+			color := l.props.Stroke
+			if color == "none" {
+				color = ""
+			}
+			s := modelSeries(config, l.props.DataKey, color, 0, st.data)
 			s.Hidden = l.props.Hide
 			s.Curve = string(l.props.Type)
 			s.Stroke = l.props.Stroke
@@ -2492,7 +2498,7 @@ func legendContent(items []LegendItem, p *LegendProps) templ.Component {
 				var templ_7745c5c3_Var41 string
 				templ_7745c5c3_Var41, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("background-color:" + it.Color)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chart/chart.templ`, Line: 1683, Col: 88}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chart/chart.templ`, Line: 1689, Col: 88}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 				if templ_7745c5c3_Err != nil {
@@ -2506,7 +2512,7 @@ func legendContent(items []LegendItem, p *LegendProps) templ.Component {
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(it.Label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chart/chart.templ`, Line: 1685, Col: 15}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chart/chart.templ`, Line: 1691, Col: 15}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
