@@ -6,6 +6,14 @@ Versions follow [semver](https://semver.org). Before `v1.0.0` a minor version (`
 
 Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. Keep entries short and concrete: name the function, file or token, and the one thing an app does about it.
 
+## Unreleased
+
+**Fixed**
+
+- `chart.Line`: the legend swatch and the default tooltip indicator ignored `LineProps.Stroke` and read `--color-<key>` from `Config.Color`, so under a strict CSP (no `Config.Color`) they were blank. They now take the stroke, like Recharts' `getLegendItemColor` and as `docs/components/Chart.md` already said; a `Stroke` of `""` or `"none"` still falls back to the series colour.
+
+Nothing to change in apps: `go get -u`. An app that set `--color-<key>` on the container's `Attributes` to colour a line's swatch can drop that.
+
 ## v0.1.8 (4 Nov 2026)
 
 **Added**

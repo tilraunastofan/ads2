@@ -1293,7 +1293,13 @@ func buildModel(ctx context.Context, st *chartState) Model {
 		m.Stacked = stacked
 	} else if st.kind == "line" {
 		for _, l := range st.lines {
-			s := modelSeries(config, l.props.DataKey, "", 0, st.data)
+			// The stroke is the line's color for legend and tooltip, like
+			// Recharts' getLegendItemColor; "none" falls back to the series.
+			color := l.props.Stroke
+			if color == "none" {
+				color = ""
+			}
+			s := modelSeries(config, l.props.DataKey, color, 0, st.data)
 			s.Hidden = l.props.Hide
 			s.Curve = string(l.props.Type)
 			s.Stroke = l.props.Stroke
