@@ -240,6 +240,43 @@ func TestShellBanner(t *testing.T) {
 	}
 }
 
+func TestShellHeaderActions(t *testing.T) {
+	page := ShellProps{Title: "T", Nav: []NavItem{{Label: "A", Href: "/a"}}}
+	shell := func(ctx context.Context) string {
+		var s strings.Builder
+		if err := Shell(page).Render(ctx, &s); err != nil {
+			t.Fatal(err)
+		}
+		return s.String()
+	}
+	if strings.Contains(shell(context.Background()), `id="bell"`) {
+		t.Error("no header actions set, but some rendered")
+	}
+	calls := 0
+	ctx := WithHeaderActions(context.Background(), func() templ.Component {
+		calls++
+		return templ.Raw(`<button id="bell">Notifications</button>`)
+	})
+	html := shell(ctx)
+	if calls != 1 {
+		t.Errorf("f called %d times in one render, want 1", calls)
+	}
+	bell, toggle, header := strings.Index(html, `id="bell"`), strings.Index(html, `data-theme-toggle`), strings.Index(html, "<header")
+	if bell < 0 {
+		t.Fatal("header actions not rendered")
+	}
+	if bell < header || bell > strings.Index(html, "</header>") {
+		t.Error("header actions are outside <header>")
+	}
+	if toggle < 0 || bell > toggle {
+		t.Error("header actions come after the theme toggle")
+	}
+	nilCtx := WithHeaderActions(context.Background(), func() templ.Component { return nil })
+	if strings.Contains(shell(nilCtx), `id="bell"`) {
+		t.Error("nil component rendered")
+	}
+}
+
 // A wide table or code block scrolls inside its card instead of widening the
 // page: the inset can shrink below its content (min-w-0 on a flex item).
 func TestShellInsetCanShrink(t *testing.T) {

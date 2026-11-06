@@ -8,6 +8,10 @@ Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. 
 
 ## Unreleased
 
+**Added**
+
+- `WithHeaderActions(ctx, func() templ.Component)` and `HeaderActionsFrom(ctx)`: an app puts a component (a notifications bell) in `Shell`'s top bar, before the theme toggle. Set it in middleware, like `WithBanner`; the func runs once per render. Unset, the header is unchanged.
+
 **Fixed**
 
 - `chart.Line`: the legend swatch and the default tooltip indicator ignored `LineProps.Stroke` and read `--color-<key>` from `Config.Color`, so under a strict CSP (no `Config.Color`) they were blank. They now take the stroke, like Recharts' `getLegendItemColor` and as `docs/components/Chart.md` already said; a `Stroke` of `""` or `"none"` still falls back to the series colour.

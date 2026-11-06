@@ -166,7 +166,12 @@ templ Shell(p ShellProps) {
 			@sidebar.Inset(sidebar.InsetProps{Class: "min-w-0"}) {
 				<header class="flex h-14 items-center justify-between gap-2 border-b px-4">
 					@sidebar.Trigger(sidebar.TriggerProps{Attributes: templ.Attributes{"aria-label": labelsFor(p.Lang).ToggleSidebar}})
-					@ThemeToggle(p.Lang)
+					<div class="flex items-center gap-2">
+						if a := HeaderActionsFrom(ctx); a != nil {
+							@a
+						}
+						@ThemeToggle(p.Lang)
+					</div>
 				</header>
 				// The sidebar inset is the page's one <main>; this is the skip link's target.
 				<div id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none">
