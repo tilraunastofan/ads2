@@ -249,8 +249,14 @@ func TestShellHeaderActions(t *testing.T) {
 		}
 		return s.String()
 	}
-	if strings.Contains(shell(context.Background()), `id="bell"`) {
+	plain := shell(context.Background())
+	if strings.Contains(plain, `id="bell"`) {
 		t.Error("no header actions set, but some rendered")
+	}
+	// Unset: ThemeToggle stays a direct child of <header>, no wrapper.
+	hdr := plain[strings.Index(plain, "<header"):strings.Index(plain, "</header>")]
+	if strings.Contains(hdr, "gap-2\"><button") || strings.Contains(hdr, "<div") {
+		t.Error("unset header actions added a wrapper to <header>")
 	}
 	calls := 0
 	ctx := WithHeaderActions(context.Background(), func() templ.Component {
@@ -271,9 +277,16 @@ func TestShellHeaderActions(t *testing.T) {
 	if toggle < 0 || bell > toggle {
 		t.Error("header actions come after the theme toggle")
 	}
+	if toggle < header || toggle > strings.Index(html, "</header>") {
+		t.Error("theme toggle is outside <header> when actions are set")
+	}
 	nilCtx := WithHeaderActions(context.Background(), func() templ.Component { return nil })
-	if strings.Contains(shell(nilCtx), `id="bell"`) {
-		t.Error("nil component rendered")
+	headerOf := func(h string) string {
+		// ids are random per render
+		return regexp.MustCompile(`id-[A-Z0-9]+`).ReplaceAllString(h[strings.Index(h, "<header"):strings.Index(h, "</header>")], "")
+	}
+	if headerOf(shell(nilCtx)) != headerOf(plain) {
+		t.Error("nil header actions changed the markup")
 	}
 }
 
