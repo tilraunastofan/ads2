@@ -240,6 +240,56 @@ func TestShellBanner(t *testing.T) {
 	}
 }
 
+func TestShellHeaderActions(t *testing.T) {
+	page := ShellProps{Title: "T", Nav: []NavItem{{Label: "A", Href: "/a"}}}
+	shell := func(ctx context.Context) string {
+		var s strings.Builder
+		if err := Shell(page).Render(ctx, &s); err != nil {
+			t.Fatal(err)
+		}
+		return s.String()
+	}
+	plain := shell(context.Background())
+	if strings.Contains(plain, `id="bell"`) {
+		t.Error("no header actions set, but some rendered")
+	}
+	// Unset: ThemeToggle stays a direct child of <header>, no wrapper.
+	hdr := plain[strings.Index(plain, "<header"):strings.Index(plain, "</header>")]
+	if strings.Contains(hdr, "gap-2\"><button") || strings.Contains(hdr, "<div") {
+		t.Error("unset header actions added a wrapper to <header>")
+	}
+	calls := 0
+	ctx := WithHeaderActions(context.Background(), func() templ.Component {
+		calls++
+		return templ.Raw(`<button id="bell">Notifications</button>`)
+	})
+	html := shell(ctx)
+	if calls != 1 {
+		t.Errorf("f called %d times in one render, want 1", calls)
+	}
+	bell, toggle, header := strings.Index(html, `id="bell"`), strings.Index(html, `data-theme-toggle`), strings.Index(html, "<header")
+	if bell < 0 {
+		t.Fatal("header actions not rendered")
+	}
+	if bell < header || bell > strings.Index(html, "</header>") {
+		t.Error("header actions are outside <header>")
+	}
+	if toggle < 0 || bell > toggle {
+		t.Error("header actions come after the theme toggle")
+	}
+	if toggle < header || toggle > strings.Index(html, "</header>") {
+		t.Error("theme toggle is outside <header> when actions are set")
+	}
+	nilCtx := WithHeaderActions(context.Background(), func() templ.Component { return nil })
+	headerOf := func(h string) string {
+		// ids are random per render
+		return regexp.MustCompile(`id-[A-Z0-9]+`).ReplaceAllString(h[strings.Index(h, "<header"):strings.Index(h, "</header>")], "")
+	}
+	if headerOf(shell(nilCtx)) != headerOf(plain) {
+		t.Error("nil header actions changed the markup")
+	}
+}
+
 // A wide table or code block scrolls inside its card instead of widening the
 // page: the inset can shrink below its content (min-w-0 on a flex item).
 func TestShellInsetCanShrink(t *testing.T) {
