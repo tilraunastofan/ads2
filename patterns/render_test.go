@@ -422,3 +422,48 @@ func TestBaseLoadsClearHistory(t *testing.T) {
 		t.Error("Base does not load clear-history.js with defer")
 	}
 }
+
+// Two renders of the same page must be byte-identical, or a content-hash ETag never
+// matches and a reload never gets a 304. So Shell passes fixed IDs instead of the
+// random ones components fall back to.
+func TestShellRendersStableIDs(t *testing.T) {
+	page := ShellProps{
+		Title:       "T",
+		Product:     "P",
+		CurrentPath: "/apps",
+		Nav: []NavItem{
+			{Label: "Apps", Href: "/apps", Icon: templ.NopComponent, Children: []NavItem{{Label: "Sub", Href: "/apps/sub"}}},
+			{Label: "Other", Href: "/other", Icon: templ.NopComponent},
+		},
+		Footer:     []NavItem{{Label: "About", Href: "/about", Icon: templ.NopComponent}},
+		FooterNote: "v1",
+		Background: ArcticBackground,
+	}
+	first, second := render(t, Shell(page)), render(t, Shell(page))
+	if first != second {
+		a, b := first, second
+		i := 0
+		for i < len(a) && i < len(b) && a[i] == b[i] {
+			i++
+		}
+		t.Fatalf("two renders differ at byte %d:\n%s\n%s", i, a[max(0, i-80):min(len(a), i+80)], b[max(0, i-80):min(len(b), i+80)])
+	}
+	if m := regexp.MustCompile(`id-[A-Z2-7]{26}`).FindString(first); m != "" {
+		t.Errorf("random ID %q in output", m)
+	}
+	// IDs are unique and every ARIA reference points at one.
+	ids := map[string]bool{}
+	for _, m := range regexp.MustCompile(`\sid="([^"]*)"`).FindAllStringSubmatch(first, -1) {
+		if ids[m[1]] {
+			t.Errorf("duplicate id %q", m[1])
+		}
+		ids[m[1]] = true
+	}
+	for _, m := range regexp.MustCompile(`aria-(?:controls|labelledby|describedby)="([^"]*)"`).FindAllStringSubmatch(first, -1) {
+		for _, ref := range strings.Fields(m[1]) {
+			if !ids[ref] {
+				t.Errorf("%s references missing id %q", m[0], ref)
+			}
+		}
+	}
+}
