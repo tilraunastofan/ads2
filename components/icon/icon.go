@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -114,6 +115,11 @@ func attrString(attrs templ.Attributes) string {
 	return b.String()
 }
 
+// betweenTags is the whitespace Lucide's data keeps between elements. SVG
+// ignores it, and it is kept out of the HTML so View source stays one line per
+// icon. icon_data.go is generated, so it is stripped here, not there.
+var betweenTags = regexp.MustCompile(`>\s+<`)
+
 // getIconContent retrieves the raw inner SVG content for a given icon name.
 // It reads from the pre-generated internalSvgData map from icon_data.go.
 func getIconContent(name string) (string, error) {
@@ -121,5 +127,5 @@ func getIconContent(name string) (string, error) {
 	if !exists {
 		return "", fmt.Errorf("icon '%s' not found in internalSvgData map", name)
 	}
-	return content, nil
+	return betweenTags.ReplaceAllString(strings.TrimSpace(content), "><"), nil
 }
