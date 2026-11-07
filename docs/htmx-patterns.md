@@ -19,6 +19,22 @@ Use `patterns.Shell` or `patterns.Base` (see **Setup**). Between them they load 
 
 shadcn-templ's scripts re-initialise components inside swapped content, so dialogs, menus and selects work in fragments (`parity/htmx` in the shadcn-templ repo tests exactly this).
 
+## Extensions the shell loads
+
+`Base` loads three htmx 4 extensions, vendored from the same release as `htmx.min.js` under `/assets/js/ext/`, and configures them in `<meta name="htmx-config" content='{"preload":{"autoBoost":true,"boostEvent":"mouseover"}}'>`. The meta comes before the htmx script (htmx reads it at start) and needs no inline script, so the CSP is unaffected. Don't add another `htmx-config` meta or load these scripts again.
+
+| Extension | What it does |
+| --- | --- |
+| `hx-preload` | Fetches a boosted link's page when the pointer is over it (`mouseover`; touch starts on `touchstart`) and reuses the response if the click comes within 5 s (the default `boostTimeout`). |
+| `hx-history-cache` | Keeps the last 10 pages (the default) in `sessionStorage`, so Back and Forward restore a page without a request. |
+| `hx-ptag` | Per-element polling tags: an element with `hx-ptag` sends the last `HX-PTag` response header back, and the server can answer 304 when nothing changed. |
+
+**A GET behind a boosted link may be fetched on hover.** Such a handler must have no side effects beyond audit logging, and the server should treat a preloaded request like any other. Don't put a state change behind a plain link; use a form with `hx-post`.
+
+**Opting out.** `hx-boost="false"` on a link stops preloading it. `hx-history="false"` anywhere on a page keeps that page out of the history cache. Sign-out should clear the cache: see **Clear history on sign-out**.
+
+**Clear history on sign-out.** `<form method="post" action="/sign-out" data-clear-history>`. `clear-history.js` (loaded by `Base`) removes the `htmx-history-*` entries from `sessionStorage` when the form is submitted, so Back after the next sign-in can't show the previous user's pages. Other `sessionStorage` keys stay. Put the attribute on every sign-out form; pages without one are unaffected.
+
 ## Recipes
 
 **Inline validation (field):** post the form, return 422 with the same `field.Field`s re-rendered with `data-invalid` and `field.Error`.

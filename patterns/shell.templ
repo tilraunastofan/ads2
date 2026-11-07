@@ -76,7 +76,10 @@ func (p ShellProps) groups() []NavGroup {
 
 // Base is the HTML document: the two fonts every page shows, preloaded so they
 // download alongside the CSS instead of after it; the font and theme CSS; theme.js
-// (before paint, so no flash); vendored htmx 4; toast-guard.js (works around a
+// (before paint, so no flash); the htmx-config meta (preload on hover for boosted
+// links; it must come before htmx); vendored htmx 4 and its extensions hx-preload,
+// hx-history-cache and hx-ptag (assets/js/ext/); clear-history.js (form[data-clear-history] empties the history
+// cache on submit); toast-guard.js (works around a
 // toast freeze on boosted navigation); filter-form.js (form[data-filter-form]
 // fires filter-change when its values change); request-errors.js (a toast for
 // network failures and unhandled 5xx); dialog-form.js (form[data-close-on-success]
@@ -100,7 +103,12 @@ templ Base(title, lang string) {
 			<link rel="stylesheet" href="/assets/css/fonts.css"/>
 			<link rel="stylesheet" href="/assets/css/output.css"/>
 			<script src="/assets/js/theme.js"></script>
+			<meta name="htmx-config" content='{"preload":{"autoBoost":true,"boostEvent":"mouseover"}}'/>
 			<script src="/assets/js/htmx.min.js" defer></script>
+			<script src="/assets/js/ext/hx-preload.js" defer></script>
+			<script src="/assets/js/ext/hx-history-cache.js" defer></script>
+			<script src="/assets/js/ext/hx-ptag.js" defer></script>
+			<script src="/assets/js/clear-history.js" defer></script>
 			<script src="/assets/js/toast-guard.js" defer></script>
 			<script src="/assets/js/filter-form.js" defer></script>
 			<script src="/assets/js/request-errors.js" defer></script>

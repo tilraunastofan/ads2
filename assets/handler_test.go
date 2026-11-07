@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -47,11 +48,20 @@ func TestEmbeddedAssetsAreComplete(t *testing.T) {
 	for _, p := range []string{
 		"/css/fonts.css", "/css/ads2.css", "/js/theme.js", "/js/htmx.min.js", "/js/toast-guard.js",
 		"/js/filter-form.js", "/js/request-errors.js", "/js/dialog-form.js", "/js/datepicker.js",
-		"/js/focus-after-swap.js", "/js/copy.js", "/js/submit-once.js", "/img/arion-mark-favicon.svg",
+		"/js/focus-after-swap.js", "/js/copy.js", "/js/submit-once.js", "/js/clear-history.js", "/img/arion-mark-favicon.svg",
 		"/fonts/hanken-grotesk-latin-wght-normal.woff2", "/fonts/source-serif-4-latin-wght-normal.woff2",
 	} {
 		if w := serve(h, p); w.Code != 200 {
 			t.Errorf("%s: status %d", p, w.Code)
+		}
+	}
+}
+
+func TestHtmxExtensionsAreEmbedded(t *testing.T) {
+	for _, name := range []string{"hx-preload", "hx-history-cache", "hx-ptag"} {
+		b, err := fs.ReadFile(Assets, "js/ext/"+name+".js")
+		if err != nil || len(b) == 0 {
+			t.Errorf("js/ext/%s.js: %d bytes, err %v", name, len(b), err)
 		}
 	}
 }

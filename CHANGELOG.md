@@ -10,6 +10,10 @@ Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. 
 
 **Added**
 
+- `patterns.Base` loads the htmx 4 extensions `hx-preload`, `hx-history-cache` and `hx-ptag` (vendored in `assets/js/ext/`) and an `htmx-config` meta that turns on preload for boosted links on `mouseover`. Boosted links are fetched when the pointer reaches them, and Back/Forward restores pages from `sessionStorage` (see **Extensions the shell loads** in `docs/htmx-patterns.md`). A GET behind a boosted link may now run on hover, so it must have no side effects beyond audit logging. An app that loads these extensions or sets `htmx-config` itself drops its own copy.
+
+- `assets/js/clear-history.js`, loaded by `patterns.Base`: `form[data-clear-history]` empties the history cache (`sessionStorage` keys starting `htmx-history-`) when submitted. Put it on the sign-out form so Back doesn't show the previous user's pages (see **Clear history on sign-out**).
+
 - `ShellProps.Background` (`Background{Light, Dark}`) and `ArcticBackground`: a decorative image behind the page content, below the top bar, that follows the theme (`Light` in light mode, `Dark` under `.dark`; one set shows in both). `ArcticBackground` uses the new `assets/img/arctic-background.svg` and `arctic-background-light.svg`, the Arion arctic landscape without the star. For calm pages (home, help, about), not data pages. Unset, the shell is unchanged.
 
 - `WithHeaderActions(ctx, func() templ.Component)` and `HeaderActionsFrom(ctx)`: an app puts a component (a notifications bell) in `Shell`'s top bar, before the theme toggle. Set it in middleware, like `WithBanner`; the func runs once per render. Unset, the header is unchanged.

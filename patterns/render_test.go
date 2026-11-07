@@ -394,3 +394,31 @@ func TestShellBackground(t *testing.T) {
 		t.Error("a single image should show in both themes")
 	}
 }
+
+func TestBaseLoadsHtmxExtensions(t *testing.T) {
+	html := render(t, Base("t", "en"))
+	meta := `<meta name="htmx-config" content='{"preload":{"autoBoost":true,"boostEvent":"mouseover"}}'`
+	m := strings.Index(html, meta)
+	h := strings.Index(html, `src="/assets/js/htmx.min.js"`)
+	if m < 0 {
+		t.Fatalf("Base lacks %s", meta)
+	}
+	if h < 0 || m > h {
+		t.Error("the htmx-config meta must come before the htmx script")
+	}
+	for _, name := range []string{"hx-preload", "hx-history-cache", "hx-ptag"} {
+		src := `src="/assets/js/ext/` + name + `.js" defer`
+		i := strings.Index(html, src)
+		if i < 0 {
+			t.Errorf("Base lacks %s", src)
+		} else if i < h {
+			t.Errorf("%s loads before htmx.min.js", name)
+		}
+	}
+}
+
+func TestBaseLoadsClearHistory(t *testing.T) {
+	if html := render(t, Base("t", "en")); !strings.Contains(html, `src="/assets/js/clear-history.js" defer`) {
+		t.Error("Base does not load clear-history.js with defer")
+	}
+}
