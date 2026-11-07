@@ -26,7 +26,7 @@ func nearest(path string) patterns.NavItem {
 // way back, to the section the path points into.
 templ NotFound(path string) {
 	{{ back := nearest(path) }}
-	@layouts.App("Page not found", "") {
+	@layouts.Calm("Page not found", "") {
 		@patterns.PageHeader(patterns.PageHeaderProps{
 			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Page not found"}},
 			Title:  "Page not found",
@@ -45,7 +45,7 @@ templ NotFound(path string) {
 // ServerError is the page for a request that failed on the server: same layout as
 // NotFound, one way back. htmx requests get a toast instead (cmd/showcase recover).
 templ ServerError() {
-	@layouts.App("Something went wrong", "") {
+	@layouts.Calm("Something went wrong", "") {
 		@patterns.PageHeader(patterns.PageHeaderProps{
 			Crumbs: []patterns.Crumb{{Label: "Platform", Href: "/"}, {Label: "Something went wrong"}},
 			Title:  "Something went wrong",

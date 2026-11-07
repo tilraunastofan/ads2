@@ -10,6 +10,8 @@ Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. 
 
 **Added**
 
+- `ShellProps.Background` (`Background{Light, Dark}`) and `ArcticBackground`: a decorative image behind the page content, below the top bar, that follows the theme (`Light` in light mode, `Dark` under `.dark`; one set shows in both). `ArcticBackground` uses the new `assets/img/arctic-background.svg` and `arctic-background-light.svg`, the Arion arctic landscape without the star. For calm pages (home, help, about), not data pages. Unset, the shell is unchanged.
+
 - `WithHeaderActions(ctx, func() templ.Component)` and `HeaderActionsFrom(ctx)`: an app puts a component (a notifications bell) in `Shell`'s top bar, before the theme toggle. Set it in middleware, like `WithBanner`; the func runs once per render. Unset, the header is unchanged.
 
 **Fixed**

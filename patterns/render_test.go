@@ -350,3 +350,47 @@ func TestShellFooter(t *testing.T) {
 		t.Error("a note without items should render the note and no menu")
 	}
 }
+
+func TestShellBackground(t *testing.T) {
+	shell := func(b Background) string {
+		return render(t, Shell(ShellProps{Title: "T", Background: b}))
+	}
+	mainTag := func(html string) string {
+		_, rest, _ := strings.Cut(html, `<div id="main"`)
+		return rest[:strings.Index(rest, ">")]
+	}
+
+	none := shell(Background{})
+	if strings.Contains(none, "data-shell-background") || strings.Contains(mainTag(none), "relative") {
+		t.Error("no background set, but the shell changed")
+	}
+
+	both := shell(ArcticBackground)
+	for _, want := range []string{
+		`src="/assets/img/arctic-background-light.svg" alt="" aria-hidden="true" data-shell-background="light"`,
+		`src="/assets/img/arctic-background.svg" alt="" aria-hidden="true" data-shell-background="dark"`,
+	} {
+		if !strings.Contains(both, want) {
+			t.Errorf("shell lacks %q", want)
+		}
+	}
+	// Each image shows in its own theme only.
+	if !regexp.MustCompile(`data-shell-background="light" class="[^"]*\bdark:hidden\b`).MatchString(both) ||
+		!regexp.MustCompile(`data-shell-background="dark" class="[^"]*\bhidden dark:block\b`).MatchString(both) {
+		t.Error("background images do not follow the theme")
+	}
+	// The content column is relative, so it paints above the image.
+	if !strings.Contains(mainTag(both), "relative") {
+		t.Error("content column is not relative")
+	}
+	// The image comes after the top bar and before the content, inside the inset.
+	if h, i, m := strings.Index(both, "<header"), strings.Index(both, "data-shell-background"), strings.Index(both, `id="main"`); !(h < i && i < m) {
+		t.Error("background is not between the top bar and the content")
+	}
+
+	one := shell(Background{Dark: "/x.svg"})
+	img := regexp.MustCompile(`<img [^>]*data-shell-background[^>]*>`).FindAllString(one, -1)
+	if len(img) != 1 || !strings.Contains(img[0], `src="/x.svg"`) || strings.Contains(img[0], "dark:") {
+		t.Error("a single image should show in both themes")
+	}
+}

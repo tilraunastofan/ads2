@@ -31,7 +31,7 @@ func TestOverlayPutsTheAppOnTop(t *testing.T) {
 		t.Errorf("an app file of the same name must win: got %q", b)
 	}
 	// Everything else comes from the design system.
-	for _, p := range []string{"/css/arion-theme.css", "/js/htmx.min.js", "/js/theme.js", "/img/arion-mark.svg"} {
+	for _, p := range []string{"/css/arion-theme.css", "/js/htmx.min.js", "/js/theme.js", "/img/arion-mark.svg", "/img/arctic-background.svg", "/img/arctic-background-light.svg"} {
 		if w := serve(h, p); w.Code != 200 {
 			t.Errorf("%s: status %d, want the design system's file", p, w.Code)
 		}
