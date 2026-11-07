@@ -33,6 +33,8 @@ shadcn-templ's scripts re-initialise components inside swapped content, so dialo
 
 **Opting out.** `hx-boost="false"` on a link stops preloading it. `hx-history="false"` anywhere on a page keeps that page out of the history cache. Sign-out should clear the cache: see **Clear history on sign-out**.
 
+**Clear history on sign-out.** `<form method="post" action="/sign-out" data-clear-history>`. `clear-history.js` (loaded by `Base`) removes the `htmx-history-*` entries from `sessionStorage` when the form is submitted, so Back after the next sign-in can't show the previous user's pages. Other `sessionStorage` keys stay. Put the attribute on every sign-out form; pages without one are unaffected.
+
 ## Recipes
 
 **Inline validation (field):** post the form, return 422 with the same `field.Field`s re-rendered with `data-invalid` and `field.Error`.

@@ -416,3 +416,9 @@ func TestBaseLoadsHtmxExtensions(t *testing.T) {
 		}
 	}
 }
+
+func TestBaseLoadsClearHistory(t *testing.T) {
+	if html := render(t, Base("t", "en")); !strings.Contains(html, `src="/assets/js/clear-history.js" defer`) {
+		t.Error("Base does not load clear-history.js with defer")
+	}
+}
