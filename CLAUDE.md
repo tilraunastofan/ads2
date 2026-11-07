@@ -12,6 +12,7 @@ Module: `github.com/tilraunastofan/ads2`.
 | `assets/css/arion-theme.css` | shadcn theme variables (`:root`, `.dark`, `@theme inline`) + Arion extras. |
 | `assets/css/fonts.css`, `assets/fonts/` | Self-hosted variable woff2 (OFL). Suisse is optional and opt-in (see Typography in `design-system.md`). |
 | `assets/img/arion-mark.svg` | Arion star mark (vector trace of the Arion logo). In pages use `patterns.ArionMark` (inline, `brand-mark` token: blue in light, white in dark); `arion-mark-favicon.svg` is the favicon. |
+| `assets/img/arctic-background.svg`, `arctic-background-light.svg` | The Arion arctic landscape (no star), dark and light, for `ShellProps.Background` via `patterns.ArcticBackground` |
 | `assets/js/theme.js` | Dark-mode class on `<html>`: OS setting first, then the toggle's saved choice. |
 | `assets/js/toast-guard.js` | Workaround for a freeze in the vendored toast: disconnects each toast's observers before a boosted body swap. Remove once shadcn-templ's toast `destroy()` does it ([shadcn-templ#656](https://github.com/axadrn/shadcn-templ/issues/656)). Relies on toast internals: after every shadcn-templ update, run the checks in `docs/known-issues/toast-freeze.md`. |
 | `assets/js/filter-form.js` | `form[data-filter-form]` fires `filter-change` only when its named values change (see **Filter form** in `docs/htmx-patterns.md`). |

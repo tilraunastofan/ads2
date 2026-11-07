@@ -37,7 +37,30 @@ type ShellProps struct {
 	Lang        string     // defaults to "en"
 	Footer      []NavItem  // pinned to the bottom of the sidebar, below the scrolling groups (About, Account)
 	FooterNote  string     // small muted line under Footer, such as the version; hidden when the sidebar is collapsed
+	Background  Background // optional image behind the content column; for calm pages, not data pages
 }
+
+// Background is a decorative image Shell lays behind the page content, below
+// the top bar, covering the inset. Light shows in light mode and Dark under
+// .dark; set one and it shows in both. The zero value shows nothing. Use it on
+// calm, short pages (home, help, about), not on tables people scan.
+type Background struct {
+	Light string // image URL for light mode
+	Dark  string // image URL for dark mode
+}
+
+// ArcticBackground is the Arion arctic landscape in ads2's assets
+// (assets/img/arctic-background{-light,}.svg): a night sky with aurora, grid and
+// mountain lines, and a pale ice-blue version of it for light mode.
+var ArcticBackground = Background{
+	Light: "/assets/img/arctic-background-light.svg",
+	Dark:  "/assets/img/arctic-background.svg",
+}
+
+func (b Background) set() bool { return b.Light != "" || b.Dark != "" }
+
+// both reports whether light and dark mode use different images.
+func (b Background) both() bool { return b.Light != "" && b.Dark != "" && b.Light != b.Dark }
 
 // navGroups is every group the active item is chosen from: the groups and the footer.
 func (p ShellProps) navGroups() []NavGroup {
@@ -110,6 +133,22 @@ func langOr(l string) string {
 	return l
 }
 
+// backgroundClass places a background image: from below the 3.5rem top bar to
+// the bottom of the sidebar inset (which is relative), cropped to cover it, and
+// never in the way of clicks.
+const backgroundClass = "pointer-events-none absolute inset-x-0 top-14 h-[calc(100%-3.5rem)] w-full object-cover"
+
+// background is the image(s) behind the content: one per theme when both are
+// set, following .dark like the tokens do; else the one set, in both themes.
+templ background(b Background) {
+	if b.both() {
+		<img src={ b.Light } alt="" aria-hidden="true" data-shell-background="light" class={ backgroundClass + " dark:hidden" }/>
+		<img src={ b.Dark } alt="" aria-hidden="true" data-shell-background="dark" class={ backgroundClass + " hidden dark:block" }/>
+	} else {
+		<img src={ cmp.Or(b.Light, b.Dark) } alt="" aria-hidden="true" data-shell-background class={ backgroundClass }/>
+	}
+}
+
 // Shell is the internal-tool layout: sidebar navigation plus an inset holding a
 // single column (max 1200px, 24px padding) with the theme toggle in its top bar.
 // A skip link, the first thing a keyboard reaches, jumps past the navigation.
@@ -177,8 +216,12 @@ templ Shell(p ShellProps) {
 						@ThemeToggle(p.Lang)
 					}
 				</header>
+				if p.Background.set() {
+					@background(p.Background)
+				}
 				// The sidebar inset is the page's one <main>; this is the skip link's target.
-				<div id="main" tabindex="-1" class="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none">
+				// With a background it is relative, so it paints above the image.
+				<div id="main" tabindex="-1" class={ "mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-6 outline-none", templ.KV("relative", p.Background.set()) }>
 					// Target for errors that belong on the page rather than in a toast:
 					// hx-status:5xx="target:#page-alerts" with an alert.Alert response.
 					<div id="page-alerts" role="status" aria-live="polite" class="empty:hidden"></div>

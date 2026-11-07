@@ -29,6 +29,21 @@ func Nav() []patterns.NavItem {
 	return out
 }
 
+// Calm is App with the arctic background, for short pages without data (the
+// error pages); data pages stay plain.
+templ Calm(title, currentPath string) {
+	@patterns.Shell(patterns.ShellProps{
+		Title:       title + " – Arion Design System 2",
+		Product:     "Platform",
+		Tagline:     "OpenShift on-prem",
+		Groups:      NavGroups(),
+		CurrentPath: currentPath,
+		Background:  patterns.ArcticBackground,
+	}) {
+		{ children... }
+	}
+}
+
 // App is the showcase's shell: patterns.Shell with this app's navigation.
 templ App(title, currentPath string) {
 	@patterns.Shell(patterns.ShellProps{
