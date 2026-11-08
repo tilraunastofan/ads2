@@ -486,3 +486,21 @@ func TestShellEnvironmentNote(t *testing.T) {
 		t.Error("Environment empty: note shown")
 	}
 }
+
+func TestShellBrandBars(t *testing.T) {
+	props := ShellProps{Title: "T", Nav: []NavItem{{Label: "A", Href: "/a"}}}
+	if html := render(t, Shell(props)); strings.Contains(html, "data-brand-bar") {
+		t.Error("brand bars rendered without ShellProps.BrandBars")
+	}
+	props.BrandBars = true
+	html := render(t, Shell(props))
+	for _, want := range []string{`data-brand-bar="top"`, `data-brand-bar="side"`} {
+		if !strings.Contains(html, want) {
+			t.Errorf("BrandBars: missing %s", want)
+		}
+	}
+	header := html[strings.Index(html, `data-brand-bar="top"`)-200:]
+	if !strings.Contains(header[:250], "<header") {
+		t.Error(`data-brand-bar="top" is not on the top bar <header>`)
+	}
+}

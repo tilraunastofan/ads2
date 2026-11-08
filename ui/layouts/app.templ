@@ -38,6 +38,7 @@ templ Calm(title, currentPath string) {
 		Tagline:     "OpenShift on-prem",
 		Groups:      NavGroups(),
 		CurrentPath: currentPath,
+		BrandBars:   true,
 		Background:  patterns.ArcticBackground,
 	}) {
 		{ children... }
@@ -52,6 +53,7 @@ templ App(title, currentPath string) {
 		Tagline:     "OpenShift on-prem",
 		Groups:      NavGroups(),
 		CurrentPath: currentPath,
+		BrandBars:   true,
 	}) {
 		{ children... }
 	}

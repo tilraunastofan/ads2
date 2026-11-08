@@ -10,6 +10,8 @@ Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. 
 
 **Added**
 
+- `ShellProps.BrandBars`: paints the top bar and the sidebar with SVG gradients from `assets/css/ads2.css` (`[data-brand-bar]`), a pale brand-blue tint in light mode and the theme's slates in dark mode. In light mode, pages without a `Background` (data pages) also get a flat blue-grey content background (`#eef3f8`) so white cards stand out; pages with one keep their image. The active nav item becomes a white pill in light mode. The gradients are `data:` images, so the app's CSP needs `img-src data:`. Unset, the shell is unchanged.
+
 - `ShellProps.Environment` and `EnvironmentNote`: set `Environment` to a non-production environment's name ("Dev", "Test") and `Shell` shows it in amber text in the sidebar footer, above `FooterNote`, hidden when the sidebar collapses, so nobody mistakes it for production. Leave it empty in production. Unset, the header is unchanged.
 
 - `patterns.Base` loads the htmx 4 extensions `hx-preload`, `hx-history-cache` and `hx-ptag` (vendored in `assets/js/ext/`) and an `htmx-config` meta that turns on preload for boosted links on `mouseover`. Boosted links are fetched when the pointer reaches them, and Back/Forward restores pages from `sessionStorage` (see **Extensions the shell loads** in `docs/htmx-patterns.md`). A GET behind a boosted link may now run on hover, so it must have no side effects beyond audit logging. An app that loads these extensions or sets `htmx-config` itself drops its own copy.

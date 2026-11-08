@@ -40,6 +40,7 @@ type ShellProps struct {
 	Footer      []NavItem  // pinned to the bottom of the sidebar, below the scrolling groups (About, Account)
 	FooterNote  string     // small muted line under Footer, such as the version; hidden when the sidebar is collapsed
 	Background  Background // optional image behind the content column; for calm pages, not data pages
+	BrandBars   bool       // paint the top bar and sidebar with the brand gradients (ads2.css [data-brand-bar]): pale blue in light mode, navy in dark
 	Environment string     // non-production environment ("Dev", "Test") shown in amber above FooterNote; hidden when the sidebar is collapsed; empty in production
 }
 
@@ -180,7 +181,7 @@ templ Shell(p ShellProps) {
 			DisableDefaultOpen: sidebarCollapsed(ctx),
 			Attributes:         templ.Attributes{"style": "--sidebar-width: 16rem; --sidebar-width-icon: 4rem;"},
 		}) {
-			@sidebar.Sidebar(sidebar.Props{Collapsible: sidebar.CollapsibleIcon}) {
+			@sidebar.Sidebar(sidebar.Props{Collapsible: sidebar.CollapsibleIcon, Attributes: barAttrs(p.BrandBars, "side")}) {
 				@sidebar.Header() {
 					<a href="/" class="flex items-center gap-2 p-2">
 						@ArionMark("size-8 shrink-0")
@@ -221,7 +222,7 @@ templ Shell(p ShellProps) {
 			// min-w-0: a flex item is never narrower than its content, so without it a
 			// wide table or code block widens the whole page instead of scrolling in its card.
 			@sidebar.Inset(sidebar.InsetProps{Class: "min-w-0"}) {
-				<header class="flex h-14 items-center justify-between gap-2 border-b px-4">
+				<header class={ "flex h-14 items-center justify-between gap-2 border-b px-4" } { barAttrs(p.BrandBars, "top")... }>
 					@sidebar.Trigger(sidebar.TriggerProps{Attributes: templ.Attributes{"aria-label": labelsFor(p.Lang).ToggleSidebar}})
 					// The wrapper exists only with header actions, so an app without them
 					// gets exactly the markup it always had.
