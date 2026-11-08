@@ -421,6 +421,9 @@ func TestBaseLoadsClearHistory(t *testing.T) {
 	if html := render(t, Base("t", "en")); !strings.Contains(html, `src="/assets/js/clear-history.js" defer`) {
 		t.Error("Base does not load clear-history.js with defer")
 	}
+	if html := render(t, Base("t", "en")); !strings.Contains(html, `src="/assets/js/history-close-popups.js" defer`) {
+		t.Error("Base does not load history-close-popups.js with defer")
+	}
 }
 
 // Two renders of the same page must be byte-identical, or a content-hash ETag never

@@ -20,6 +20,8 @@ Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. 
 
 **Fixed**
 
+- A page left with a hover card, tooltip or popover open (by clicking a link inside its trigger) no longer comes back with it stuck open on Back. The new `assets/js/history-close-popups.js`, loaded by `patterns.Base`, closes every portaled popup in a page restored from the history cache. Nothing to do in apps.
+
 - `patterns.Shell` rendered random element IDs (the sidebar provider, its mobile sheet and a tooltip per nav item), so two renders of the same page were never byte-identical and a content-hash ETag never matched. It now passes fixed IDs: `app-sidebar` (and `app-sidebar-mobile`) and `nav-<group>-<item>` / `nav-footer-<item>` for the nav tooltips. Same inputs now give the same bytes from `Shell` and `Base`. An app that targets those random IDs (it can't have relied on them) needs no change; pages that pass their own components without an `ID` still get random ones from the component, so give them one to cache them.
 
 - `chart.Line`: the legend swatch and the default tooltip indicator ignored `LineProps.Stroke` and read `--color-<key>` from `Config.Color`, so under a strict CSP (no `Config.Color`) they were blank. They now take the stroke, like Recharts' `getLegendItemColor` and as `docs/components/Chart.md` already said; a `Stroke` of `""` or `"none"` still falls back to the series colour.

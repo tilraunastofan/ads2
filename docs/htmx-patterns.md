@@ -33,6 +33,8 @@ shadcn-templ's scripts re-initialise components inside swapped content, so dialo
 
 **Opting out.** `hx-boost="false"` on a link stops preloading it. `hx-history="false"` anywhere on a page keeps that page out of the history cache. Sign-out should clear the cache: see **Clear history on sign-out**.
 
+**Popups on Back.** The history cache saves the page as the user leaves it, so a link clicked inside a hover card or tooltip trigger would save the card open. `history-close-popups.js` (loaded by `Base`) closes every portaled popup (not the toaster) in a cached page before it is restored. Nothing to do in apps.
+
 **Clear history on sign-out.** `<form method="post" action="/sign-out" data-clear-history>`. `clear-history.js` (loaded by `Base`) removes the `htmx-history-*` entries from `sessionStorage` when the form is submitted, so Back after the next sign-in can't show the previous user's pages. Other `sessionStorage` keys stay. Put the attribute on every sign-out form; pages without one are unaffected.
 
 ## Recipes
