@@ -80,7 +80,7 @@ func (p ShellProps) groups() []NavGroup {
 // download alongside the CSS instead of after it; the font and theme CSS; theme.js
 // (before paint, so no flash); the htmx-config meta (preload on hover for boosted
 // links; it must come before htmx); vendored htmx 4 and its extensions hx-preload,
-// hx-history-cache and hx-ptag (assets/js/ext/); clear-history.js (form[data-clear-history] empties the history
+// hx-history-cache and hx-ptag (assets/js/ext/); history-close-popups.js (restored pages show no popup left open); clear-history.js (form[data-clear-history] empties the history
 // cache on submit); toast-guard.js (works around a
 // toast freeze on boosted navigation); filter-form.js (form[data-filter-form]
 // fires filter-change when its values change); request-errors.js (a toast for
@@ -111,6 +111,7 @@ templ Base(title, lang string) {
 			<script src="/assets/js/ext/hx-history-cache.js" defer></script>
 			<script src="/assets/js/ext/hx-ptag.js" defer></script>
 			<script src="/assets/js/clear-history.js" defer></script>
+			<script src="/assets/js/history-close-popups.js" defer></script>
 			<script src="/assets/js/toast-guard.js" defer></script>
 			<script src="/assets/js/filter-form.js" defer></script>
 			<script src="/assets/js/request-errors.js" defer></script>
