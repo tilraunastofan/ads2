@@ -470,3 +470,19 @@ func TestShellRendersStableIDs(t *testing.T) {
 		}
 	}
 }
+
+func TestShellEnvironmentNote(t *testing.T) {
+	render := func(env string) string {
+		var b strings.Builder
+		if err := Shell(ShellProps{Title: "T", Environment: env}).Render(context.Background(), &b); err != nil {
+			t.Fatal(err)
+		}
+		return b.String()
+	}
+	if got := render("Test"); !strings.Contains(got, "data-environment") || !strings.Contains(got, ">Test</p>") {
+		t.Error("Environment set: note missing")
+	}
+	if strings.Contains(render(""), "data-environment") {
+		t.Error("Environment empty: note shown")
+	}
+}
