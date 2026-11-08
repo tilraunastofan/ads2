@@ -19,3 +19,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Brand bars (ShellProps.BrandBars): SVG gradients behind the top bar and the
+   sidebar. Light mode is a pale brand-blue tint under the normal light tokens;
+   dark mode is slate, from the card and accent colours. Both start from the same colour where the bars meet. */
+[data-brand-bar="side"] [data-slot="sidebar-inner"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1 1'%3E%3ClinearGradient id='g' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23d9e7f7'/%3E%3Cstop offset='1' stop-color='%23f3f7fc'/%3E%3C/linearGradient%3E%3Crect width='1' height='1' fill='url(%23g)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-brand-bar="side"] {
+  --sidebar-accent: #ffffff;
+  border-color: transparent;
+}
+[data-brand-bar="top"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1 1'%3E%3ClinearGradient id='g'%3E%3Cstop offset='0' stop-color='%23d9e7f7'/%3E%3Cstop offset='.6' stop-color='%23e9f1fa'/%3E%3Cstop offset='1' stop-color='%23f7fafd'/%3E%3C/linearGradient%3E%3Crect width='1' height='1' fill='url(%23g)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  border-color: transparent;
+}
+.dark [data-brand-bar="side"] [data-slot="sidebar-inner"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1 1'%3E%3ClinearGradient id='g' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23202e3a'/%3E%3Cstop offset='1' stop-color='%23131c23'/%3E%3C/linearGradient%3E%3Crect width='1' height='1' fill='url(%23g)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+.dark [data-brand-bar="side"] {
+  --sidebar-accent: #2b4459;
+}
+.dark [data-brand-bar="top"] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1 1'%3E%3ClinearGradient id='g'%3E%3Cstop offset='0' stop-color='%23202e3a'/%3E%3Cstop offset='.6' stop-color='%231f3346'/%3E%3Cstop offset='1' stop-color='%23223c52'/%3E%3C/linearGradient%3E%3Crect width='1' height='1' fill='url(%23g)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+
+/* Busy pages (no Shell Background) under brand bars, light mode only: a flat
+   blue-grey behind the content so white cards stand out against the tinted bars.
+   Calm pages keep their image. */
+html:not(.dark) body:has([data-brand-bar]) [data-slot="sidebar-inset"]:not(:has([data-shell-background])) {
+  background-color: #eef3f8;
+}

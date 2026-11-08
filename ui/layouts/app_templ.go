@@ -82,6 +82,7 @@ func Calm(title, currentPath string) templ.Component {
 			Tagline:     "OpenShift on-prem",
 			Groups:      NavGroups(),
 			CurrentPath: currentPath,
+			BrandBars:   true,
 			Background:  patterns.ArcticBackground,
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -134,6 +135,7 @@ func App(title, currentPath string) templ.Component {
 			Tagline:     "OpenShift on-prem",
 			Groups:      NavGroups(),
 			CurrentPath: currentPath,
+			BrandBars:   true,
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
