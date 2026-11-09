@@ -2,6 +2,7 @@ package patterns
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -502,5 +503,30 @@ func TestShellBrandBars(t *testing.T) {
 	header := html[strings.Index(html, `data-brand-bar="top"`)-200:]
 	if !strings.Contains(header[:250], "<header") {
 		t.Error(`data-brand-bar="top" is not on the top bar <header>`)
+	}
+}
+
+func TestNoticeTonesLookDifferent(t *testing.T) {
+	body := templ.ComponentFunc(func(_ context.Context, w io.Writer) error {
+		_, err := io.WriteString(w, "<p>Down Saturday.</p>")
+		return err
+	})
+	info := render(t, Notice(NoticeProps{Tone: NoticeInfo, Title: "New feature"}, body))
+	warn := render(t, Notice(NoticeProps{Tone: NoticeWarning, Title: "Planned maintenance"}, body))
+	for name, html := range map[string]string{"info": info, "warning": warn} {
+		for _, want := range []string{`role="alert"`, `data-slot="alert-title"`, `data-slot="alert-description"`, "Down Saturday.", `data-tone="` + name + `"`} {
+			if !strings.Contains(html, want) {
+				t.Errorf("%s notice: missing %q", name, want)
+			}
+		}
+	}
+	if !strings.Contains(info, "lucide-info") || !strings.Contains(warn, "lucide-triangle-alert") {
+		t.Error("each tone needs its own icon (colour must not carry the tone alone)")
+	}
+	if !strings.Contains(warn, "border-warning") || !strings.Contains(info, "border-primary") {
+		t.Error("tones are not in their tokens")
+	}
+	if !strings.Contains(info, "New feature") || !strings.Contains(warn, "Planned maintenance") {
+		t.Error("title missing")
 	}
 }

@@ -1,0 +1,59 @@
+package patterns
+
+import (
+	"github.com/tilraunastofan/ads2/components/alert"
+	"github.com/tilraunastofan/ads2/components/icon"
+)
+
+// NoticeTone sets how a Notice looks.
+type NoticeTone string
+
+const (
+	NoticeInfo    NoticeTone = "info"    // news: a new feature, a change people should know about
+	NoticeWarning NoticeTone = "warning" // act or plan: maintenance, a moved address
+)
+
+// NoticeProps configures a Notice.
+type NoticeProps struct {
+	ID    string
+	Tone  NoticeTone // NoticeInfo if empty or unknown
+	Title string
+	Class string
+}
+
+// Notice is a standing announcement with a title and a body, such as planned
+// maintenance on a sign-in page. Info is tinted in the brand colour, warning in
+// amber, and each has its own icon so colour doesn't carry the tone alone. It has
+// no close button. body may be nil.
+templ Notice(p NoticeProps, body templ.Component) {
+	@alert.Alert(alert.Props{ID: p.ID, Class: noticeClass(p), Attributes: templ.Attributes{"data-tone": string(noticeTone(p.Tone))}}) {
+		if noticeTone(p.Tone) == NoticeWarning {
+			@icon.TriangleAlert()
+		} else {
+			@icon.Info()
+		}
+		@alert.Title() {
+			{ p.Title }
+		}
+		if body != nil {
+			@alert.Description(alert.DescriptionProps{Class: "text-foreground"}) {
+				@body
+			}
+		}
+	}
+}
+
+func noticeTone(t NoticeTone) NoticeTone {
+	if t == NoticeWarning {
+		return NoticeWarning
+	}
+	return NoticeInfo
+}
+
+func noticeClass(p NoticeProps) string {
+	base := "px-4 py-3 text-body-sm"
+	if noticeTone(p.Tone) == NoticeWarning {
+		return base + " border-warning bg-warning/10 *:[svg]:text-warning " + p.Class
+	}
+	return base + " border-primary bg-primary/10 *:[svg]:text-primary " + p.Class
+}
