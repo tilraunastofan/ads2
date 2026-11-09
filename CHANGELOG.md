@@ -10,6 +10,8 @@ Each entry has **Breaking** (an app must change code), **Added** and **Fixed**. 
 
 **Added**
 
+- `patterns.Notice(NoticeProps, body)` with `NoticeInfo` and `NoticeWarning`: a standing announcement (title, body, tone icon, no close button) for pages outside `Shell`, such as a sign-in page. Nothing to do in apps that don't use it.
+
 - `ShellProps.BrandBars`: paints the top bar and the sidebar with SVG gradients from `assets/css/ads2.css` (`[data-brand-bar]`), a pale brand-blue tint in light mode and the theme's slates in dark mode. In light mode, pages without a `Background` (data pages) also get a flat blue-grey content background (`#eef3f8`) so white cards stand out; pages with one keep their image. The active nav item becomes a white pill in light mode. The gradients are `data:` images, so the app's CSP needs `img-src data:`. Unset, the shell is unchanged.
 
 - `ShellProps.Environment` and `EnvironmentNote`: set `Environment` to a non-production environment's name ("Dev", "Test") and `Shell` shows it in amber text in the sidebar footer, above `FooterNote`, hidden when the sidebar collapses, so nobody mistakes it for production. Leave it empty in production. Unset, the header is unchanged.
